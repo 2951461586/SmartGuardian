@@ -2,15 +2,47 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "智慧托管系统"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "智慧托管系统入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "智慧托管"
+    },
+    {
+      "name": "app_name",
+      "value": "智慧托管"
+    },
+    {
+      "name": "nav_home",
+      "value": "首页"
+    },
+    {
+      "name": "nav_orders",
+      "value": "订单"
+    },
+    {
+      "name": "nav_messages",
+      "value": "消息"
+    },
+    {
+      "name": "nav_profile",
+      "value": "我的"
+    },
+    {
+      "name": "nav_attendance",
+      "value": "考勤"
+    },
+    {
+      "name": "nav_homework",
+      "value": "作业"
+    },
+    {
+      "name": "nav_reports",
+      "value": "统计"
     }
   ]
 }
