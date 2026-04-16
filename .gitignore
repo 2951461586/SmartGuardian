@@ -1,12 +1,64 @@
-/node_modules
-/oh_modules
-/local.properties
-/.idea
-**/build
-/.hvigor
-.cxx
-/.clangd
-/.clang-format
-/.clang-tidy
-**/.test
-/.appanalyzer
+# =========================
+# SmartGuardian .gitignore
+# HarmonyOS / DevEco Studio / Node / IDE
+# =========================
+
+# Node / package manager
+node_modules/
+oh_modules/
+
+# Local environment
+local.properties
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# HarmonyOS / DevEco build cache
+.hvigor/
+.appanalyzer/
+**/build/
+**/.test/
+
+# Native / CXX / clang
+.cxx/
+.clangd/
+.clang-format
+.clang-tidy
+
+# Logs / temp
+*.log
+*.tmp
+*.temp
+*.swp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / reports
+coverage/
+reports/
+*.lcov
+
+# Archive / export artifacts
+*.zip
+*.7z
+*.tar
+*.gz
+*.rar
+
+# Generated docs export artifacts
+*.pdf
+*.docx
+*.pptx
+
+# Keep source-controlled lock/config files:
+# - oh-package-lock.json5
+# - build-profile.json5
+# - hvigor/hvigor-config.json5
