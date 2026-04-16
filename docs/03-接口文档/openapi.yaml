@@ -1,0 +1,1025 @@
+openapi: 3.0.3
+info:
+  title: 学生智慧托管系统 API
+  version: 1.0.0
+  description: 基于鸿蒙系统的学生智慧托管系统 OpenAPI 文档
+servers:
+  - url: https://api.smartguardian.local
+    description: 默认开发环境
+
+tags:
+  - name: Auth
+    description: 认证与用户
+  - name: Students
+    description: 学生档案
+  - name: ServiceProducts
+    description: 托管服务
+  - name: Orders
+    description: 订单管理
+  - name: Sessions
+    description: 排课班次
+  - name: Attendance
+    description: 考勤签到
+  - name: Homework
+    description: 作业与反馈
+  - name: Messages
+    description: 消息与通知
+  - name: Timeline
+    description: 学生动态时间线
+  - name: Payments
+    description: 支付
+  - name: Reports
+    description: 统计报表
+  - name: Cards
+    description: 元服务卡片
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: 获取当前用户信息
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserInfo'
+  /api/v1/students:
+    get:
+      tags: [Students]
+      summary: 查询学生列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: pageNum
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentPageResponse'
+    post:
+      tags: [Students]
+      summary: 新增学生档案
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/students/{studentId}:
+    get:
+      tags: [Students]
+      summary: 查询学生详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/StudentDetail'
+  /api/v1/service-products:
+    get:
+      tags: [ServiceProducts]
+      summary: 查询托管服务列表
+      parameters:
+        - in: query
+          name: serviceType
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceProductListResponse'
+  /api/v1/orders:
+    get:
+      tags: [Orders]
+      summary: 查询订单列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: orderStatus
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+    post:
+      tags: [Orders]
+      summary: 创建订单
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderDetail'
+  /api/v1/orders/{orderId}/audit:
+    post:
+      tags: [Orders]
+      summary: 审核订单
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderAuditRequest'
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/sessions:
+    get:
+      tags: [Sessions]
+      summary: 查询班次列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: sessionDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: teacherUserId
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+  /api/v1/attendance/sign-in:
+    post:
+      tags: [Attendance]
+      summary: 学生签到
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceSignInRequest'
+      responses:
+        '200':
+          description: 签到成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AttendanceRecord'
+  /api/v1/attendance/sign-out:
+    post:
+      tags: [Attendance]
+      summary: 学生签退
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceSignOutRequest'
+      responses:
+        '200':
+          description: 签退成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/homework/tasks:
+    get:
+      tags: [Homework]
+      summary: 查询作业任务列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: taskDate
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeworkTaskListResponse'
+    post:
+      tags: [Homework]
+      summary: 新增作业任务
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomeworkTaskCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/homework/feedback:
+    post:
+      tags: [Homework]
+      summary: 提交作业反馈
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomeworkFeedbackCreateRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/messages:
+    get:
+      tags: [Messages]
+      summary: 查询消息列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: conversationId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: pageNum
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageListResponse'
+    post:
+      tags: [Messages]
+      summary: 发送消息
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageSendRequest'
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/timeline/students/{studentId}:
+    get:
+      tags: [Timeline]
+      summary: 查询学生动态时间线
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: bizDate
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineListResponse'
+  /api/v1/payments:
+    post:
+      tags: [Payments]
+      summary: 创建支付单
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/reports/attendance:
+    get:
+      tags: [Reports]
+      summary: 查询考勤报表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportAttendanceResponse'
+  /api/v1/cards/today-status:
+    get:
+      tags: [Cards]
+      summary: 获取今日托管状态卡片数据
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardTodayStatusResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: success
+        data:
+          type: object
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: parent_zhang
+        password:
+          type: string
+          example: 123456
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9.demo.token
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: parent_zhang
+        realName:
+          type: string
+          example: 张丽
+        mobile:
+          type: string
+          example: 13800000001
+        roleType:
+          type: string
+          example: PARENT
+
+    StudentCreateRequest:
+      type: object
+      required: [studentNo, name, grade]
+      properties:
+        studentNo:
+          type: string
+          example: S20260003
+        name:
+          type: string
+          example: 王小乐
+        gender:
+          type: string
+          example: 男
+        birthday:
+          type: string
+          format: date
+          example: 2015-06-01
+        grade:
+          type: string
+          example: 三年级
+        guardianUserId:
+          type: integer
+          format: int64
+          example: 1
+
+    StudentDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        studentNo:
+          type: string
+        name:
+          type: string
+        gender:
+          type: string
+        grade:
+          type: string
+        guardianUserId:
+          type: integer
+          format: int64
+        status:
+          type: string
+
+    StudentPageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 2
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/StudentDetail'
+
+    ServiceProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        serviceName:
+          type: string
+        serviceType:
+          type: string
+        price:
+          type: number
+          format: double
+        capacity:
+          type: integer
+        status:
+          type: string
+
+    ServiceProductListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceProduct'
+
+    OrderCreateRequest:
+      type: object
+      required: [studentId, serviceProductId, startDate, endDate]
+      properties:
+        studentId:
+          type: integer
+          format: int64
+          example: 1
+        serviceProductId:
+          type: integer
+          format: int64
+          example: 1
+        startDate:
+          type: string
+          format: date
+          example: 2026-04-01
+        endDate:
+          type: string
+          format: date
+          example: 2026-04-30
+
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        orderNo:
+          type: string
+        studentId:
+          type: integer
+          format: int64
+        serviceProductId:
+          type: integer
+          format: int64
+        orderStatus:
+          type: string
+        amount:
+          type: number
+          format: double
+        paidAmount:
+          type: number
+          format: double
+        payStatus:
+          type: string
+        auditStatus:
+          type: string
+
+    OrderListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDetail'
+
+    OrderAuditRequest:
+      type: object
+      required: [auditStatus]
+      properties:
+        auditStatus:
+          type: string
+          example: APPROVED
+        auditRemark:
+          type: string
+          example: 审核通过
+
+    SessionInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        sessionDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: '16:30:00'
+        endTime:
+          type: string
+          example: '18:30:00'
+        teacherUserId:
+          type: integer
+          format: int64
+        capacity:
+          type: integer
+        currentCount:
+          type: integer
+
+    SessionListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionInfo'
+
+    AttendanceSignInRequest:
+      type: object
+      required: [studentId, sessionId, signInType]
+      properties:
+        studentId:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+        signInType:
+          type: string
+          example: QRCODE
+        location:
+          type: string
+          example: 实验小学托管教室A
+
+    AttendanceSignOutRequest:
+      type: object
+      required: [studentId, sessionId, signOutType, guardianId]
+      properties:
+        studentId:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+        signOutType:
+          type: string
+          example: PARENT_PICKUP
+        guardianId:
+          type: integer
+          format: int64
+
+    AttendanceRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        studentId:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+        signInTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+          example: SIGNED_IN
+
+    HomeworkTaskCreateRequest:
+      type: object
+      required: [studentId, subject, title, taskDate]
+      properties:
+        studentId:
+          type: integer
+          format: int64
+        subject:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        sourceType:
+          type: string
+        taskDate:
+          type: string
+          format: date
+
+    HomeworkTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        studentId:
+          type: integer
+          format: int64
+        subject:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        taskDate:
+          type: string
+          format: date
+
+    HomeworkTaskListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeworkTask'
+
+    HomeworkFeedbackCreateRequest:
+      type: object
+      required: [homeworkTaskId, studentId, teacherUserId, progressRate]
+      properties:
+        homeworkTaskId:
+          type: integer
+          format: int64
+        studentId:
+          type: integer
+          format: int64
+        teacherUserId:
+          type: integer
+          format: int64
+        progressRate:
+          type: integer
+          example: 80
+        feedbackText:
+          type: string
+        performanceTags:
+          type: string
+        attachmentUrls:
+          type: array
+          items:
+            type: string
+
+    MessageSendRequest:
+      type: object
+      required: [receiverUserId, msgType, content]
+      properties:
+        receiverUserId:
+          type: integer
+          format: int64
+        conversationId:
+          type: integer
+          format: int64
+        msgType:
+          type: string
+          example: TEXT
+        content:
+          type: string
+          example: 张小明已到达托管教室。
+        bizType:
+          type: string
+          example: ATTENDANCE_NOTICE
+
+    MessageInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        senderUserId:
+          type: integer
+          format: int64
+        receiverUserId:
+          type: integer
+          format: int64
+        msgType:
+          type: string
+        content:
+          type: string
+        readStatus:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+
+    MessageListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageInfo'
+
+    TimelineEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        eventType:
+          type: string
+        eventTitle:
+          type: string
+        eventDetail:
+          type: string
+        bizDate:
+          type: string
+          format: date
+
+    TimelineListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEvent'
+
+    PaymentCreateRequest:
+      type: object
+      required: [orderId, payChannel]
+      properties:
+        orderId:
+          type: integer
+          format: int64
+        payChannel:
+          type: string
+          example: WECHAT_PAY
+
+    ReportAttendanceResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            totalStudents:
+              type: integer
+              example: 120
+            signedInCount:
+              type: integer
+              example: 115
+            absentCount:
+              type: integer
+              example: 5
+            abnormalCount:
+              type: integer
+              example: 3
+
+    CardTodayStatusResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            studentId:
+              type: integer
+              format: int64
+            studentName:
+              type: string
+              example: 张小明
+            currentStatus:
+              type: string
+              example: HOMEWORK_IN_PROGRESS
+            latestEventTime:
+              type: string
+              format: date-time
+            classroom:
+              type: string
+              example: 托管教室A

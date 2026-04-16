@@ -1,0 +1,274 @@
+-- 学生智慧托管系统数据库建表 SQL
+-- 数据库建议：MySQL 8.0+
+-- 字符集：utf8mb4
+
+CREATE DATABASE IF NOT EXISTS smart_guardian DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE smart_guardian;
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. 用户表
+CREATE TABLE IF NOT EXISTS `user` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `account_no` VARCHAR(64) NOT NULL COMMENT '账号编号',
+  `username` VARCHAR(64) NOT NULL COMMENT '登录名',
+  `password_hash` VARCHAR(255) NOT NULL COMMENT '密码哈希',
+  `real_name` VARCHAR(64) NOT NULL COMMENT '真实姓名',
+  `mobile` VARCHAR(32) NOT NULL COMMENT '手机号',
+  `role_type` VARCHAR(32) NOT NULL COMMENT '角色类型',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'ENABLED' COMMENT '状态',
+  `last_login_time` DATETIME NULL COMMENT '最近登录时间',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_account_no` (`account_no`),
+  UNIQUE KEY `uk_user_username` (`username`),
+  UNIQUE KEY `uk_user_mobile` (`mobile`),
+  KEY `idx_user_role_type` (`role_type`),
+  KEY `idx_user_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+-- 2. 学生表
+CREATE TABLE IF NOT EXISTS `student` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_no` VARCHAR(64) NOT NULL COMMENT '学生编号',
+  `name` VARCHAR(64) NOT NULL COMMENT '学生姓名',
+  `gender` VARCHAR(8) NULL COMMENT '性别',
+  `birthday` DATE NULL COMMENT '出生日期',
+  `school_id` BIGINT NULL COMMENT '学校ID',
+  `class_id` BIGINT NULL COMMENT '班级ID',
+  `grade` VARCHAR(16) NULL COMMENT '年级',
+  `guardian_user_id` BIGINT NULL COMMENT '主监护人用户ID',
+  `health_notes` VARCHAR(500) NULL COMMENT '健康备注',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_student_student_no` (`student_no`),
+  KEY `idx_student_school_id` (`school_id`),
+  KEY `idx_student_class_id` (`class_id`),
+  KEY `idx_student_guardian_user_id` (`guardian_user_id`),
+  CONSTRAINT `fk_student_guardian_user` FOREIGN KEY (`guardian_user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生表';
+
+-- 3. 监护关系表
+CREATE TABLE IF NOT EXISTS `guardian_relation` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `user_id` BIGINT NOT NULL COMMENT '用户ID',
+  `relation_type` VARCHAR(32) NOT NULL COMMENT '关系类型',
+  `is_primary` TINYINT NOT NULL DEFAULT 0 COMMENT '是否主监护人',
+  `pickup_auth_level` VARCHAR(32) NULL COMMENT '接送授权级别',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_guardian_student_user` (`student_id`, `user_id`),
+  KEY `idx_guardian_user_id` (`user_id`),
+  CONSTRAINT `fk_guardian_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_guardian_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='监护关系表';
+
+-- 4. 托管服务产品表
+CREATE TABLE IF NOT EXISTS `service_product` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `service_name` VARCHAR(128) NOT NULL COMMENT '服务名称',
+  `service_type` VARCHAR(32) NOT NULL COMMENT '服务类型',
+  `org_id` BIGINT NOT NULL COMMENT '机构ID',
+  `school_scope` VARCHAR(255) NULL COMMENT '适用学校范围',
+  `grade_scope` VARCHAR(255) NULL COMMENT '适用年级范围',
+  `start_time` TIME NOT NULL COMMENT '开始时间',
+  `end_time` TIME NOT NULL COMMENT '结束时间',
+  `capacity` INT NOT NULL DEFAULT 0 COMMENT '容量',
+  `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '价格',
+  `refund_rule` VARCHAR(500) NULL COMMENT '退款规则',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'ENABLED' COMMENT '状态',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_service_org_id` (`org_id`),
+  KEY `idx_service_type` (`service_type`),
+  KEY `idx_service_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='托管服务产品表';
+
+-- 5. 托管订单表
+CREATE TABLE IF NOT EXISTS `order_info` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `order_no` VARCHAR(64) NOT NULL COMMENT '订单号',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `guardian_user_id` BIGINT NOT NULL COMMENT '下单家长ID',
+  `service_product_id` BIGINT NOT NULL COMMENT '服务产品ID',
+  `order_status` VARCHAR(32) NOT NULL COMMENT '订单状态',
+  `amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '订单金额',
+  `paid_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '实付金额',
+  `pay_status` VARCHAR(32) NOT NULL DEFAULT 'UNPAID' COMMENT '支付状态',
+  `audit_status` VARCHAR(32) NOT NULL DEFAULT 'PENDING' COMMENT '审核状态',
+  `start_date` DATE NULL COMMENT '开始日期',
+  `end_date` DATE NULL COMMENT '结束日期',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_order_student_status` (`student_id`, `order_status`),
+  KEY `idx_order_guardian_user_id` (`guardian_user_id`),
+  KEY `idx_order_service_product_id` (`service_product_id`),
+  CONSTRAINT `fk_order_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_order_guardian_user` FOREIGN KEY (`guardian_user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `fk_order_service_product` FOREIGN KEY (`service_product_id`) REFERENCES `service_product` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='托管订单表';
+
+-- 6. 班次排课表
+CREATE TABLE IF NOT EXISTS `session_schedule` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `org_id` BIGINT NOT NULL COMMENT '机构ID',
+  `service_product_id` BIGINT NOT NULL COMMENT '服务产品ID',
+  `teacher_user_id` BIGINT NOT NULL COMMENT '教师ID',
+  `classroom_id` BIGINT NULL COMMENT '教室ID',
+  `session_date` DATE NOT NULL COMMENT '班次日期',
+  `start_time` TIME NOT NULL COMMENT '开始时间',
+  `end_time` TIME NOT NULL COMMENT '结束时间',
+  `capacity` INT NOT NULL DEFAULT 0 COMMENT '容量',
+  `current_count` INT NOT NULL DEFAULT 0 COMMENT '当前人数',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'PLANNED' COMMENT '状态',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_session_date_teacher` (`session_date`, `teacher_user_id`),
+  KEY `idx_session_service_product_id` (`service_product_id`),
+  CONSTRAINT `fk_session_service_product` FOREIGN KEY (`service_product_id`) REFERENCES `service_product` (`id`),
+  CONSTRAINT `fk_session_teacher_user` FOREIGN KEY (`teacher_user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班次排课表';
+
+-- 7. 考勤签到表
+CREATE TABLE IF NOT EXISTS `attendance_record` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `order_id` BIGINT NOT NULL COMMENT '订单ID',
+  `attendance_date` DATE NOT NULL COMMENT '考勤日期',
+  `session_id` BIGINT NOT NULL COMMENT '班次ID',
+  `sign_in_time` DATETIME NULL COMMENT '签到时间',
+  `sign_in_type` VARCHAR(32) NULL COMMENT '签到方式',
+  `sign_in_location` VARCHAR(255) NULL COMMENT '签到地点',
+  `sign_out_time` DATETIME NULL COMMENT '签退时间',
+  `sign_out_type` VARCHAR(32) NULL COMMENT '签退方式',
+  `sign_out_guardian_id` BIGINT NULL COMMENT '接回人ID',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'INIT' COMMENT '状态',
+  `abnormal_flag` TINYINT NOT NULL DEFAULT 0 COMMENT '是否异常',
+  `abnormal_type` VARCHAR(64) NULL COMMENT '异常类型',
+  `operator_user_id` BIGINT NULL COMMENT '操作人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_attendance_student_date` (`student_id`, `attendance_date`),
+  KEY `idx_attendance_session_date` (`session_id`, `attendance_date`),
+  KEY `idx_attendance_order_id` (`order_id`),
+  KEY `idx_attendance_status` (`status`),
+  CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_attendance_order` FOREIGN KEY (`order_id`) REFERENCES `order_info` (`id`),
+  CONSTRAINT `fk_attendance_session` FOREIGN KEY (`session_id`) REFERENCES `session_schedule` (`id`),
+  CONSTRAINT `fk_attendance_signout_guardian` FOREIGN KEY (`sign_out_guardian_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `fk_attendance_operator_user` FOREIGN KEY (`operator_user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='考勤签到表';
+
+-- 8. 作业任务表
+CREATE TABLE IF NOT EXISTS `homework_task` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `subject` VARCHAR(32) NOT NULL COMMENT '科目',
+  `title` VARCHAR(128) NOT NULL COMMENT '标题',
+  `content` TEXT NULL COMMENT '内容',
+  `source_type` VARCHAR(32) NOT NULL COMMENT '来源类型',
+  `task_date` DATE NOT NULL COMMENT '任务日期',
+  `due_time` DATETIME NULL COMMENT '截止时间',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'PENDING' COMMENT '状态',
+  `created_by` BIGINT NULL COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_homework_student_date` (`student_id`, `task_date`),
+  KEY `idx_homework_status` (`status`),
+  CONSTRAINT `fk_homework_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_homework_created_by` FOREIGN KEY (`created_by`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作业任务表';
+
+-- 9. 作业反馈表
+CREATE TABLE IF NOT EXISTS `homework_feedback` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `homework_task_id` BIGINT NOT NULL COMMENT '作业任务ID',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `teacher_user_id` BIGINT NOT NULL COMMENT '教师ID',
+  `progress_rate` INT NOT NULL DEFAULT 0 COMMENT '完成进度',
+  `feedback_text` VARCHAR(1000) NULL COMMENT '教师反馈',
+  `performance_tags` VARCHAR(255) NULL COMMENT '表现标签',
+  `attachment_urls` TEXT NULL COMMENT '附件地址',
+  `parent_confirm_status` VARCHAR(16) NOT NULL DEFAULT 'UNCONFIRMED' COMMENT '家长确认状态',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_feedback_homework_task_id` (`homework_task_id`),
+  KEY `idx_feedback_student_id` (`student_id`),
+  KEY `idx_feedback_teacher_user_id` (`teacher_user_id`),
+  CONSTRAINT `fk_feedback_homework_task` FOREIGN KEY (`homework_task_id`) REFERENCES `homework_task` (`id`),
+  CONSTRAINT `fk_feedback_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_feedback_teacher_user` FOREIGN KEY (`teacher_user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作业反馈表';
+
+-- 10. 消息记录表
+CREATE TABLE IF NOT EXISTS `message_record` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `sender_user_id` BIGINT NOT NULL COMMENT '发送人',
+  `receiver_user_id` BIGINT NOT NULL COMMENT '接收人',
+  `conversation_id` BIGINT NULL COMMENT '会话ID',
+  `msg_type` VARCHAR(32) NOT NULL COMMENT '消息类型',
+  `content` TEXT NULL COMMENT '消息内容',
+  `biz_type` VARCHAR(32) NULL COMMENT '业务类型',
+  `read_status` VARCHAR(16) NOT NULL DEFAULT 'UNREAD' COMMENT '已读状态',
+  `sent_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_message_receiver_read_sent` (`receiver_user_id`, `read_status`, `sent_at`),
+  KEY `idx_message_sender_user_id` (`sender_user_id`),
+  CONSTRAINT `fk_message_sender_user` FOREIGN KEY (`sender_user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `fk_message_receiver_user` FOREIGN KEY (`receiver_user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息记录表';
+
+-- 11. 学生动态时间线表
+CREATE TABLE IF NOT EXISTS `student_timeline` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_id` BIGINT NOT NULL COMMENT '学生ID',
+  `biz_date` DATE NOT NULL COMMENT '业务日期',
+  `event_type` VARCHAR(32) NOT NULL COMMENT '事件类型',
+  `event_title` VARCHAR(128) NOT NULL COMMENT '事件标题',
+  `event_detail` VARCHAR(1000) NULL COMMENT '事件详情',
+  `related_biz_id` BIGINT NULL COMMENT '关联业务ID',
+  `visibility_scope` VARCHAR(32) NOT NULL DEFAULT 'PARENT' COMMENT '可见范围',
+  `created_by` BIGINT NULL COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_timeline_student_date` (`student_id`, `biz_date`),
+  KEY `idx_timeline_event_type` (`event_type`),
+  CONSTRAINT `fk_timeline_student` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`),
+  CONSTRAINT `fk_timeline_created_by` FOREIGN KEY (`created_by`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生动态时间线表';
+
+-- 12. 支付流水表
+CREATE TABLE IF NOT EXISTS `payment_record` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `order_id` BIGINT NOT NULL COMMENT '订单ID',
+  `payment_no` VARCHAR(64) NOT NULL COMMENT '支付流水号',
+  `pay_channel` VARCHAR(32) NOT NULL COMMENT '支付渠道',
+  `pay_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `pay_status` VARCHAR(16) NOT NULL DEFAULT 'INIT' COMMENT '支付状态',
+  `refund_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '退款金额',
+  `refund_status` VARCHAR(16) NOT NULL DEFAULT 'NONE' COMMENT '退款状态',
+  `transaction_time` DATETIME NULL COMMENT '交易时间',
+  `callback_time` DATETIME NULL COMMENT '回调时间',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_payment_no` (`payment_no`),
+  KEY `idx_payment_order_id` (`order_id`),
+  KEY `idx_payment_pay_status` (`pay_status`),
+  CONSTRAINT `fk_payment_order` FOREIGN KEY (`order_id`) REFERENCES `order_info` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付流水表';
+
+SET FOREIGN_KEY_CHECKS = 1;
