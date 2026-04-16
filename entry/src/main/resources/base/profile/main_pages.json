@@ -1,6 +1,10 @@
 {
   "src": [
     "pages/LoginPage",
-    "pages/MainPage"
+    "pages/MainPage",
+    "pages/parent/ParentServicesPage",
+    "pages/parent/ParentLeavePage",
+    "pages/teacher/TeacherSchedulePage",
+    "pages/admin/AdminStudentsPage"
   ]
 }

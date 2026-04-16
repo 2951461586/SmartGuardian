@@ -297,3 +297,5 @@ struct ParentHomePage {
     .margin({ bottom: $r('app.float.card_content_margin') })
   }
 }
+
+export { ParentHomePage };

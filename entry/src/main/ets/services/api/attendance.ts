@@ -132,3 +132,5 @@ export class MessageService {
     return get<PageResponse<StudentTimeline>>(`/api/v1/timeline/${studentId}`, params);
   }
 }
+
+export { HomeworkTask };

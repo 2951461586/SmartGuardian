@@ -202,3 +202,5 @@ struct ParentMessagesPage {
     return colorMap[msgType] || '#F5F5F5';
   }
 }
+
+export { ParentMessagesPage };
