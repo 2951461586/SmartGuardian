@@ -3,11 +3,13 @@
  * Teacher can manage homework tasks and feedback
  */
 
-import { HomeworkService, HomeworkTask, HomeworkFeedback, HomeworkFeedbackCreateRequest } from '../../services/api/attendance';
-import { SessionService, SessionSchedule } from '../../services/api/service';
+import { HomeworkService } from '../../services/api/attendance';
+import { HomeworkTask, HomeworkFeedback, HomeworkFeedbackCreateRequest } from '../../models/attendance';
+import { SessionService } from '../../services/api/service';
+import { SessionSchedule } from '../../models/service';
 
 @Component
-struct TeacherHomeworkPage {
+export struct TeacherHomeworkPage {
   @State homeworkList: HomeworkTask[] = [];
   @State sessions: SessionSchedule[] = [];
   @State currentTab: number = 0;
@@ -110,12 +112,13 @@ struct TeacherHomeworkPage {
     Row() {
       Text('作业管理')
         .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontAlign.Center)
+        .fontWeight(FontWeight.Bold)
+        .textAlign(TextAlign.Center)
         .fontColor(Color.White)
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 

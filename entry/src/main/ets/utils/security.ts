@@ -234,7 +234,7 @@ export class InputFilter {
    * 过滤SQL注入风险字符
    */
   static stripSqlChars(str: string): string {
-    return str.replace(/['"\\;--]/g, '');
+    return str.replace(/['"\\;-]|--/g, '');
   }
 
   /**

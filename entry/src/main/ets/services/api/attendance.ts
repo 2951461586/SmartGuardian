@@ -5,7 +5,7 @@
 
 import { get, post } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
-import { AttendanceRecord, SignInRequest, SignOutRequest, HomeworkTask, HomeworkTaskCreateRequest, HomeworkFeedback, HomeworkFeedbackCreateRequest, HomeworkConfirmRequest, MessageRecord, SendMessageRequest, StudentTimeline } from '../../models/attendance';
+import { AttendanceRecord, SignInRequest, SignOutRequest, LeaveRequest, HomeworkTask, HomeworkTaskCreateRequest, HomeworkFeedback, HomeworkFeedbackCreateRequest, HomeworkConfirmRequest, MessageRecord, SendMessageRequest, StudentTimeline } from '../../models/attendance';
 
 /**
  * Attendance API Service
@@ -49,6 +49,13 @@ export class AttendanceService {
     endDate?: string;
   }): Promise<ApiResponse<PageResponse<AttendanceRecord>>> {
     return get<PageResponse<AttendanceRecord>>('/api/v1/attendance/abnormal', params);
+  }
+
+  /**
+   * Submit leave request
+   */
+  static async submitLeave(data: LeaveRequest): Promise<ApiResponse<AttendanceRecord>> {
+    return post<AttendanceRecord>('/api/v1/attendance/leave', data);
   }
 }
 

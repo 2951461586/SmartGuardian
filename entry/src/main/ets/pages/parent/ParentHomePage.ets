@@ -8,7 +8,7 @@ import { CardsService, TodaySummaryCard } from '../../services/api/reports';
 import { HomeworkService, HomeworkTask } from '../../services/api/attendance';
 
 @Component
-struct ParentHomePage {
+export struct ParentHomePage {
   @State userName: string = '';
   @State todaySummary: TodaySummaryCard | null = null;
   @State recentHomework: HomeworkTask[] = [];
@@ -97,7 +97,7 @@ struct ParentHomePage {
     .justifyContent(FlexAlign.SpaceBetween)
     .padding($r('app.float.page_padding'))
     .backgroundColor($r('app.color.primary'))
-    .padding({ top: $r('app.float.status_bar_height') + 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20 })
   }
 
   @Builder
@@ -297,5 +297,3 @@ struct ParentHomePage {
     .margin({ bottom: $r('app.float.card_content_margin') })
   }
 }
-
-export { ParentHomePage };

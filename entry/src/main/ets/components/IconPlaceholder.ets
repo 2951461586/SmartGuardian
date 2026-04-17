@@ -6,7 +6,7 @@
 @Component
 export struct IconPlaceholder {
   @Prop iconName: string = '';
-  @Prop size: number = 24;
+  @Prop iconSize: number = 24;
   @Prop color: ResourceColor = $r('app.color.text_secondary');
 
   build() {
@@ -14,19 +14,19 @@ export struct IconPlaceholder {
       // 使用系统图标或文字占位符
       if (this.iconName) {
         Text(this.getIconText(this.iconName))
-          .fontSize(this.size * 0.7)
+          .fontSize(this.iconSize * 0.7)
           .fontColor(this.color)
           .textAlign(TextAlign.Center)
       } else {
         Text('?')
-          .fontSize(this.size * 0.7)
+          .fontSize(this.iconSize * 0.7)
           .fontColor(this.color)
       }
     }
-    .width(this.size)
-    .height(this.size)
+    .width(this.iconSize)
+    .height(this.iconSize)
     .backgroundColor('#F0F0F0')
-    .borderRadius(this.size / 8)
+    .borderRadius(this.iconSize / 8)
     .justifyContent(FlexAlign.Center)
   }
 
@@ -70,7 +70,7 @@ export struct IconPlaceholder {
 @Component
 export struct SmartIcon {
   @Prop iconName: string = '';
-  @Prop size: number = 24;
+  @Prop iconSize: number = 24;
   @Prop color: ResourceColor = $r('app.color.text_secondary');
   @Prop useEmoji: boolean = true; // 是否允许使用emoji作为后备
 
@@ -78,15 +78,10 @@ export struct SmartIcon {
     Stack() {
       // 尝试加载资源图片
       Image(this.getIconResource())
-        .width(this.size)
-        .height(this.size)
+        .width(this.iconSize)
+        .height(this.iconSize)
         .objectFit(ImageFit.Contain)
         .fillColor(this.color)
-        .alt({
-          src: $r('app.media.ic_placeholder'),
-          width: this.size,
-          height: this.size
-        })
     }
   }
 
@@ -122,7 +117,7 @@ export struct SmartIcon {
       'ic_chat': $r('app.media.ic_chat')
     };
 
-    return iconMap[this.iconName] || $r('app.media.ic_placeholder');
+    return iconMap[this.iconName] || $r('app.media.ic_empty');
   }
 }
 
@@ -139,7 +134,7 @@ export struct EmptyState {
       if (this.useEmoji) {
         IconPlaceholder({
           iconName: this.iconName,
-          size: 80,
+          iconSize: 80,
           color: $r('app.color.text_tertiary')
         })
       }

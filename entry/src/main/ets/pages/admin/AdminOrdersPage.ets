@@ -3,10 +3,11 @@
  * Admin can review and audit orders
  */
 
-import { OrderService, Order, OrderAuditRequest } from '../../services/api/service';
+import { OrderService } from '../../services/api/service';
+import { Order, OrderAuditRequest } from '../../models/service';
 
 @Component
-struct AdminOrdersPage {
+export struct AdminOrdersPage {
   @State orders: Order[] = [];
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
@@ -89,7 +90,7 @@ struct AdminOrdersPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 

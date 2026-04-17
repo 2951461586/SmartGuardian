@@ -7,7 +7,7 @@ import { UserStore } from '../../stores/userStore';
 import { ReportsService, AttendanceReport, FinanceReport } from '../../services/api/reports';
 
 @Component
-struct AdminHomePage {
+export struct AdminHomePage {
   @State userName: string = '';
   @State attendanceReport: AttendanceReport | null = null;
   @State financeReport: FinanceReport | null = null;
@@ -111,7 +111,7 @@ struct AdminHomePage {
     .justifyContent(FlexAlign.SpaceBetween)
     .padding($r('app.float.page_padding'))
     .backgroundColor($r('app.color.primary'))
-    .padding({ top: $r('app.float.status_bar_height') + 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20 })
   }
 
   @Builder

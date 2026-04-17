@@ -4,6 +4,7 @@
  */
 
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import { http } from '@kit.NetworkKit';
 
 const TAG = 'SmartGuardian/Request';
 const DOMAIN = 0x0001;
@@ -98,30 +99,46 @@ export async function httpRequest<T = object>(
     }
   }
 
-  // Build request options
-  const requestOptions: Record<string, object> = {
-    method: method,
-    headers: requestHeaders,
-    connectTimeout: TIMEOUT,
-    readTimeout: TIMEOUT
-  };
-
-  // Add body for non-GET requests
-  if (method !== HttpMethod.GET && data) {
-    requestOptions['body'] = JSON.stringify(data);
+  // Build HTTP request
+  const httpRequest = http.createHttp();
+  // Convert custom HttpMethod to http.RequestMethod
+  let requestMethod: http.RequestMethod = http.RequestMethod.GET;
+  switch (method) {
+    case HttpMethod.POST:
+      requestMethod = http.RequestMethod.POST;
+      break;
+    case HttpMethod.PUT:
+      requestMethod = http.RequestMethod.PUT;
+      break;
+    case HttpMethod.DELETE:
+      requestMethod = http.RequestMethod.DELETE;
+      break;
+    case HttpMethod.PATCH:
+      requestMethod = http.RequestMethod.PUT;
+      break;
+    default:
+      requestMethod = http.RequestMethod.GET;
   }
+  const httpOptions: http.HttpRequestOptions = {
+    method: requestMethod,
+    header: requestHeaders,
+    connectTimeout: TIMEOUT,
+    readTimeout: TIMEOUT,
+    extraData: method !== HttpMethod.GET && data ? JSON.stringify(data) : undefined
+  };
 
   hilog.info(DOMAIN, TAG, `[${method}] ${fullUrl}`);
 
   try {
-    const response = await fetch(fullUrl, requestOptions);
+    const response = await httpRequest.request(fullUrl, httpOptions);
 
-    if (!response.ok) {
-      hilog.error(DOMAIN, TAG, `HTTP Error: ${response.status} ${response.statusText}`);
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // response.responseCode is the HTTP status code
+    if (!response.responseCode || response.responseCode >= 400) {
+      hilog.error(DOMAIN, TAG, `HTTP Error: ${response.responseCode}`);
+      throw new Error(`HTTP Error: ${response.responseCode}`);
     }
 
-    const result = await response.json() as HttpResponse<T>;
+    const result = JSON.parse(response.result as string) as HttpResponse<T>;
 
     hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
 
@@ -135,6 +152,9 @@ export async function httpRequest<T = object>(
   } catch (error) {
     hilog.error(DOMAIN, TAG, `Request failed: ${error}`);
     throw error;
+  } finally {
+    // Destroy http instance to release resources
+    httpRequest.destroy();
   }
 }
 

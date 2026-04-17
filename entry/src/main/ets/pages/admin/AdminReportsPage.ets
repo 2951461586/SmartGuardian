@@ -5,8 +5,21 @@
 
 import { ReportsService, AttendanceReport, FinanceReport, TeacherPerformance } from '../../services/api/reports';
 
+class AttendanceDailyStat {
+  date: string = '';
+  presentCount: number = 0;
+  absentCount: number = 0;
+  lateCount: number = 0;
+}
+
+class FinanceDailyStat {
+  date: string = '';
+  income: number = 0;
+  refund: number = 0;
+}
+
 @Component
-struct AdminReportsPage {
+export struct AdminReportsPage {
   @State currentTab: number = 0;
   @State attendanceReport: AttendanceReport | null = null;
   @State financeReport: FinanceReport | null = null;
@@ -89,7 +102,7 @@ struct AdminReportsPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 
@@ -189,7 +202,7 @@ struct AdminReportsPage {
             .margin({ bottom: $r('app.float.card_content_margin') })
 
           if (this.attendanceReport?.dailyStats && this.attendanceReport.dailyStats.length > 0) {
-            ForEach(this.attendanceReport.dailyStats, (day: any) => {
+            ForEach(this.attendanceReport.dailyStats, (day: AttendanceDailyStat) => {
               this.buildDailyStatItem(day)
             })
           } else {
@@ -230,7 +243,7 @@ struct AdminReportsPage {
   }
 
   @Builder
-  buildDailyStatItem(day: any) {
+  buildDailyStatItem(day: AttendanceDailyStat) {
     Row() {
       Text(day.date)
         .fontSize($r('app.float.text_secondary_size'))
@@ -317,7 +330,7 @@ struct AdminReportsPage {
             .margin({ bottom: $r('app.float.card_content_margin') })
 
           if (this.financeReport?.dailyStats && this.financeReport.dailyStats.length > 0) {
-            ForEach(this.financeReport.dailyStats, (day: any) => {
+            ForEach(this.financeReport.dailyStats, (day: FinanceDailyStat) => {
               this.buildFinanceDailyItem(day)
             })
           } else {
@@ -358,7 +371,7 @@ struct AdminReportsPage {
   }
 
   @Builder
-  buildFinanceDailyItem(day: any) {
+  buildFinanceDailyItem(day: FinanceDailyStat) {
     Row() {
       Text(day.date)
         .fontSize($r('app.float.text_secondary_size'))

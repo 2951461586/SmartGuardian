@@ -44,6 +44,8 @@ export class StudentService {
     pageNum?: number;
     pageSize?: number;
     keyword?: string;
+    grade?: number;
+    classId?: number;
   }): Promise<ApiResponse<PageResponse<Student>>> {
     return get<PageResponse<Student>>('/api/v1/students', params);
   }

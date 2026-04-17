@@ -4,16 +4,19 @@
  */
 
 import { router } from '@kit.ArkUI';
-import { ServiceService, ServiceProduct } from '../../services/api/service';
+import { ServiceProductService } from '../../services/api/service';
+import { ServiceProduct } from '../../models/service';
 
+@Entry
 @Component
-struct ParentServicesPage {
+export struct ParentServicesPage {
   @State serviceList: ServiceProduct[] = [];
   @State isLoading: boolean = false;
   @State selectedCategory: string = 'ALL';
   @State searchKeyword: string = '';
 
-  private categories: string[] = ['ALL', 'DAY_CARE', 'HOMEWORK', 'MEAL', 'TRANSPORT'];
+  // Categories matching ServiceProduct.serviceType
+  private categories: string[] = ['ALL', 'AFTER_SCHOOL', 'HOLIDAY', 'FULL_DAY', 'WEEKEND'];
 
   aboutToAppear() {
     this.loadServiceList();
@@ -22,10 +25,9 @@ struct ParentServicesPage {
   async loadServiceList() {
     this.isLoading = true;
     try {
-      const resp = await ServiceService.getServiceProductList({
-        category: this.selectedCategory === 'ALL' ? undefined : this.selectedCategory,
-        keyword: this.searchKeyword || undefined,
-        page: 1,
+      const resp = await ServiceProductService.getProducts({
+        serviceType: this.selectedCategory === 'ALL' ? undefined : this.selectedCategory,
+        pageNum: 1,
         pageSize: 20
       });
 
@@ -166,7 +168,7 @@ struct ParentServicesPage {
       // Service header
       Row() {
         Column() {
-          Text(service.name)
+          Text(service.serviceName || service.name || '')
             .fontSize($r('app.float.text_primary_size'))
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.text_primary'))
@@ -194,7 +196,7 @@ struct ParentServicesPage {
             Text('服务类型：')
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_tertiary'))
-            Text(this.getCategoryName(service.category))
+            Text(this.getCategoryName(service.serviceType || ''))
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
           }
@@ -203,7 +205,7 @@ struct ParentServicesPage {
             Text('服务时段：')
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_tertiary'))
-            Text(`${service.startTime} - ${service.endTime}`)
+            Text(`${service.signInStartTime || service.startTime || ''} - ${service.signOutEndTime || service.endTime || ''}`)
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
           }
@@ -212,9 +214,9 @@ struct ParentServicesPage {
             Text('剩余名额：')
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_tertiary'))
-            Text(`${service.capacity - service.enrolledCount}`)
+            Text(`${(service.maxStudents || 0) - (service.currentStudents || 0)}`)
               .fontSize($r('app.float.text_secondary_size'))
-              .fontColor(service.capacity - service.enrolledCount > 0 ? $r('app.color.success') : $r('app.color.error'))
+              .fontColor(((service.maxStudents || 0) - (service.currentStudents || 0)) > 0 ? $r('app.color.success') : $r('app.color.error'))
           }
         }
         .alignItems(HorizontalAlign.Start)
@@ -262,13 +264,21 @@ struct ParentServicesPage {
   }
 
   getCategoryName(category: string): string {
-    const categoryMap: Record<string, string> = {
-      'ALL': '全部',
-      'DAY_CARE': '日托',
-      'HOMEWORK': '作业辅导',
-      'MEAL': '含餐',
-      'TRANSPORT': '接送'
-    };
-    return categoryMap[category] || category;
+    if (category === 'ALL') {
+      return '全部';
+    }
+    if (category === 'AFTER_SCHOOL') {
+      return '课后托管';
+    }
+    if (category === 'HOLIDAY') {
+      return '假期托管';
+    }
+    if (category === 'FULL_DAY') {
+      return '全天托管';
+    }
+    if (category === 'WEEKEND') {
+      return '周末托管';
+    }
+    return category;
   }
 }

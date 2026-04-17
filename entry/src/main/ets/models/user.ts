@@ -53,6 +53,7 @@ export interface Student {
   birthDate?: string;
   guardianUserId: number;
   guardianName?: string;
+  guardianMobile?: string;
   healthNotes?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'GRADUATED';
   createdAt: string;

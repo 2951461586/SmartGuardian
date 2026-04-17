@@ -17,8 +17,9 @@ interface ScheduleItem {
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 }
 
+@Entry
 @Component
-struct TeacherSchedulePage {
+export struct TeacherSchedulePage {
   @State currentWeekStart: Date = DateUtils.getStartOfWeek(new Date());
   @State selectedDate: Date = new Date();
   @State weekDates: Date[] = [];
@@ -43,7 +44,7 @@ struct TeacherSchedulePage {
     this.isLoading = true;
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise<void>((resolve: () => void) => setTimeout(resolve, 500));
 
       // Mock data
       this.scheduleList = [
@@ -281,21 +282,42 @@ struct TeacherSchedulePage {
 
   @Builder
   getStatusBadge(status: string) {
-    const statusConfig: Record<string, { text: string; color: string }> = {
-      'SCHEDULED': { text: '待上课', color: '#FF9800' },
-      'IN_PROGRESS': { text: '进行中', color: '#4CAF50' },
-      'COMPLETED': { text: '已完成', color: '#2196F3' },
-      'CANCELLED': { text: '已取消', color: '#9E9E9E' }
-    };
-
-    const config = statusConfig[status] || { text: '未知', color: '#999' };
-
-    Text(config.text)
-      .fontSize($r('app.float.text_tiny_size'))
-      .fontColor(config.color)
-      .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-      .backgroundColor(config.color + '20')
-      .borderRadius($r('app.float.badge_radius'))
+    if (status === 'SCHEDULED') {
+      Text('待上课')
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor('#FF9800')
+        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+        .backgroundColor('#FF980020')
+        .borderRadius($r('app.float.badge_radius'))
+    } else if (status === 'IN_PROGRESS') {
+      Text('进行中')
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor('#4CAF50')
+        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+        .backgroundColor('#4CAF5020')
+        .borderRadius($r('app.float.badge_radius'))
+    } else if (status === 'COMPLETED') {
+      Text('已完成')
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor('#2196F3')
+        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+        .backgroundColor('#2196F320')
+        .borderRadius($r('app.float.badge_radius'))
+    } else if (status === 'CANCELLED') {
+      Text('已取消')
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor('#9E9E9E')
+        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+        .backgroundColor('#9E9E9E20')
+        .borderRadius($r('app.float.badge_radius'))
+    } else {
+      Text('未知')
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor('#999999')
+        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+        .backgroundColor('#99999920')
+        .borderRadius($r('app.float.badge_radius'))
+    }
   }
 
   formatWeekRange(): string {

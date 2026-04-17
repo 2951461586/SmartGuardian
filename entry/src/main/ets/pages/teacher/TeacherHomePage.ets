@@ -4,10 +4,11 @@
  */
 
 import { UserStore } from '../../stores/userStore';
-import { SessionService, SessionSchedule } from '../../services/api/service';
+import { SessionService } from '../../services/api/service';
+import { SessionSchedule } from '../../models/service';
 
 @Component
-struct TeacherHomePage {
+export struct TeacherHomePage {
   @State userName: string = '';
   @State todaySessions: SessionSchedule[] = [];
   @State isLoading: boolean = false;
@@ -38,6 +39,14 @@ struct TeacherHomePage {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  getTotalStudents(): number {
+    return this.todaySessions.reduce((sum: number, session: SessionSchedule) => sum + session.currentCount, 0);
+  }
+
+  getInProgressCount(): number {
+    return this.todaySessions.filter((session: SessionSchedule) => session.status === 'IN_PROGRESS').length;
   }
 
   build() {
@@ -90,7 +99,7 @@ struct TeacherHomePage {
     .justifyContent(FlexAlign.SpaceBetween)
     .padding($r('app.float.page_padding'))
     .backgroundColor($r('app.color.primary'))
-    .padding({ top: $r('app.float.status_bar_height') + 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20 })
   }
 
   @Builder
@@ -118,8 +127,7 @@ struct TeacherHomePage {
           .layoutWeight(1)
 
           Column() {
-            let totalStudents = this.todaySessions.reduce((sum, s) => sum + s.currentCount, 0);
-            Text(`${totalStudents}`)
+            Text(`${this.getTotalStudents()}`)
               .fontSize(32)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary'))
@@ -132,8 +140,7 @@ struct TeacherHomePage {
           .layoutWeight(1)
 
           Column() {
-            let inProgress = this.todaySessions.filter(s => s.status === 'IN_PROGRESS').length;
-            Text(`${inProgress}`)
+            Text(`${this.getInProgressCount()}`)
               .fontSize(32)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary'))

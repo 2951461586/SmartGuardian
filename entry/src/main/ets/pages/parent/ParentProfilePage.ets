@@ -8,7 +8,7 @@ import { AuthService } from '../../services/api/auth';
 import { router } from '@kit.ArkUI';
 
 @Component
-struct ParentProfilePage {
+export struct ParentProfilePage {
   @State userName: string = '';
   @State mobile: string = '';
   @State avatar: string = '';
@@ -58,7 +58,7 @@ struct ParentProfilePage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 

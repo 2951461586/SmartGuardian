@@ -3,10 +3,11 @@
  * Parent can view messages and notifications
  */
 
-import { MessageService, MessageRecord } from '../../services/api/attendance';
+import { MessageService } from '../../services/api/attendance';
+import { MessageRecord } from '../../models/attendance';
 
 @Component
-struct ParentMessagesPage {
+export struct ParentMessagesPage {
   @State messages: MessageRecord[] = [];
   @State isLoading: boolean = false;
   @State errorMessage: string = '';
@@ -65,7 +66,7 @@ struct ParentMessagesPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: px2vp(AppStorage.get<number>('status_bar_height') || 0) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 
@@ -85,6 +86,7 @@ struct ParentMessagesPage {
           .width(120)
           .height(120)
           .objectFit(ImageFit.Contain)
+          .alt($r('app.media.ic_empty'))
 
         Text('暂无消息')
           .fontSize($r('app.float.text_primary_size'))
@@ -131,7 +133,7 @@ struct ParentMessagesPage {
             .fontColor($r('app.color.text_primary'))
 
           if (!message.readStatus) {
-            Row()
+            Row() {}
               .width(8)
               .height(8)
               .backgroundColor($r('app.color.error'))
@@ -202,5 +204,3 @@ struct ParentMessagesPage {
     return colorMap[msgType] || '#F5F5F5';
   }
 }
-
-export { ParentMessagesPage };

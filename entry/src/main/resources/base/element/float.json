@@ -49,6 +49,14 @@
       "value": "8fp"
     },
     {
+      "name": "card_title_size",
+      "value": "18fp"
+    },
+    {
+      "name": "card_subtitle_size",
+      "value": "14fp"
+    },
+    {
       "name": "card_border_radius",
       "value": "12fp"
     },
@@ -95,6 +103,34 @@
     {
       "name": "text_margin_small",
       "value": "4fp"
+    },
+    {
+      "name": "avatar_large_size",
+      "value": "64fp"
+    },
+    {
+      "name": "avatar_medium_size",
+      "value": "48fp"
+    },
+    {
+      "name": "avatar_small_size",
+      "value": "32fp"
+    },
+    {
+      "name": "input_height",
+      "value": "44fp"
+    },
+    {
+      "name": "button_height",
+      "value": "48fp"
+    },
+    {
+      "name": "stat_card_height",
+      "value": "100fp"
+    },
+    {
+      "name": "list_item_height",
+      "value": "56fp"
     }
   ]
 }

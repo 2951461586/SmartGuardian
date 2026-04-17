@@ -3,11 +3,12 @@
  * Parent can view and manage their orders
  */
 
-import { OrderService, Order } from '../../services/api/service';
+import { OrderService } from '../../services/api/service';
+import { Order } from '../../models/service';
 import { UserStore } from '../../stores/userStore';
 
 @Component
-struct ParentOrdersPage {
+export struct ParentOrdersPage {
   @State orders: Order[] = [];
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
@@ -69,7 +70,7 @@ struct ParentOrdersPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 
@@ -242,8 +243,3 @@ struct ParentOrdersPage {
     return colorMap[status] || '#666666';
   }
 }
-
-export { ParentOrdersPage };
-
-
-export { ParentOrdersPage };

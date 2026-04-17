@@ -22,7 +22,7 @@ import { AdminReportsPage } from './admin/AdminReportsPage';
 @Component
 struct MainPage {
   @State currentIndex: number = 0;
-  @State currentRole: string = 'PARENT';
+  @State currentRole: UserRole = UserRole.PARENT;
 
   aboutToAppear() {
     // Get current user role from store

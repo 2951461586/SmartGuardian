@@ -4,25 +4,32 @@
  */
 
 import { router } from '@kit.ArkUI';
-import { AttendanceService, LeaveRequest } from '../../services/api/attendance';
+import { AttendanceService } from '../../services/api/attendance';
+import { LeaveRequest } from '../../models/attendance';
 import { DateUtils } from '../../utils/dateUtils';
 
+interface StudentItem {
+  id: number;
+  name: string;
+}
+
+@Entry
 @Component
 struct ParentLeavePage {
   @State isLoading: boolean = false;
   @State leaveDate: Date = new Date();
-  @State leaveType: string = 'SICK';  // SICK: 病假, PERSONAL: 事假
+  @State leaveType: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER' = 'SICK';
   @State reason: string = '';
   @State attachments: string[] = [];
-  @State selectedStudentId: string = '';
-  @State availableStudents: Array<{ id: string; name: string }> = [];
+  @State selectedStudentId: number = 0;
+  @State availableStudents: StudentItem[] = [];
 
   aboutToAppear() {
-    // Load available students
-    this.availableStudents = [
-      { id: '1', name: '张三' },
-      { id: '2', name: '李四' }
-    ];
+    // Load available students - using proper type
+    const students: StudentItem[] = [];
+    students.push({ id: 1, name: '张三' });
+    students.push({ id: 2, name: '李四' });
+    this.availableStudents = students;
     if (this.availableStudents.length > 0) {
       this.selectedStudentId = this.availableStudents[0].id;
     }
@@ -40,12 +47,15 @@ struct ParentLeavePage {
 
     this.isLoading = true;
     try {
+      const leaveTypeValue: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER' =
+        this.leaveType === 'SICK' ? 'SICK' :
+        this.leaveType === 'PERSONAL' ? 'PERSONAL' :
+        this.leaveType === 'FAMILY' ? 'FAMILY' : 'OTHER';
       const request: LeaveRequest = {
         studentId: this.selectedStudentId,
         leaveDate: DateUtils.formatDate(this.leaveDate),
-        leaveType: this.leaveType,
-        reason: this.reason,
-        attachments: this.attachments
+        leaveType: leaveTypeValue,
+        reason: this.reason
       };
 
       const resp = await AttendanceService.submitLeave(request);
@@ -144,7 +154,7 @@ struct ParentLeavePage {
         .margin({ bottom: 12 })
 
       Row() {
-        ForEach(this.availableStudents, (student: { id: string; name: string }) => {
+        ForEach(this.availableStudents, (student: StudentItem) => {
           Text(student.name)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(this.selectedStudentId === student.id ? Color.White : $r('app.color.text_primary'))

@@ -100,7 +100,3 @@ export enum AbnormalType {
   LOCATION_MISMATCH = 'LOCATION_MISMATCH' // 位置异常
 }
 
-export type {
-  ApiResponse,
-  PageResponse
-}

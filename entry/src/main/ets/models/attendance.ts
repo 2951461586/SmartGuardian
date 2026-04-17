@@ -53,6 +53,17 @@ export interface SignOutRequest {
 }
 
 /**
+ * Leave request
+ */
+export interface LeaveRequest {
+  studentId: number;
+  leaveDate: string;
+  leaveType: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER';
+  reason: string;
+  attachments?: string[];
+}
+
+/**
  * Homework task
  */
 export interface HomeworkTask {

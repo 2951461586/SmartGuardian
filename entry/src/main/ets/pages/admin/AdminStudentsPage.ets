@@ -4,16 +4,18 @@
  */
 
 import { router } from '@kit.ArkUI';
-import { UserService, StudentInfo, GuardianRelation } from '../../services/api/auth';
+import { StudentService } from '../../services/api/auth';
+import { Student, GuardianRelation } from '../../models/user';
 import { SecurityUtils } from '../../utils/security';
 
-interface StudentWithGuardian extends StudentInfo {
+interface StudentWithGuardian extends Student {
   guardianName?: string;
   guardianMobile?: string;
 }
 
+@Entry
 @Component
-struct AdminStudentsPage {
+export struct AdminStudentsPage {
   @State studentList: StudentWithGuardian[] = [];
   @State isLoading: boolean = false;
   @State searchKeyword: string = '';
@@ -30,21 +32,43 @@ struct AdminStudentsPage {
   async loadStudents() {
     this.isLoading = true;
     try {
-      const resp = await UserService.getStudentList({
+      const resp = await StudentService.getStudents({
         keyword: this.searchKeyword || undefined,
         grade: this.selectedGrade === 'ALL' ? undefined : Number(this.selectedGrade),
-        page: this.currentPage,
+        pageNum: this.currentPage,
         pageSize: 20
       });
 
       if (resp.code === 0 && resp.data) {
-        this.studentList = (resp.data.list || []).map(s => ({
-          ...s,
-          // 脱敏处理
-          name: SecurityUtils.desensitizeName(s.name),
-          guardianName: s.guardianName ? SecurityUtils.desensitizeName(s.guardianName) : undefined,
-          guardianMobile: s.guardianMobile ? SecurityUtils.desensitizeMobile(s.guardianMobile) : undefined
-        }));
+        const list: StudentWithGuardian[] = [];
+        const rawList = resp.data.list || [];
+        for (let i = 0; i < rawList.length; i++) {
+          const s = rawList[i];
+          const processed: StudentWithGuardian = {
+            id: s.id,
+            name: SecurityUtils.desensitizeName(s.name),
+            studentNo: s.studentNo,
+            grade: s.grade,
+            className: s.className,
+            gender: s.gender,
+            schoolId: 0,
+            guardianUserId: 0,
+            status: 'ACTIVE',
+            createdAt: '',
+            updatedAt: ''
+          };
+          processed.schoolId = s.schoolId;
+          processed.guardianUserId = s.guardianUserId;
+          processed.status = s.status;
+          if (s.guardianName) {
+            processed.guardianName = SecurityUtils.desensitizeName(s.guardianName);
+          }
+          if (s.guardianMobile) {
+            processed.guardianMobile = SecurityUtils.desensitizeMobile(s.guardianMobile);
+          }
+          list.push(processed);
+        }
+        this.studentList = list;
         this.totalPages = Math.ceil(resp.data.total / 20);
       }
     } finally {

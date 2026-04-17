@@ -9,6 +9,7 @@ import { UserStore } from '../stores/userStore';
 import { UserRole } from '../models/common';
 import { LoginRequest } from '../models/user';
 
+@Entry
 @Component
 struct LoginPage {
   @State accountNo: string = '';

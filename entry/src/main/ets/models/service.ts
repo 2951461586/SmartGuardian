@@ -8,6 +8,7 @@
  */
 export interface ServiceProduct {
   id: number;
+  // 主字段
   serviceName: string;
   serviceType: 'AFTER_SCHOOL' | 'HOLIDAY' | 'FULL_DAY' | 'WEEKEND';
   description: string;
@@ -27,6 +28,11 @@ export interface ServiceProduct {
   status: 'DRAFT' | 'PUBLISHED' | 'PAUSED' | 'CLOSED';
   createdAt: string;
   updatedAt: string;
+  // 兼容别名（用于旧组件兼容）
+  name?: string;
+  category?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 /**

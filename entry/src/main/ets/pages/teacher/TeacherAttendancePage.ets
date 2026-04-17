@@ -3,11 +3,22 @@
  * Teacher can manage attendance - sign in/out students
  */
 
-import { AttendanceService, AttendanceRecord, SignInRequest } from '../../services/api/attendance';
-import { SessionService, SessionWithStudents } from '../../services/api/service';
+import { AttendanceService } from '../../services/api/attendance';
+import { AttendanceRecord, SignInRequest, SignOutRequest } from '../../models/attendance';
+import { SessionService } from '../../services/api/service';
+import { SessionWithStudents } from '../../models/service';
+
+interface AttendanceStudent {
+  studentId: number;
+  studentName: string;
+  studentNo: string;
+  attendanceStatus: string;
+  signInTime?: string;
+  signOutTime?: string;
+}
 
 @Component
-struct TeacherAttendancePage {
+export struct TeacherAttendancePage {
   @State sessions: SessionWithStudents[] = [];
   @State currentSessionIndex: number = 0;
   @State isLoading: boolean = false;
@@ -60,7 +71,7 @@ struct TeacherAttendancePage {
 
   async handleSignOut(studentId: number) {
     try {
-      const request = {
+      const request: SignOutRequest = {
         studentId,
         sessionId: this.sessions[this.currentSessionIndex].id,
         signMethod: 'MANUAL'
@@ -70,6 +81,22 @@ struct TeacherAttendancePage {
     } catch (error) {
       this.errorMessage = '签退失败';
     }
+  }
+
+  getCurrentStudents(): AttendanceStudent[] {
+    return this.sessions[this.currentSessionIndex].students || [];
+  }
+
+  getSignedInCount(students: AttendanceStudent[]): number {
+    return students.filter((student: AttendanceStudent) => student.attendanceStatus === 'SIGNED_IN').length;
+  }
+
+  getSignedOutCount(students: AttendanceStudent[]): number {
+    return students.filter((student: AttendanceStudent) => student.attendanceStatus === 'SIGNED_OUT').length;
+  }
+
+  getNotSignedCount(students: AttendanceStudent[]): number {
+    return students.filter((student: AttendanceStudent) => student.attendanceStatus === 'NOT_SIGNED').length;
   }
 
   build() {
@@ -100,7 +127,7 @@ struct TeacherAttendancePage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: $r('app.float.status_bar_height') + 20, bottom: 20 })
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
     .backgroundColor($r('app.color.primary'))
   }
 
@@ -141,15 +168,13 @@ struct TeacherAttendancePage {
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
     } else {
-      const students = this.sessions[this.currentSessionIndex].students || [];
-      
       Scroll() {
         Column() {
           // Stats
-          this.buildStatsRow(students)
+          this.buildStatsRow(this.getCurrentStudents())
 
           // Student list
-          ForEach(students, (student: any) => {
+          ForEach(this.getCurrentStudents(), (student: AttendanceStudent) => {
             this.buildStudentItem(student)
           })
         }
@@ -163,14 +188,11 @@ struct TeacherAttendancePage {
   }
 
   @Builder
-  buildStatsRow(students: any[]) {
+  buildStatsRow(students: AttendanceStudent[]) {
     Row() {
-      let signedIn = students.filter((s: any) => s.attendanceStatus === 'SIGNED_IN').length;
-      let signedOut = students.filter((s: any) => s.attendanceStatus === 'SIGNED_OUT').length;
-      let notSigned = students.filter((s: any) => s.attendanceStatus === 'NOT_SIGNED').length;
 
       Column() {
-        Text(`${signedIn}`)
+        Text(`${this.getSignedInCount(students)}`)
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .fontColor('#4CAF50')
@@ -181,7 +203,7 @@ struct TeacherAttendancePage {
       .layoutWeight(1)
 
       Column() {
-        Text(`${signedOut}`)
+        Text(`${this.getSignedOutCount(students)}`)
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .fontColor('#2196F3')
@@ -192,7 +214,7 @@ struct TeacherAttendancePage {
       .layoutWeight(1)
 
       Column() {
-        Text(`${notSigned}`)
+        Text(`${this.getNotSignedCount(students)}`)
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .fontColor('#FF9800')
@@ -210,7 +232,7 @@ struct TeacherAttendancePage {
   }
 
   @Builder
-  buildStudentItem(student: any) {
+  buildStudentItem(student: AttendanceStudent) {
     Row() {
       Column() {
         Text(student.studentName)
