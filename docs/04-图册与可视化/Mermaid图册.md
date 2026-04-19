@@ -2,8 +2,8 @@
 
 > 项目名称：基于鸿蒙系统的学生智慧托管系统  
 > 文档类型：图册与可视化  
-> 版本：V1.2  
-> 日期：2026-04-16
+> 版本：V1.3  
+> 日期：2026-04-17
 
 ---
 
@@ -56,7 +56,16 @@ HOMEWORK_TASK ||--o{ HOMEWORK_FEEDBACK : produces
 USER ||--o{ MESSAGE_RECORD : sends
 USER ||--o{ MESSAGE_RECORD : receives
 STUDENT ||--o{ STUDENT_TIMELINE : generates
+STUDENT ||--o{ ALERT_RECORD : triggers
+USER ||--o{ ALERT_RECORD : acknowledges
+USER ||--o{ ALERT_RECORD : resolves
+ORDER_INFO ||--o{ REFUND_RECORD : has
+USER ||--o{ REFUND_RECORD : reviews
 ```
+
+**新增实体说明：**
+- `ALERT_RECORD`：告警记录，关联学生、确认人、解决人
+- `REFUND_RECORD`：退款记录，关联订单、审核人
 
 ## 四、分层架构图
 
@@ -69,10 +78,70 @@ B --> E[考勤服务]
 B --> F[作业与反馈服务]
 B --> G[消息通知服务]
 B --> H[报表统计服务]
+B --> L[告警服务]
+B --> M[退款服务]
 D --> I[(MySQL)]
 E --> I
 F --> I
 G --> I
+H --> I
+L --> I
+M --> I
 B --> J[(Redis)]
 B --> K[(MQ)]
+```
+
+## 五、告警处理时序图
+
+```mermaid
+sequenceDiagram
+participant S as 系统/考勤服务
+participant A as 告警服务
+participant N as 消息中心
+participant T as 教师/管理员
+participant P as 家长
+
+S->>A: 触发异常事件（迟到/缺勤等）
+A->>A: 创建告警记录
+A->>N: 推送预警通知
+N-->>T: 通知管理员处理
+N-->>P: 通知家长异常
+
+alt 管理员确认
+T->>A: 确认告警(acknowledge)
+A->>A: 更新状态为已确认
+A-->>N: 发送确认通知
+else 直接解决
+T->>A: 解决告警(resolve)
+A->>A: 更新状态为已解决
+A-->>N: 发送解决通知
+else 忽略告警
+T->>A: 忽略告警(dismiss)
+A->>A: 更新状态为已忽略
+end
+```
+
+## 六、退款处理流程图
+
+```mermaid
+flowchart TD
+A[家长发起退款申请] --> B{订单状态判断}
+B -->|已支付未开始| C[创建退款申请]
+B -->|服务已开始| D[退款金额计算]
+D --> E{是否可退款?}
+E -->|是| C
+E -->|否| F[拒绝退款申请]
+
+C --> G[退款审核]
+G --> H{审核结果}
+H -->|通过| I[发起退款打款]
+I --> J[更新订单状态]
+J --> K[通知家长]
+H -->|拒绝| L[通知家长拒绝原因]
+
+subgraph 退款金额计算规则
+D --> D1[查看服务进度]
+D1 --> D2[计算已消费金额]
+D2 --> D3[计算可退金额]
+end
 ```

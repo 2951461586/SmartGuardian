@@ -28,8 +28,11 @@ export struct AdminOrdersPage {
     this.isLoading = true;
     try {
       let orderStatus: string | undefined;
-      if (this.currentTab === 0) orderStatus = 'PENDING';
-      else if (this.currentTab === 1) orderStatus = 'APPROVED';
+      if (this.currentTab === 0) {
+        orderStatus = 'PENDING';
+      } else if (this.currentTab === 1) {
+        orderStatus = 'APPROVED';
+      }
 
       const resp = await OrderService.getOrders({
         pageNum: 1,
@@ -39,7 +42,6 @@ export struct AdminOrdersPage {
 
       if (resp.code === 0 && resp.data) {
         const rawOrders = Array.isArray(resp.data) ? resp.data : [];
-        // Apply data masking for privacy protection
         this.orders = rawOrders.map((order: Order) => {
           const maskedOrder: Order = {
             id: order.id,
@@ -57,11 +59,21 @@ export struct AdminOrdersPage {
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
             amount: order.amount,
-            paidAmount: order.paidAmount
+            paidAmount: order.paidAmount,
+            totalAmount: order.totalAmount,
+            auditStatus: order.auditStatus,
+            auditRemark: order.auditRemark,
+            studentName: DataMaskUtil.maskName(order.studentName || ''),
+            guardianUserId: order.guardianUserId,
+            guardianName: order.guardianName,
+            auditTime: order.auditTime
           };
           return maskedOrder;
         });
         LogUtil.info('AdminOrdersPage', `Loaded ${this.orders.length} orders`);
+      } else {
+        this.orders = [];
+        this.errorMessage = resp.message || '加载订单失败';
       }
     } catch (error) {
       this.errorMessage = '加载订单失败';
@@ -71,7 +83,9 @@ export struct AdminOrdersPage {
   }
 
   async handleAudit(auditStatus: 'APPROVED' | 'REJECTED') {
-    if (!this.selectedOrder) return;
+    if (!this.selectedOrder) {
+      return;
+    }
 
     try {
       const request: OrderAuditRequest = {
@@ -79,30 +93,50 @@ export struct AdminOrdersPage {
         auditRemark: this.auditRemark
       };
 
-      await OrderService.auditOrder(this.selectedOrder.id, request);
-      this.showAuditDialog = false;
-      this.selectedOrder = null;
-      this.auditRemark = '';
-      this.loadOrders();
+      const resp = await OrderService.auditOrder(this.selectedOrder.id, request);
+      if (resp.code === 0) {
+        this.closeAuditDialog();
+        this.loadOrders();
+      } else {
+        this.errorMessage = resp.message || '审核失败';
+      }
     } catch (error) {
       this.errorMessage = '审核失败';
     }
   }
 
+  openRejectDialog(order: Order): void {
+    this.selectedOrder = order;
+    this.auditRemark = '';
+    this.showAuditDialog = true;
+    this.errorMessage = '';
+  }
+
+  closeAuditDialog(): void {
+    this.showAuditDialog = false;
+    this.selectedOrder = null;
+    this.auditRemark = '';
+  }
+
   build() {
     Column() {
-      // Header
       this.buildHeader()
-
-      // Tab bar
       this.buildTabBar()
 
-      // Order list
+      if (this.errorMessage) {
+        this.buildErrorMessage()
+      }
+
       this.buildOrderList()
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
+    .bindSheet($$this.showAuditDialog, this.buildAuditDialog(), {
+      height: 360,
+      backgroundColor: Color.White,
+      dragBar: true
+    })
   }
 
   @Builder
@@ -150,6 +184,18 @@ export struct AdminOrdersPage {
   }
 
   @Builder
+  buildErrorMessage() {
+    Row() {
+      Text(this.errorMessage)
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.error'))
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .backgroundColor('#FFF1F0')
+  }
+
+  @Builder
   buildOrderList() {
     if (this.isLoading) {
       Column() {
@@ -193,7 +239,6 @@ export struct AdminOrdersPage {
   @Builder
   buildOrderItem(order: Order) {
     Column() {
-      // Header
       Row() {
         Text(order.orderNo)
           .fontSize($r('app.float.text_secondary_size'))
@@ -215,7 +260,6 @@ export struct AdminOrdersPage {
       .justifyContent(FlexAlign.SpaceBetween)
       .margin({ bottom: $r('app.float.card_content_margin') })
 
-      // Student and service info
       Row() {
         Column() {
           Text('学生')
@@ -243,7 +287,7 @@ export struct AdminOrdersPage {
           Text('金额')
             .fontSize($r('app.float.text_tiny_size'))
             .fontColor($r('app.color.text_tertiary'))
-          Text(`¥${order.actualAmount}`)
+          Text(`¥${order.actualAmount || order.amount}`)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor($r('app.color.error'))
         }
@@ -252,13 +296,11 @@ export struct AdminOrdersPage {
       .width('100%')
       .margin({ bottom: $r('app.float.card_content_margin') })
 
-      // Date range
-      Text(`托管时间：${order.startDate} - ${order.endDate}`)
+      Text(`托管时间：${order.startDate || '-'} - ${order.endDate || '-'}`)
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.text_secondary'))
         .margin({ bottom: $r('app.float.card_content_margin') })
 
-      // Actions
       if (order.orderStatus === 'PENDING') {
         Row() {
           Button('拒绝')
@@ -268,9 +310,7 @@ export struct AdminOrdersPage {
             .borderRadius($r('app.float.button_radius'))
             .padding({ left: 20, right: 20, top: 8, bottom: 8 })
             .onClick(() => {
-              this.selectedOrder = order;
-              this.showAuditDialog = true;
-              this.auditRemark = '';
+              this.openRejectDialog(order);
             })
 
           Button('通过')
@@ -282,6 +322,7 @@ export struct AdminOrdersPage {
             .margin({ left: $r('app.float.card_content_margin') })
             .onClick(() => {
               this.selectedOrder = order;
+              this.auditRemark = '审核通过';
               this.handleAudit('APPROVED');
             })
         }
@@ -294,6 +335,77 @@ export struct AdminOrdersPage {
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
+  }
+
+  @Builder
+  buildAuditDialog() {
+    Column() {
+      Text('拒绝订单')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 8, bottom: 16 })
+
+      if (this.selectedOrder) {
+        Column() {
+          Text(`订单号：${this.selectedOrder.orderNo}`)
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.text_secondary'))
+            .width('100%')
+
+          Text(`学生：${this.selectedOrder.studentName || '-'}`)
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.text_secondary'))
+            .width('100%')
+            .margin({ top: 8 })
+        }
+        .width('100%')
+      }
+
+      TextArea({
+        placeholder: '请输入拒绝原因',
+        text: this.auditRemark
+      })
+        .width('100%')
+        .height(120)
+        .fontSize($r('app.float.text_primary_size'))
+        .backgroundColor($r('app.color.page_background'))
+        .borderRadius($r('app.float.button_radius'))
+        .margin({ top: 16 })
+        .onChange((value: string) => {
+          this.auditRemark = value;
+        })
+
+      Row() {
+        Button('取消')
+          .layoutWeight(1)
+          .height(44)
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_primary'))
+          .backgroundColor('#F5F5F5')
+          .borderRadius(22)
+          .onClick(() => {
+            this.closeAuditDialog();
+          })
+
+        Button('确认拒绝')
+          .layoutWeight(1)
+          .height(44)
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor(Color.White)
+          .backgroundColor('#F44336')
+          .borderRadius(22)
+          .margin({ left: 12 })
+          .enabled(this.auditRemark.trim().length > 0)
+          .onClick(() => {
+            this.handleAudit('REJECTED');
+          })
+      }
+      .width('100%')
+      .margin({ top: 20 })
+    }
+    .width('100%')
+    .padding(20)
   }
 
   getOrderStatusText(status: string): string {

@@ -1,63 +1,107 @@
 /**
  * SmartGuardian - Parent Orders Page
  * Parent can view and manage their orders
+ * 
+ * @optimized Using OrderStore for state management
+ * @migrated 2026-04-18 - P0 Migration
  */
 
+import router from '@ohos.router';
 import { OrderService } from '../../services/api/service';
 import { Order } from '../../models/service';
-import { UserStore } from '../../stores/userStore';
-import { DataMaskUtil } from '../../utils/DataMaskUtil';
+import { OrderStore } from '../../stores/orderStore';
 import { LogUtil } from '../../utils/LogUtil';
 
 @Component
 export struct ParentOrdersPage {
-  @State orders: Order[] = [];
+  @StorageLink('order_list') orders: Order[] = [];
+
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
   @State errorMessage: string = '';
 
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 5 * 60 * 1000;
+
   private tabs: string[] = ['全部', '待审核', '进行中', '已完成'];
 
   aboutToAppear() {
-    this.loadOrders();
+    this.loadOrdersWithCache();
+  }
+
+  async loadOrdersWithCache() {
+    const cachedOrders = OrderStore.getOrderList();
+    if (cachedOrders.length > 0) {
+      this.orders = cachedOrders;
+      LogUtil.info('ParentOrdersPage', `Using cached orders: ${cachedOrders.length} items`);
+    }
+
+    const now = Date.now();
+    const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
+
+    if (shouldRefresh || cachedOrders.length === 0) {
+      await this.loadOrders();
+    }
   }
 
   async loadOrders() {
     this.isLoading = true;
     try {
       let orderStatus: string | undefined;
-      if (this.currentTab === 1) orderStatus = 'PENDING';
-      else if (this.currentTab === 2) orderStatus = 'APPROVED';
-      else if (this.currentTab === 3) orderStatus = 'COMPLETED';
+      if (this.currentTab === 1) {
+        orderStatus = 'PENDING';
+      } else if (this.currentTab === 2) {
+        orderStatus = 'APPROVED';
+      } else if (this.currentTab === 3) {
+        orderStatus = 'COMPLETED';
+      }
 
       const resp = await OrderService.getOrders({
         pageNum: 1,
         pageSize: 20,
-        orderStatus
+        orderStatus: orderStatus
       });
 
       if (resp.code === 0 && resp.data) {
         const rawOrders = Array.isArray(resp.data) ? resp.data : [];
-        // No need to mask order data for parent view (they own the data)
+        OrderStore.setOrderList(rawOrders);
         this.orders = rawOrders;
-        LogUtil.info('ParentOrdersPage', `Loaded ${this.orders.length} orders`);
+        this.lastLoadTime = Date.now();
+        LogUtil.info('ParentOrdersPage', `Loaded and cached ${this.orders.length} orders`);
       }
     } catch (error) {
       this.errorMessage = '加载订单失败';
+      LogUtil.error('ParentOrdersPage', `Load failed: ${JSON.stringify(error)}`);
     } finally {
       this.isLoading = false;
     }
   }
 
+  getDisplayAmount(order: Order): number {
+    if (order.actualAmount !== undefined) {
+      return order.actualAmount;
+    }
+    if (order.totalAmount !== undefined) {
+      return order.totalAmount - (order.discountAmount || 0);
+    }
+    return order.amount || 0;
+  }
+
+  openOrderDetail(order: Order) {
+    OrderStore.setCurrentOrder(order);
+    router.pushUrl({
+      url: 'pages/parent/ParentOrderDetailPage',
+      params: {
+        orderId: order.id,
+        orderNo: order.orderNo
+      }
+    });
+  }
+
   build() {
     Column() {
-      // Header
       this.buildHeader()
-
-      // Tab bar
       this.buildTabBar()
-
-      // Order list
       this.buildOrderList()
     }
     .width('100%')
@@ -96,7 +140,7 @@ export struct ParentOrdersPage {
               .borderRadius(1)
           }
         }
-        .width('25%')
+        .layoutWeight(1)
         .height(44)
         .justifyContent(FlexAlign.Center)
         .onClick(() => {
@@ -111,7 +155,7 @@ export struct ParentOrdersPage {
 
   @Builder
   buildOrderList() {
-    if (this.isLoading) {
+    if (this.isLoading && this.orders.length === 0) {
       Column() {
         LoadingProgress()
           .color($r('app.color.primary'))
@@ -153,7 +197,6 @@ export struct ParentOrdersPage {
   @Builder
   buildOrderItem(order: Order) {
     Column() {
-      // Order header
       Row() {
         Text(order.orderNo)
           .fontSize($r('app.float.text_secondary_size'))
@@ -167,7 +210,6 @@ export struct ParentOrdersPage {
       .justifyContent(FlexAlign.SpaceBetween)
       .margin({ bottom: $r('app.float.card_content_margin') })
 
-      // Service name
       Text(order.serviceProductName || '托管服务')
         .fontSize($r('app.float.text_primary_size'))
         .fontWeight(FontWeight.Medium)
@@ -175,22 +217,20 @@ export struct ParentOrdersPage {
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-      // Date range
-      Text(`${order.startDate} - ${order.endDate}`)
+      Text(`${order.startDate || ''} - ${order.endDate || ''}`)
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
 
-      // Amount and action
       Row() {
         Column() {
-          Text(`¥${order.actualAmount}`)
+          Text(`¥${this.getDisplayAmount(order).toFixed(2)}`)
             .fontSize($r('app.float.text_primary_size'))
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.error'))
 
           if (order.discountAmount && order.discountAmount > 0) {
-            Text(`已优惠 ¥${order.discountAmount}`)
+            Text(`已优惠 ¥${order.discountAmount.toFixed(2)}`)
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
           }
@@ -222,6 +262,9 @@ export struct ParentOrdersPage {
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
+    .onClick(() => {
+      this.openOrderDetail(order);
+    })
   }
 
   getOrderStatusText(status: string): string {

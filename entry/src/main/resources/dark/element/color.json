@@ -59,6 +59,82 @@
     {
       "name": "start_window_background",
       "value": "#000000"
+    },
+    {
+      "name": "price",
+      "value": "#FF7A59"
+    },
+    {
+      "name": "text_hint",
+      "value": "#8E8E93"
+    },
+    {
+      "name": "scan_page_background",
+      "value": "#000000"
+    },
+    {
+      "name": "scan_header_background",
+      "value": "#1C1C1E"
+    },
+    {
+      "name": "scan_text_light",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "scan_text_secondary",
+      "value": "#D1D1D6"
+    },
+    {
+      "name": "scan_text_hint",
+      "value": "#8E8E93"
+    },
+    {
+      "name": "scan_error_text",
+      "value": "#FF7A7A"
+    },
+    {
+      "name": "scan_overlay_background",
+      "value": "#B3000000"
+    },
+    {
+      "name": "scan_result_secondary_button_bg",
+      "value": "#2C2C2E"
+    },
+    {
+      "name": "status_pending",
+      "value": "#FFB340"
+    },
+    {
+      "name": "status_pending_bg",
+      "value": "#4A3310"
+    },
+    {
+      "name": "status_in_progress",
+      "value": "#5AC8FA"
+    },
+    {
+      "name": "status_in_progress_bg",
+      "value": "#17364A"
+    },
+    {
+      "name": "status_completed",
+      "value": "#32D74B"
+    },
+    {
+      "name": "status_completed_bg",
+      "value": "#16361E"
+    },
+    {
+      "name": "status_confirmed",
+      "value": "#BF5AF2"
+    },
+    {
+      "name": "status_confirmed_bg",
+      "value": "#3A1F47"
+    },
+    {
+      "name": "homework_tab_background",
+      "value": "#1C1C1E"
     }
   ]
 }

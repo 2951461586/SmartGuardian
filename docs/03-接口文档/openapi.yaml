@@ -32,6 +32,10 @@ tags:
     description: 统计报表
   - name: Cards
     description: 元服务卡片
+  - name: Alerts
+    description: 告警服务
+  - name: Refunds
+    description: 退款服务
 
 paths:
   /api/v1/auth/login:
@@ -493,6 +497,319 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CardTodayStatusResponse'
+
+  # ========== 告警服务 API ==========
+  /api/v1/alerts:
+    get:
+      tags: [Alerts]
+      summary: 查询告警列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: "告警状态：ACTIVE/ACKNOWLEDGED/RESOLVED/DISMISSED"
+        - in: query
+          name: severity
+          schema:
+            type: string
+          description: "严重程度：LOW/MEDIUM/HIGH/CRITICAL"
+        - in: query
+          name: pageNum
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertPageResponse'
+
+  /api/v1/alerts/{alertId}:
+    get:
+      tags: [Alerts]
+      summary: 查询告警详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: alertId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AlertDetail'
+
+  /api/v1/alerts/{alertId}/acknowledge:
+    post:
+      tags: [Alerts]
+      summary: 确认告警
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: alertId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 确认成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/alerts/{alertId}/resolve:
+    post:
+      tags: [Alerts]
+      summary: 解决告警
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: alertId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertResolveRequest'
+      responses:
+        '200':
+          description: 解决成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/alerts/{alertId}/dismiss:
+    post:
+      tags: [Alerts]
+      summary: 忽略告警
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: alertId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertDismissRequest'
+      responses:
+        '200':
+          description: 忽略成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # ========== 退款服务 API ==========
+  /api/v1/refunds:
+    get:
+      tags: [Refunds]
+      summary: 查询退款记录列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: orderId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: "退款状态：PENDING/APPROVED/REJECTED/PROCESSING/COMPLETED/CANCELLED"
+        - in: query
+          name: pageNum
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundPageResponse'
+    post:
+      tags: [Refunds]
+      summary: 申请退款
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundCreateRequest'
+      responses:
+        '200':
+          description: 申请成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RefundDetail'
+
+  /api/v1/refunds/{refundId}:
+    get:
+      tags: [Refunds]
+      summary: 查询退款详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: refundId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RefundDetail'
+
+  /api/v1/refunds/{refundId}/approve:
+    post:
+      tags: [Refunds]
+      summary: 审核通过退款
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: refundId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundApproveRequest'
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/refunds/{refundId}/reject:
+    post:
+      tags: [Refunds]
+      summary: 拒绝退款
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: refundId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRejectRequest'
+      responses:
+        '200':
+          description: 拒绝成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/refunds/{refundId}/process:
+    post:
+      tags: [Refunds]
+      summary: 处理退款打款
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: refundId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundProcessRequest'
+      responses:
+        '200':
+          description: 处理成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
 components:
   securitySchemes:

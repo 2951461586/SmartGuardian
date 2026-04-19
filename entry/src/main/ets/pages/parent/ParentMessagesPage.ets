@@ -1,24 +1,63 @@
 /**
  * SmartGuardian - Parent Messages Page
  * Enhanced message center with filtering
+ * 
+ * @optimized Using MessageStore for state management
+ * @migrated 2026-04-18 - P1 Migration
  */
 
 import router from '@ohos.router';
 import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
+import { MessageStore } from '../../stores/messageStore';
+import { LogUtil } from '../../utils/LogUtil';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
 @Component
 export struct ParentMessagesPage {
-  @State messages: MessageRecord[] = [];
+  // ✅ 使用 Store 管理消息数据（缓存优先）
+  @StorageLink('message_list') messages: MessageRecord[] = [];
+  @StorageLink('unread_count') unreadCount: number = 0;
+  
+  // 本地 UI 状态
   @State isLoading: boolean = false;
   @State selectedTab: MessageTab = 'ALL';
   @State statistics: MessageStatistics | null = null;
+  
+  // 缓存时间戳
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 2 * 60 * 1000; // 2分钟缓存
 
   aboutToAppear() {
-    this.loadMessages();
+    this.loadMessagesWithCache();
     this.loadStatistics();
+  }
+
+  /**
+   * 带缓存的消息加载策略
+   * 1. 优先使用缓存数据（Store）
+   * 2. 判断缓存是否过期
+   * 3. 过期则后台刷新
+   */
+  async loadMessagesWithCache() {
+    // 优先显示缓存数据
+    const cachedMessages = MessageStore.getMessageList();
+    const cachedUnread = MessageStore.getUnreadCount();
+    
+    if (cachedMessages.length > 0) {
+      this.messages = cachedMessages;
+      this.unreadCount = cachedUnread;
+      LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items, unread: ${cachedUnread}`);
+    }
+    
+    // 判断是否需要刷新
+    const now = Date.now();
+    const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
+    
+    if (shouldRefresh || cachedMessages.length === 0) {
+      await this.loadMessages();
+    }
   }
 
   async loadMessages() {
@@ -26,13 +65,30 @@ export struct ParentMessagesPage {
     try {
       const resp = await MessageService.getMessages({ pageNum: 1, pageSize: 50 });
       if (resp.code === 0 && resp.data) {
-        this.messages = resp.data.list || [];
+        const messageList = resp.data.list || [];
+        
+        // 更新 Store 缓存
+        MessageStore.setMessageList(messageList);
+        
+        // 计算未读数量并更新 Store
+        const unread = messageList.filter(m => !m.readStatus).length;
+        MessageStore.setUnreadCount(unread);
+        
+        // 同步到本地状态
+        this.messages = messageList;
+        this.unreadCount = unread;
+        this.lastLoadTime = Date.now();
+        
+        LogUtil.info('ParentMessagesPage', `Loaded and cached ${messageList.length} messages, unread: ${unread}`);
       } else {
+        // 使用 Mock 数据作为降级
         this.messages = this.getMockMessages();
+        MessageStore.setMessageList(this.messages);
       }
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      LogUtil.error('ParentMessagesPage', `Load failed: ${JSON.stringify(error)}`);
       this.messages = this.getMockMessages();
+      MessageStore.setMessageList(this.messages);
     } finally {
       this.isLoading = false;
     }
@@ -54,20 +110,37 @@ export struct ParentMessagesPage {
   async markAsRead(messageId: number) {
     try {
       await MessageService.markAsRead(messageId);
-      this.loadMessages();
+      
+      // 更新 Store
+      MessageStore.markMessageAsRead(messageId);
+      
+      // 同步本地状态
+      this.loadMessagesWithCache();
       this.loadStatistics();
+      
+      LogUtil.info('ParentMessagesPage', `Marked message ${messageId} as read`);
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      LogUtil.error('ParentMessagesPage', `Mark as read failed: ${JSON.stringify(error)}`);
     }
   }
 
   async markAllAsRead() {
     try {
       await MessageService.markAllAsRead();
-      this.loadMessages();
+      
+      // 清空 Store 未读数
+      const messages = MessageStore.getMessageList();
+      messages.forEach(m => m.readStatus = true);
+      MessageStore.setMessageList(messages);
+      MessageStore.setUnreadCount(0);
+      
+      // 同步本地状态
+      this.loadMessagesWithCache();
       this.loadStatistics();
+      
+      LogUtil.info('ParentMessagesPage', 'Marked all messages as read');
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      LogUtil.error('ParentMessagesPage', `Mark all as read failed: ${JSON.stringify(error)}`);
     }
   }
 
@@ -103,7 +176,7 @@ export struct ParentMessagesPage {
         .textAlign(TextAlign.Center)
 
       Row() {
-        if (this.statistics && this.statistics.unread > 0) {
+        if (this.unreadCount > 0) {
           Button('全部已读')
             .fontSize(12)
             .fontColor(Color.White)

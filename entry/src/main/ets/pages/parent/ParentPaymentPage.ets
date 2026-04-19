@@ -4,9 +4,10 @@
  */
 
 import router from '@ohos.router';
-import { PaymentCreateRequest, PaymentOrder } from '../../models/payment';
+import { PaymentCreateRequest, PaymentOrder, PaymentCallbackRequest } from '../../models/payment';
 import { PaymentService } from '../../services/api/payments';
 import { Order } from '../../models/service';
+import { OrderStore } from '../../stores/orderStore';
 
 interface RouterParams {
   orderId?: number;
@@ -34,8 +35,13 @@ struct ParentPaymentPage {
   }
 
   aboutToDisappear() {
+    this.clearTimer();
+  }
+
+  clearTimer(): void {
     if (this.timer !== -1) {
       clearInterval(this.timer);
+      this.timer = -1;
     }
   }
 
@@ -53,36 +59,89 @@ struct ParentPaymentPage {
       if (resp.code === 0 && resp.data) {
         this.paymentOrder = resp.data;
         this.startCountdown();
-        // In real app, would call native payment SDK here
-        // For demo, simulate payment success after countdown
       }
     } catch (error) {
-      console.error('Payment failed:', error);
+      console.error('Payment failed:', String(error));
     } finally {
       this.isPaying = false;
     }
   }
 
-  startCountdown() {
+  startCountdown(): void {
+    this.clearTimer();
     this.countdown = 30;
     this.timer = setInterval(() => {
       this.countdown--;
       if (this.countdown <= 0) {
-        clearInterval(this.timer);
-        // Simulate payment success
+        this.clearTimer();
         this.handlePaymentSuccess();
       }
     }, 1000);
   }
 
   async handlePaymentSuccess() {
-    // Navigate to result page
+    try {
+      if (this.paymentOrder && this.paymentOrder.paymentNo) {
+        const callbackRequest: PaymentCallbackRequest = {
+          paymentNo: this.paymentOrder.paymentNo,
+          tradeStatus: 'SUCCESS',
+          thirdTradeNo: this.paymentOrder.thirdTradeNo,
+          payTime: new Date().toISOString(),
+          rawPayload: 'mock-payment-success'
+        };
+        await PaymentService.callback(callbackRequest);
+      }
+      this.syncLocalOrderStatus();
+    } catch (error) {
+      console.error('Payment callback failed:', String(error));
+      this.syncLocalOrderStatus();
+    }
+
     router.replaceUrl({
       url: 'pages/parent/ParentOrderDetailPage',
       params: {
         orderId: this.orderId
       }
     });
+  }
+
+  syncLocalOrderStatus(): void {
+    const cachedOrder = OrderStore.findOrderById(this.orderId) || OrderStore.getCurrentOrder();
+    if (!cachedOrder) {
+      return;
+    }
+
+    const paidTime = new Date().toISOString();
+    const paidAmount = this.amount > 0 ? this.amount : cachedOrder.paidAmount;
+    const updatedOrder: Order = {
+      id: cachedOrder.id,
+      orderNo: cachedOrder.orderNo,
+      studentId: cachedOrder.studentId,
+      serviceProductId: cachedOrder.serviceProductId,
+      orderStatus: cachedOrder.orderStatus,
+      amount: cachedOrder.amount,
+      paidAmount: paidAmount,
+      payStatus: 'PAID',
+      auditStatus: cachedOrder.auditStatus,
+      startDate: cachedOrder.startDate,
+      endDate: cachedOrder.endDate,
+      totalAmount: cachedOrder.totalAmount,
+      discountAmount: cachedOrder.discountAmount,
+      actualAmount: cachedOrder.actualAmount,
+      payTime: paidTime,
+      auditTime: cachedOrder.auditTime,
+      auditUserId: cachedOrder.auditUserId,
+      auditRemark: cachedOrder.auditRemark,
+      createdAt: cachedOrder.createdAt,
+      updatedAt: paidTime,
+      studentName: cachedOrder.studentName,
+      guardianUserId: cachedOrder.guardianUserId,
+      guardianName: cachedOrder.guardianName,
+      serviceProductName: cachedOrder.serviceProductName
+    };
+
+    OrderStore.setCurrentOrder(updatedOrder);
+    OrderStore.updateOrderInList(updatedOrder);
   }
 
   build() {
@@ -204,7 +263,9 @@ struct ParentPaymentPage {
     }
     .width('100%')
     .padding({ top: 12, bottom: 12 })
-    .onClick(() => this.selectedChannel = channel)
+    .onClick(() => {
+      this.selectedChannel = channel;
+    })
   }
 
   @Builder
@@ -230,6 +291,13 @@ struct ParentPaymentPage {
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
+
+      if (this.paymentOrder && this.countdown > 0) {
+        Text(`模拟支付处理中，剩余 ${this.countdown}s`)
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.primary'))
+          .margin({ top: 16 })
+      }
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
@@ -260,14 +328,14 @@ struct ParentPaymentPage {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Button('立即支付')
+      Button(this.paymentOrder ? '支付处理中' : '立即支付')
         .width(160)
         .height(44)
         .fontSize($r('app.float.text_primary_size'))
         .fontColor(Color.White)
         .backgroundColor($r('app.color.primary'))
         .borderRadius(22)
-        .enabled(!this.isPaying)
+        .enabled(!this.isPaying && this.paymentOrder === null)
         .onClick(() => this.handlePayment())
     }
     .width('100%')

@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: 学生智慧托管系统 API
-  version: 1.1.0
-  description: 更完整可导入的 OpenAPI/Swagger 文档，覆盖认证、学生档案、托管服务、订单、排课、考勤、作业、消息、时间线、支付、报表与卡片接口。
+  version: 1.2.0
+  description: 更完整可导入的 OpenAPI/Swagger 文档，覆盖认证、学生档案、托管服务、订单、排课、考勤、作业、消息、时间线、支付、报表、卡片、告警与退款接口。
 servers:
   - url: https://api.smartguardian.local
     description: 开发环境
@@ -36,6 +36,10 @@ tags:
     description: 统计报表
   - name: Cards
     description: 元服务卡片
+  - name: Alerts
+    description: 告警服务
+  - name: Refunds
+    description: 退款服务
 
 security:
   - bearerAuth: []
@@ -2128,3 +2132,185 @@ components:
               eventTime:
                 type: string
                 format: date-time
+
+    # ========== 告警相关 Schema ==========
+    AlertDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        studentId:
+          type: integer
+          format: int64
+        studentName:
+          type: string
+        alertType:
+          type: string
+          description: "告警类型：ATTENDANCE_ABNORMAL/PICKUP_ABNORMAL/SAFETY_ABNORMAL/PAYMENT_ABNORMAL/SYSTEM_ERROR"
+        severity:
+          type: string
+          description: "严重程度：LOW/MEDIUM/HIGH/CRITICAL"
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          description: "告警状态：ACTIVE/ACKNOWLEDGED/RESOLVED/DISMISSED"
+        occurredAt:
+          type: string
+          format: date-time
+        acknowledgedBy:
+          type: integer
+          format: int64
+          nullable: true
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolvedBy:
+          type: integer
+          format: int64
+          nullable: true
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolution:
+          type: string
+          nullable: true
+
+    AlertPageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlertDetail'
+
+    AlertResolveRequest:
+      type: object
+      required: [resolution]
+      properties:
+        resolution:
+          type: string
+
+    AlertDismissRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+
+    # ========== 退款相关 Schema ==========
+    RefundDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        refundNo:
+          type: string
+        orderId:
+          type: integer
+          format: int64
+        orderNo:
+          type: string
+        studentId:
+          type: integer
+          format: int64
+        studentName:
+          type: string
+        refundAmount:
+          type: number
+          format: double
+        reasonType:
+          type: string
+          description: "退款原因类型：SERVICE_UNSATISFIED/SCHEDULE_CHANGE/PERSONAL_REASON/OTHER"
+        reason:
+          type: string
+        status:
+          type: string
+          description: "退款状态：PENDING/APPROVED/REJECTED/PROCESSING/COMPLETED/CANCELLED"
+        appliedAt:
+          type: string
+          format: date-time
+        reviewedBy:
+          type: integer
+          format: int64
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        reviewRemark:
+          type: string
+          nullable: true
+        processedAt:
+          type: string
+          format: date-time
+          nullable: true
+        transactionId:
+          type: string
+          nullable: true
+
+    RefundPageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/RefundDetail'
+
+    RefundCreateRequest:
+      type: object
+      required: [orderId, refundAmount, reasonType]
+      properties:
+        orderId:
+          type: integer
+          format: int64
+        refundAmount:
+          type: number
+          format: double
+        reasonType:
+          type: string
+        reason:
+          type: string
+
+    RefundApproveRequest:
+      type: object
+      properties:
+        reviewRemark:
+          type: string
+
+    RefundRejectRequest:
+      type: object
+      required: [reviewRemark]
+      properties:
+        reviewRemark:
+          type: string
+
+    RefundProcessRequest:
+      type: object
+      required: [transactionId]
+      properties:
+        transactionId:
+          type: string

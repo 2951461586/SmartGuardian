@@ -4,7 +4,7 @@
  */
 
 import router from '@ohos.router';
-import { AlertRecord, AlertStatistics, AlertSeverity, AlertStatus } from '../../models/alert';
+import { AlertRecord, AlertStatistics } from '../../models/alert';
 import { AlertService } from '../../services/api/alert';
 
 @Entry
@@ -13,7 +13,6 @@ struct ParentAlertsPage {
   @State alerts: AlertRecord[] = [];
   @State isLoading: boolean = false;
   @State statistics: AlertStatistics | null = null;
-  @State selectedSeverity: string = 'ALL';
   @State showDetailDialog: boolean = false;
   @State selectedAlert: AlertRecord | null = null;
 
@@ -55,8 +54,9 @@ struct ParentAlertsPage {
 
   async acknowledgeAlert(alertId: number) {
     try {
-      const resp = await AlertService.acknowledgeAlert({ alertId });
+      const resp = await AlertService.acknowledgeAlert({ alertId: alertId });
       if (resp.code === 0) {
+        this.showDetailDialog = false;
         this.loadAlerts();
         this.loadStatistics();
       }
@@ -65,23 +65,23 @@ struct ParentAlertsPage {
     }
   }
 
-  async resolveAlert(alertId: number, resolution: string) {
+  async dismissAlert(alertId: number) {
     try {
-      const resp = await AlertService.resolveAlert({ alertId, resolution });
+      const resp = await AlertService.dismissAlert(alertId);
       if (resp.code === 0) {
         this.showDetailDialog = false;
         this.loadAlerts();
         this.loadStatistics();
       }
     } catch (error) {
-      console.error('Failed to resolve alert:', String(error));
+      console.error('Failed to dismiss alert:', String(error));
     }
   }
 
   build() {
     Column() {
       this.buildHeader()
-      
+
       if (this.statistics) {
         this.buildStatistics()
       }
@@ -96,7 +96,7 @@ struct ParentAlertsPage {
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .bindSheet($$this.showDetailDialog, this.buildDetailSheet(), {
-      height: 400,
+      height: 420,
       backgroundColor: Color.White,
       dragBar: true
     })
@@ -251,7 +251,7 @@ struct ParentAlertsPage {
             .width(16)
             .height(16)
 
-          Text('建议操作: ' + alert.suggestedAction)
+          Text('建议操作：' + alert.suggestedAction)
             .fontSize(12)
             .fontColor('#2196F3')
             .margin({ left: 4 })
@@ -290,7 +290,7 @@ struct ParentAlertsPage {
           this.buildDetailRow('类型', this.getAlertTypeText(this.selectedAlert.alertType))
           this.buildDetailRow('严重程度', this.getSeverityText(this.selectedAlert.severity))
           this.buildDetailRow('描述', this.selectedAlert.description)
-          
+
           if (this.selectedAlert.suggestedAction) {
             this.buildDetailRow('建议操作', this.selectedAlert.suggestedAction)
           }
@@ -305,7 +305,9 @@ struct ParentAlertsPage {
             .backgroundColor('#E3F2FD')
             .layoutWeight(1)
             .onClick(() => {
-              this.showDetailDialog = false;
+              if (this.selectedAlert) {
+                this.dismissAlert(this.selectedAlert.id);
+              }
             })
 
           Button('已知晓')
@@ -317,7 +319,6 @@ struct ParentAlertsPage {
             .onClick(() => {
               if (this.selectedAlert) {
                 this.acknowledgeAlert(this.selectedAlert.id);
-                this.showDetailDialog = false;
               }
             })
         }
@@ -378,19 +379,21 @@ struct ParentAlertsPage {
   }
 
   formatTime(time: string): string {
-    if (!time) return '';
+    if (!time) {
+      return '';
+    }
     const date = new Date(time);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    
+
     if (hours < 1) {
       return '刚刚';
-    } else if (hours < 24) {
-      return `${hours}小时前`;
-    } else {
-      return time.substring(0, 10);
     }
+    if (hours < 24) {
+      return `${hours}小时前`;
+    }
+    return time.substring(0, 10);
   }
 
   getMockAlerts(): AlertRecord[] {

@@ -3,9 +3,9 @@
 > 项目名称：基于鸿蒙系统的学生智慧托管系统  
 > 文档类型：接口设计文档（API 清单）  
 > 文档编号：SG-API-001  
-> 版本：V1.2  
+> 版本：V1.3  
 > 状态：正式交付版  
-> 日期：2026-04-16  
+> 日期：2026-04-17  
 > 页眉建议：基于鸿蒙系统的学生智慧托管系统｜接口设计文档  
 > 页脚建议：SmartGuardian 正式交付版｜第 X 页 / 共 Y 页
 
@@ -87,6 +87,24 @@
 ### 2.12 Cards
 - `GET /api/v1/cards/today-status`：今日托管卡片摘要
 - `GET /api/v1/cards/abnormal-alert`：异常提醒卡片摘要
+
+### 2.13 Alerts
+- `GET /api/alerts`：查询告警记录列表
+- `GET /api/alerts/{alertId}`：查询告警详情
+- `POST /api/alerts/{alertId}/acknowledge`：确认告警
+- `POST /api/alerts/{alertId}/resolve`：解决告警
+- `POST /api/alerts/{alertId}/dismiss`：忽略告警
+- `GET /api/alerts/active-count`：获取活跃告警数量
+- `GET /api/alerts/statistics`：获取告警统计信息
+
+### 2.14 Refunds
+- `POST /api/v1/refunds`：创建退款申请
+- `GET /api/v1/refunds`：查询退款记录列表
+- `GET /api/v1/refunds/{refundId}`：查询退款详情
+- `POST /api/v1/refunds/{refundId}/cancel`：取消退款申请
+- `GET /api/v1/refunds/statistics`：获取退款统计
+- `GET /api/v1/refunds/calculate`：计算退款金额
+- `GET /api/v1/refunds/order/{orderId}`：根据订单查询退款记录
 
 ## 3. 统一规范
 

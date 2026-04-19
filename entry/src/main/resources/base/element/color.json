@@ -67,6 +67,74 @@
     {
       "name": "text_hint",
       "value": "#BDBDBD"
+    },
+    {
+      "name": "scan_page_background",
+      "value": "#000000"
+    },
+    {
+      "name": "scan_header_background",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "scan_text_light",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "scan_text_secondary",
+      "value": "#CCCCCC"
+    },
+    {
+      "name": "scan_text_hint",
+      "value": "#999999"
+    },
+    {
+      "name": "scan_error_text",
+      "value": "#FF6B6B"
+    },
+    {
+      "name": "scan_overlay_background",
+      "value": "#B3000000"
+    },
+    {
+      "name": "scan_result_secondary_button_bg",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "status_pending",
+      "value": "#FF9800"
+    },
+    {
+      "name": "status_pending_bg",
+      "value": "#FFF3E0"
+    },
+    {
+      "name": "status_in_progress",
+      "value": "#2196F3"
+    },
+    {
+      "name": "status_in_progress_bg",
+      "value": "#E3F2FD"
+    },
+    {
+      "name": "status_completed",
+      "value": "#4CAF50"
+    },
+    {
+      "name": "status_completed_bg",
+      "value": "#E8F5E9"
+    },
+    {
+      "name": "status_confirmed",
+      "value": "#9C27B0"
+    },
+    {
+      "name": "status_confirmed_bg",
+      "value": "#F3E5F5"
+    },
+    {
+      "name": "homework_tab_background",
+      "value": "#FFFFFF"
     }
   ]
 }

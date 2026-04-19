@@ -74,6 +74,10 @@ export class RouteUrls {
   static readonly TEACHER_ATTENDANCE = 'pages/teacher/TeacherAttendancePage';
   static readonly TEACHER_HOMEWORK = 'pages/teacher/TeacherHomeworkPage';
   static readonly TEACHER_SCHEDULE = 'pages/teacher/TeacherSchedulePage';
+  static readonly TEACHER_SCAN = 'pages/teacher/TeacherScanPage';
+
+  // Common pages
+  static readonly COMMON_QRCODE_SCAN = 'pages/common/QRCodeScanPage';
 
   // Admin pages
   static readonly ADMIN_HOME = 'pages/admin/AdminHomePage';

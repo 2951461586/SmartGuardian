@@ -1,6 +1,14 @@
 /**
  * SmartGuardian - Reports & Cards API Service
  * Statistics, reports, and widget card APIs
+ * 
+ * @description 报表与卡片 API，提供统计报表和首页卡片数据功能
+ * @features
+ * - 考勤报表统计
+ * - 财务报表统计
+ * - 教师绩效报表
+ * - 今日状态卡片
+ * - 异常告警卡片
  */
 
 import { get, post } from '../../utils/request';
@@ -15,6 +23,8 @@ import {
 
 /**
  * Attendance Report
+ * 
+ * @description 考勤报表数据结构
  */
 export interface AttendanceReport {
   totalStudents: number;
@@ -33,6 +43,8 @@ export interface AttendanceReport {
 
 /**
  * Finance Report
+ * 
+ * @description 财务报表数据结构
  */
 export interface FinanceReport {
   totalIncome: number;
@@ -49,6 +61,8 @@ export interface FinanceReport {
 
 /**
  * Teacher Performance
+ * 
+ * @description 教师绩效数据结构
  */
 export interface TeacherPerformance {
   teacherId: number;
@@ -62,6 +76,8 @@ export interface TeacherPerformance {
 
 /**
  * Today Summary Card
+ * 
+ * @description 今日状态卡片数据结构
  */
 export interface TodaySummaryCard {
   studentId: number;
@@ -76,6 +92,8 @@ export interface TodaySummaryCard {
 
 /**
  * Abnormal Alert Card
+ * 
+ * @description 异常告警卡片数据结构
  */
 export interface AbnormalAlertCard {
   studentId: number;
@@ -88,10 +106,17 @@ export interface AbnormalAlertCard {
 
 /**
  * Reports API Service
+ * 
+ * @description 报表服务类，提供考勤、财务和教师绩效报表功能
+ * @class
  */
 export class ReportsService {
   /**
    * Get attendance report
+   * 
+   * @description 获取考勤报表统计数据
+   * @param params 查询参数（日期范围、组织ID、学校ID）
+   * @returns 考勤报表响应
    */
   static async getAttendanceReport(params?: {
     startDate?: string;
@@ -104,6 +129,10 @@ export class ReportsService {
 
   /**
    * Get finance report
+   * 
+   * @description 获取财务报表统计数据
+   * @param params 查询参数（日期范围、组织ID）
+   * @returns 财务报表响应
    */
   static async getFinanceReport(params?: {
     startDate?: string;
@@ -115,6 +144,10 @@ export class ReportsService {
 
   /**
    * Get teacher performance report
+   * 
+   * @description 获取教师绩效报表
+   * @param params 查询参数（日期范围、教师ID、组织ID）
+   * @returns 教师绩效数组响应
    */
   static async getTeacherPerformance(params?: {
     startDate?: string;
@@ -126,21 +159,33 @@ export class ReportsService {
   }
 
   /**
-   * Get daily attendance statistics (Migrated from report.ts)
+   * Get daily attendance statistics
+   * 
+   * @description 获取每日考勤统计数据（从原 report.ts 迁移）
+   * @param params 查询参数
+   * @returns 每日考勤统计数组响应
    */
   static async getDailyAttendanceStats(params?: ReportQueryParams): Promise<ApiResponse<DailyAttendanceStats[]>> {
     return get<DailyAttendanceStats[]>('/api/v1/reports/attendance/daily', params);
   }
 
   /**
-   * Get student attendance summary (Migrated from report.ts)
+   * Get student attendance summary
+   * 
+   * @description 获取学生考勤汇总数据（从原 report.ts 迁移）
+   * @param params 查询参数
+   * @returns 学生考勤汇总数组响应
    */
   static async getStudentAttendanceSummary(params?: ReportQueryParams): Promise<ApiResponse<StudentAttendanceSummary[]>> {
     return get<StudentAttendanceSummary[]>('/api/v1/reports/attendance/students', params);
   }
 
   /**
-   * Get daily revenue statistics (Migrated from report.ts)
+   * Get daily revenue statistics
+   * 
+   * @description 获取每日营收统计数据（从原 report.ts 迁移）
+   * @param params 查询参数（日期范围）
+   * @returns 每日营收统计数组响应
    */
   static async getDailyRevenueStats(params?: {
     startDate?: string;
@@ -150,7 +195,11 @@ export class ReportsService {
   }
 
   /**
-   * Get service product revenue (Migrated from report.ts)
+   * Get service product revenue
+   * 
+   * @description 获取服务产品营收数据（从原 report.ts 迁移）
+   * @param params 查询参数（日期范围）
+   * @returns 服务产品营收数组响应
    */
   static async getServiceProductRevenue(params?: {
     startDate?: string;
@@ -161,11 +210,18 @@ export class ReportsService {
 }
 
 /**
- * Cards API Service (for Widget/Meta Service)
+ * Cards API Service
+ * 
+ * @description 卡片服务类，提供首页卡片数据功能
+ * @class
  */
 export class CardsService {
   /**
    * Get today summary card
+   * 
+   * @description 获取今日状态卡片数据
+   * @param studentId 学生ID
+   * @returns 今日状态卡片响应
    */
   static async getTodaySummary(studentId: number): Promise<ApiResponse<TodaySummaryCard>> {
     return get<TodaySummaryCard>('/api/v1/cards/today-status', { studentId });
@@ -173,6 +229,10 @@ export class CardsService {
 
   /**
    * Get abnormal alert card
+   * 
+   * @description 获取异常告警卡片数据
+   * @param studentId 学生ID
+   * @returns 异常告警卡片响应（无异常时返回 null）
    */
   static async getAbnormalAlert(studentId: number): Promise<ApiResponse<AbnormalAlertCard | null>> {
     return get<AbnormalAlertCard | null>('/api/v1/cards/abnormal-alert', { studentId });

@@ -6,6 +6,7 @@
 import router from '@ohos.router';
 import { Order } from '../../models/service';
 import { OrderService as OrderAPIService } from '../../services/api/service';
+import { OrderStore } from '../../stores/orderStore';
 
 interface RouterParams {
   orderId?: number;
@@ -23,37 +24,78 @@ struct ParentOrderDetailPage {
     const params = router.getParams() as RouterParams;
     if (params && params.orderId) {
       this.orderId = params.orderId;
-      this.loadOrderDetail();
     }
+    this.loadOrderDetail();
   }
 
   async loadOrderDetail() {
     this.isLoading = true;
     try {
-      const resp = await OrderAPIService.getOrderDetail(this.orderId);
-      if (resp.code === 0 && resp.data) {
-        this.orderDetail = resp.data;
+      const cachedOrder = this.orderId > 0 ? OrderStore.findOrderById(this.orderId) : OrderStore.getCurrentOrder();
+      if (cachedOrder) {
+        this.orderDetail = cachedOrder;
+      }
+
+      if (this.orderId > 0) {
+        const resp = await OrderAPIService.getOrderDetail(this.orderId);
+        if (resp.code === 0 && resp.data) {
+          this.orderDetail = resp.data;
+          OrderStore.setCurrentOrder(resp.data);
+          OrderStore.updateOrderInList(resp.data);
+          return;
+        }
+      }
+
+      if (!this.orderDetail) {
+        this.orderDetail = OrderStore.getCurrentOrder();
       }
     } catch (error) {
-      console.error('Failed to load order detail:', error);
+      console.error('Failed to load order detail:', String(error));
+      if (!this.orderDetail) {
+        this.orderDetail = OrderStore.getCurrentOrder();
+      }
     } finally {
       this.isLoading = false;
     }
   }
 
+  getPayAmount(): number {
+    if (!this.orderDetail) {
+      return 0;
+    }
+    if (this.orderDetail.actualAmount !== undefined) {
+      return this.orderDetail.actualAmount;
+    }
+    if (this.orderDetail.totalAmount !== undefined) {
+      return this.orderDetail.totalAmount - (this.orderDetail.discountAmount || 0);
+    }
+    return this.orderDetail.amount || 0;
+  }
+
+  getServiceAmount(): number {
+    if (!this.orderDetail) {
+      return 0;
+    }
+    if (this.orderDetail.totalAmount !== undefined) {
+      return this.orderDetail.totalAmount;
+    }
+    return this.orderDetail.amount || 0;
+  }
+
   handlePay() {
-    if (!this.orderDetail) return;
+    if (!this.orderDetail) {
+      return;
+    }
     router.pushUrl({
       url: 'pages/parent/ParentPaymentPage',
       params: {
         orderId: this.orderDetail.id,
-        amount: this.orderDetail.actualAmount
+        amount: this.getPayAmount()
       }
     });
   }
 
   handleCancel() {
-    // TODO: Implement cancel order logic
     console.log('Cancel order');
   }
 
@@ -239,11 +281,11 @@ struct ParentOrderDetailPage {
         .fontColor($r('app.color.text_primary'))
         .margin({ bottom: 12 })
 
-      this.buildInfoRow('服务费用', `¥${(this.orderDetail?.totalAmount || 0).toFixed(2)}`)
+      this.buildInfoRow('服务费用', `¥${this.getServiceAmount().toFixed(2)}`)
       if ((this.orderDetail?.discountAmount || 0) > 0) {
         this.buildInfoRow('优惠金额', `-¥${(this.orderDetail?.discountAmount || 0).toFixed(2)}`, '#FF5722')
       }
-      
+
       Divider().color('#E0E0E0').margin({ top: 12, bottom: 12 })
 
       Row() {
@@ -258,7 +300,7 @@ struct ParentOrderDetailPage {
             .fontColor('#F44336')
             .fontWeight(FontWeight.Bold)
 
-          Text((this.orderDetail?.actualAmount || 0).toFixed(2))
+          Text(this.getPayAmount().toFixed(2))
             .fontSize(24)
             .fontColor('#F44336')
             .fontWeight(FontWeight.Bold)

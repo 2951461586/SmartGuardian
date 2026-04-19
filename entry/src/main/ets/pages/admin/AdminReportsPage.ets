@@ -46,21 +46,17 @@ export struct AdminReportsPage {
         startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       }
 
-      if (this.currentTab === 0 || this.currentTab === 1 || this.currentTab === 2) {
+      if (this.currentTab === 0) {
         const attResp = await ReportsService.getAttendanceReport({ startDate, endDate: today });
         if (attResp.code === 0 && attResp.data) {
           this.attendanceReport = attResp.data;
         }
-      }
-
-      if (this.currentTab === 1) {
+      } else if (this.currentTab === 1) {
         const finResp = await ReportsService.getFinanceReport({ startDate, endDate: today });
         if (finResp.code === 0 && finResp.data) {
           this.financeReport = finResp.data;
         }
-      }
-
-      if (this.currentTab === 2) {
+      } else {
         const perfResp = await ReportsService.getTeacherPerformance({ startDate, endDate: today });
         if (perfResp.code === 0 && perfResp.data) {
           this.teacherPerformance = perfResp.data;
@@ -75,16 +71,9 @@ export struct AdminReportsPage {
 
   build() {
     Column() {
-      // Header
       this.buildHeader()
-
-      // Date range selector
       this.buildDateRangeSelector()
-
-      // Tab bar
       this.buildTabBar()
-
-      // Report content
       this.buildReportContent()
     }
     .width('100%')
@@ -183,7 +172,6 @@ export struct AdminReportsPage {
   buildAttendanceReport() {
     Scroll() {
       Column() {
-        // Summary cards
         Row() {
           this.buildSummaryCard('总人数', `${this.attendanceReport?.totalStudents || 0}`, '#2196F3')
           this.buildSummaryCard('出勤率', `${this.attendanceReport?.attendanceRate || 0}%`, '#4CAF50')
@@ -193,7 +181,6 @@ export struct AdminReportsPage {
         .width('100%')
         .margin({ bottom: $r('app.float.card_margin') })
 
-        // Daily stats
         Column() {
           Text('每日考勤趋势')
             .fontSize($r('app.float.card_title_size'))
@@ -235,7 +222,7 @@ export struct AdminReportsPage {
         .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
     }
-    .width('23%')
+    .layoutWeight(1)
     .padding(12)
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
@@ -282,7 +269,6 @@ export struct AdminReportsPage {
   buildFinanceReport() {
     Scroll() {
       Column() {
-        // Summary
         Row() {
           this.buildFinanceCard('总收入', `¥${this.financeReport?.totalIncome || 0}`, '#4CAF50')
           this.buildFinanceCard('总退款', `¥${this.financeReport?.totalRefund || 0}`, '#F44336')
@@ -291,7 +277,6 @@ export struct AdminReportsPage {
         .width('100%')
         .margin({ bottom: $r('app.float.card_margin') })
 
-        // Order stats
         Row() {
           Column() {
             Text(`${this.financeReport?.orderCount || 0}`)
@@ -321,7 +306,6 @@ export struct AdminReportsPage {
         .borderRadius($r('app.float.card_border_radius'))
         .margin({ bottom: $r('app.float.card_margin') })
 
-        // Daily trends
         Column() {
           Text('每日收支趋势')
             .fontSize($r('app.float.card_title_size'))
@@ -363,7 +347,7 @@ export struct AdminReportsPage {
         .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
     }
-        .width('32%')
+    .layoutWeight(1)
     .padding(12)
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))

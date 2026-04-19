@@ -5,7 +5,6 @@
 
 import router from '@ohos.router';
 import { Student } from '../../models/user';
-import { ServiceProduct, Order } from '../../models/service';
 import { OrderService } from '../../services/api/service';
 import { UserStore } from '../../stores/userStore';
 
@@ -32,6 +31,10 @@ struct ParentOrderCreatePage {
   @State actualAmount: number = 0;
   @State isSubmitting: boolean = false;
   @State showStudentPicker: boolean = false;
+  @State showStartDatePicker: boolean = false;
+  @State showEndDatePicker: boolean = false;
+  @State startDateValue: Date = new Date();
+  @State endDateValue: Date = new Date();
 
   aboutToAppear() {
     const params = router.getParams() as RouterParams;
@@ -40,9 +43,10 @@ struct ParentOrderCreatePage {
       this.serviceName = params.serviceName || '';
       this.servicePrice = params.price || 0;
     }
-    
+
     this.loadStudents();
     this.initDefaultDates();
+    this.calculateAmount();
   }
 
   loadStudents() {
@@ -67,11 +71,13 @@ struct ParentOrderCreatePage {
     }
   }
 
-  initDefaultDates() {
+  initDefaultDates(): void {
     const today = new Date();
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    
+
+    this.startDateValue = today;
+    this.endDateValue = nextMonth;
     this.startDate = this.formatDate(today);
     this.endDate = this.formatDate(nextMonth);
   }
@@ -87,7 +93,7 @@ struct ParentOrderCreatePage {
     if (!this.startDate || !this.endDate) {
       return 0;
     }
-    
+
     const start = new Date(this.startDate);
     const end = new Date(this.endDate);
     const diff = end.getTime() - start.getTime();
@@ -95,17 +101,39 @@ struct ParentOrderCreatePage {
     return Math.max(0, days);
   }
 
-  calculateAmount() {
+  calculateAmount(): void {
     this.totalDays = this.calculateDays();
     this.totalAmount = this.totalDays * this.servicePrice;
     this.discountAmount = this.totalDays >= 10 ? this.totalAmount * 0.1 : 0;
     this.actualAmount = this.totalAmount - this.discountAmount;
   }
 
-  handleStudentChange(student: Student) {
+  handleStudentChange(student: Student): void {
     this.selectedStudentId = student.id;
     this.selectedStudentName = student.name;
     this.showStudentPicker = false;
+  }
+
+  applyStartDate(date: Date): void {
+    this.startDateValue = date;
+    this.startDate = this.formatDate(date);
+    if (new Date(this.endDate).getTime() < date.getTime()) {
+      this.endDateValue = date;
+      this.endDate = this.formatDate(date);
+    }
+    this.calculateAmount();
+  }
+
+  applyEndDate(date: Date): void {
+    const start = new Date(this.startDate);
+    if (date.getTime() < start.getTime()) {
+      this.endDateValue = start;
+      this.endDate = this.formatDate(start);
+    } else {
+      this.endDateValue = date;
+      this.endDate = this.formatDate(date);
+    }
+    this.calculateAmount();
   }
 
   async handleSubmit() {
@@ -138,7 +166,7 @@ struct ParentOrderCreatePage {
         });
       }
     } catch (error) {
-      console.error('Failed to create order:', error);
+      console.error('Failed to create order:', String(error));
     } finally {
       this.isSubmitting = false;
     }
@@ -171,6 +199,16 @@ struct ParentOrderCreatePage {
     .backgroundColor($r('app.color.page_background'))
     .bindSheet($$this.showStudentPicker, this.buildStudentPicker(), {
       height: 400,
+      backgroundColor: Color.White,
+      dragBar: true
+    })
+    .bindSheet($$this.showStartDatePicker, this.buildStartDatePicker(), {
+      height: 420,
+      backgroundColor: Color.White,
+      dragBar: true
+    })
+    .bindSheet($$this.showEndDatePicker, this.buildEndDatePicker(), {
+      height: 420,
       backgroundColor: Color.White,
       dragBar: true
     })
@@ -220,7 +258,7 @@ struct ParentOrderCreatePage {
               .fontColor('#FF5722')
               .fontWeight(FontWeight.Bold)
 
-            Text('/次')
+            Text('/天')
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
               .margin({ left: 4 })
@@ -270,7 +308,9 @@ struct ParentOrderCreatePage {
       .padding($r('app.float.card_padding'))
       .backgroundColor('#F8F8F8')
       .borderRadius($r('app.float.card_border_radius'))
-      .onClick(() => this.showStudentPicker = true)
+      .onClick(() => {
+        this.showStudentPicker = true;
+      })
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
@@ -282,75 +322,307 @@ struct ParentOrderCreatePage {
   @Builder
   buildDateSection() {
     Column() {
-      Text('选择日期').fontSize($r('app.float.card_title_size')).fontWeight(FontWeight.Medium).fontColor($r('app.color.text_primary')).margin({ bottom: 12 })
+      Text('选择日期')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ bottom: 12 })
+
       Row() {
         Column() {
-          Text('开始日期').fontSize($r('app.float.text_secondary_size')).fontColor($r('app.color.text_secondary'))
-          Text(this.startDate || '请选择').fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_primary')).fontWeight(FontWeight.Medium).margin({ top: 4 })
-        }.alignItems(HorizontalAlign.Start).layoutWeight(1)
-        Divider().vertical(true).height(30).color('#E0E0E0').margin({ left: 16, right: 16 })
+          Text('开始日期')
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.text_secondary'))
+          Text(this.startDate || '请选择')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Medium)
+            .margin({ top: 4 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+        .onClick(() => {
+          this.showStartDatePicker = true;
+        })
+
+        Divider()
+          .vertical(true)
+          .height(30)
+          .color('#E0E0E0')
+          .margin({ left: 16, right: 16 })
+
         Column() {
-          Text('结束日期').fontSize($r('app.float.text_secondary_size')).fontColor($r('app.color.text_secondary'))
-          Text(this.endDate || '请选择').fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_primary')).fontWeight(FontWeight.Medium).margin({ top: 4 })
-        }.alignItems(HorizontalAlign.End).layoutWeight(1)
-      }.width('100%')
-    }.width('100%').padding($r('app.float.card_padding')).backgroundColor(Color.White).borderRadius($r('app.float.card_border_radius')).margin({ top: 12 })
+          Text('结束日期')
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.text_secondary'))
+          Text(this.endDate || '请选择')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Medium)
+            .margin({ top: 4 })
+        }
+        .alignItems(HorizontalAlign.End)
+        .layoutWeight(1)
+        .onClick(() => {
+          this.showEndDatePicker = true;
+        })
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding($r('app.float.card_padding'))
+    .backgroundColor(Color.White)
+    .borderRadius($r('app.float.card_border_radius'))
+    .margin({ top: 12 })
   }
 
   @Builder
   buildAmountSection() {
     Column() {
-      Text('费用明细').fontSize($r('app.float.card_title_size')).fontWeight(FontWeight.Medium).fontColor($r('app.color.text_primary')).margin({ bottom: 12 })
-      Row() { Text('服务天数').fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_secondary')); Text(`${this.totalDays}天`).fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_primary')) }.width('100%').margin({ top: 8, bottom: 8 })
-      Row() { Text('服务费用').fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_secondary')); Text(`¥${this.totalAmount.toFixed(2)}`).fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_primary')) }.width('100%').margin({ top: 8, bottom: 8 })
-      if (this.discountAmount > 0) {
-        Row() { Text('优惠金额').fontSize($r('app.float.text_primary_size')).fontColor($r('app.color.text_secondary')); Text(`-¥${this.discountAmount.toFixed(2)}`).fontSize($r('app.float.text_primary_size')).fontColor('#FF5722') }.width('100%').margin({ top: 8, bottom: 8 })
-      }
-      Divider().color('#E0E0E0').margin({ top: 12, bottom: 12 })
+      Text('费用明细')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ bottom: 12 })
+
       Row() {
-        Text('应付金额').fontSize($r('app.float.text_primary_size')).fontWeight(FontWeight.Bold).fontColor($r('app.color.text_primary'))
-        Row() { Text('¥').fontSize($r('app.float.text_primary_size')).fontColor('#FF5722').fontWeight(FontWeight.Bold); Text(this.actualAmount.toFixed(2)).fontSize(24).fontColor('#FF5722').fontWeight(FontWeight.Bold) }
-      }.width('100%')
-    }.width('100%').padding($r('app.float.card_padding')).backgroundColor(Color.White).borderRadius($r('app.float.card_border_radius')).margin({ top: 12 })
+        Text('服务天数')
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_secondary'))
+        Blank()
+        Text(`${this.totalDays}天`)
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_primary'))
+      }
+      .width('100%')
+      .margin({ top: 8, bottom: 8 })
+
+      Row() {
+        Text('服务费用')
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_secondary'))
+        Blank()
+        Text(`¥${this.totalAmount.toFixed(2)}`)
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_primary'))
+      }
+      .width('100%')
+      .margin({ top: 8, bottom: 8 })
+
+      if (this.discountAmount > 0) {
+        Row() {
+          Text('优惠金额')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor($r('app.color.text_secondary'))
+          Blank()
+          Text(`-¥${this.discountAmount.toFixed(2)}`)
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor('#FF5722')
+        }
+        .width('100%')
+        .margin({ top: 8, bottom: 8 })
+      }
+
+      Divider()
+        .color('#E0E0E0')
+        .margin({ top: 12, bottom: 12 })
+
+      Row() {
+        Text('应付金额')
+          .fontSize($r('app.float.text_primary_size'))
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+
+        Blank()
+
+        Row() {
+          Text('¥')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor('#FF5722')
+            .fontWeight(FontWeight.Bold)
+          Text(this.actualAmount.toFixed(2))
+            .fontSize(24)
+            .fontColor('#FF5722')
+            .fontWeight(FontWeight.Bold)
+        }
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding($r('app.float.card_padding'))
+    .backgroundColor(Color.White)
+    .borderRadius($r('app.float.card_border_radius'))
+    .margin({ top: 12 })
   }
 
   @Builder
   buildNote() {
     Column() {
-      Text('温馨提示').fontSize($r('app.float.text_secondary_size')).fontWeight(FontWeight.Medium).fontColor($r('app.color.text_secondary')).margin({ bottom: 8 })
-      Text('1. 报名10天及以上可享9折优惠').fontSize(12).fontColor('#999999').margin({ top: 4 })
-      Text('2. 订单提交后需等待机构审核').fontSize(12).fontColor('#999999').margin({ top: 4 })
-      Text('3. 审核通过后请在24小时内完成支付').fontSize(12).fontColor('#999999').margin({ top: 4 })
-    }.width('100%').padding($r('app.float.card_padding')).backgroundColor('#FFF3E0').borderRadius($r('app.float.card_border_radius')).margin({ top: 12 })
+      Text('温馨提示')
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ bottom: 8 })
+      Text('1. 报名10天及以上可享9折优惠')
+        .fontSize(12)
+        .fontColor('#999999')
+        .margin({ top: 4 })
+      Text('2. 订单提交后需等待机构审核')
+        .fontSize(12)
+        .fontColor('#999999')
+        .margin({ top: 4 })
+      Text('3. 审核通过后请在24小时内完成支付')
+        .fontSize(12)
+        .fontColor('#999999')
+        .margin({ top: 4 })
+    }
+    .width('100%')
+    .padding($r('app.float.card_padding'))
+    .backgroundColor('#FFF3E0')
+    .borderRadius($r('app.float.card_border_radius'))
+    .margin({ top: 12 })
   }
 
   @Builder
   buildStudentPicker() {
     Column() {
-      Text('选择学生').fontSize($r('app.float.card_title_size')).fontWeight(FontWeight.Bold).fontColor($r('app.color.text_primary')).padding({ top: 16, bottom: 16 })
+      Text('选择学生')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .padding({ top: 16, bottom: 16 })
+
       ForEach(this.students, (student: Student) => {
         Row() {
           Column() {
-            Text(student.name).fontSize($r('app.float.text_primary_size')).fontWeight(FontWeight.Medium).fontColor($r('app.color.text_primary'))
-            Text(`${student.schoolName || ''} ${student.className || ''}`).fontSize($r('app.float.text_secondary_size')).fontColor($r('app.color.text_secondary')).margin({ top: 4 })
-          }.alignItems(HorizontalAlign.Start).layoutWeight(1)
-          if (this.selectedStudentId === student.id) {
-            Image($r('app.media.ic_home')).width($r('app.float.icon_small_size')).height($r('app.float.icon_small_size'))
+            Text(student.name)
+              .fontSize($r('app.float.text_primary_size'))
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+            Text(`${student.schoolName || ''} ${student.className || ''}`)
+              .fontSize($r('app.float.text_secondary_size'))
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 4 })
           }
-        }.width('100%').padding($r('app.float.card_padding')).onClick(() => this.handleStudentChange(student))
+          .alignItems(HorizontalAlign.Start)
+          .layoutWeight(1)
+
+          if (this.selectedStudentId === student.id) {
+            Image($r('app.media.ic_home'))
+              .width($r('app.float.icon_small_size'))
+              .height($r('app.float.icon_small_size'))
+          }
+        }
+        .width('100%')
+        .padding($r('app.float.card_padding'))
+        .onClick(() => this.handleStudentChange(student))
       })
     }
+  }
+
+  @Builder
+  buildStartDatePicker() {
+    Column() {
+      Text('选择开始日期')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 8, bottom: 16 })
+
+      DatePicker({
+        start: new Date(2020, 0, 1),
+        end: new Date(2035, 11, 31),
+        selected: this.startDateValue
+      })
+        .width('100%')
+        .onDateChange((value: Date) => {
+          this.applyStartDate(value);
+        })
+
+      Button('确定')
+        .width('100%')
+        .height(44)
+        .margin({ top: 20 })
+        .fontSize($r('app.float.text_primary_size'))
+        .fontColor(Color.White)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius(22)
+        .onClick(() => {
+          this.showStartDatePicker = false;
+        })
+    }
+    .width('100%')
+    .padding(20)
+  }
+
+  @Builder
+  buildEndDatePicker() {
+    Column() {
+      Text('选择结束日期')
+        .fontSize($r('app.float.card_title_size'))
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 8, bottom: 16 })
+
+      DatePicker({
+        start: new Date(2020, 0, 1),
+        end: new Date(2035, 11, 31),
+        selected: this.endDateValue
+      })
+        .width('100%')
+        .onDateChange((value: Date) => {
+          this.applyEndDate(value);
+        })
+
+      Button('确定')
+        .width('100%')
+        .height(44)
+        .margin({ top: 20 })
+        .fontSize($r('app.float.text_primary_size'))
+        .fontColor(Color.White)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius(22)
+        .onClick(() => {
+          this.showEndDatePicker = false;
+        })
+    }
+    .width('100%')
+    .padding(20)
   }
 
   @Builder
   buildBottomBar() {
     Row() {
       Column() {
-        Text('应付金额').fontSize($r('app.float.text_secondary_size')).fontColor($r('app.color.text_secondary'))
-        Row() { Text('¥').fontSize($r('app.float.text_primary_size')).fontColor('#FF5722'); Text(this.actualAmount.toFixed(2)).fontSize(24).fontColor('#FF5722').fontWeight(FontWeight.Bold) }
-      }.alignItems(HorizontalAlign.Start).layoutWeight(1)
-      Button('提交订单').width(160).height(44).fontSize(16).fontColor(Color.White).backgroundColor($r('app.color.primary')).borderRadius(22)
-        .enabled(this.selectedStudentId > 0 && !this.isSubmitting).onClick(() => this.handleSubmit())
-    }.width('100%').padding({ left: 16, right: 16, top: 12, bottom: 12 }).backgroundColor(Color.White).shadow({ radius: 10, color: '#1A000000', offsetY: -2 })
+        Text('应付金额')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+        Row() {
+          Text('¥')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor('#FF5722')
+          Text(this.actualAmount.toFixed(2))
+            .fontSize(24)
+            .fontColor('#FF5722')
+            .fontWeight(FontWeight.Bold)
+        }
+      }
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+
+      Button('提交订单')
+        .width(160)
+        .height(44)
+        .fontSize(16)
+        .fontColor(Color.White)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius(22)
+        .enabled(this.selectedStudentId > 0 && !this.isSubmitting)
+        .onClick(() => this.handleSubmit())
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .backgroundColor(Color.White)
+    .shadow({ radius: 10, color: '#1A000000', offsetY: -2 })
   }
 }

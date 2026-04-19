@@ -2,11 +2,15 @@
  * SmartGuardian - 学生档案管理页
  * 机构管理员管理学生信息
  * Features: Data mask for privacy protection
+ * 
+ * @optimized Using StudentStore for state management
+ * @migrated 2026-04-18 - P0 Migration
  */
 
 import { router } from '@kit.ArkUI';
 import { StudentService } from '../../services/api/auth';
 import { Student, GuardianRelation } from '../../models/user';
+import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
 
@@ -18,17 +22,47 @@ interface StudentWithGuardian extends Student {
 @Entry
 @Component
 export struct AdminStudentsPage {
-  @State studentList: StudentWithGuardian[] = [];
+  // ✅ 使用 Store 管理学生数据（缓存优先）
+  @StorageLink('student_list') studentList: StudentWithGuardian[] = [];
+  
+  // 本地 UI 状态
   @State isLoading: boolean = false;
   @State searchKeyword: string = '';
   @State selectedGrade: string = 'ALL';
   @State currentPage: number = 1;
   @State totalPages: number = 1;
+  
+  // 缓存时间戳
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 5 * 60 * 1000; // 5分钟缓存
 
   private grades: string[] = ['ALL', '1', '2', '3', '4', '5', '6'];
 
   aboutToAppear() {
-    this.loadStudents();
+    this.loadStudentsWithCache();
+  }
+
+  /**
+   * 带缓存的学生数据加载策略
+   * 1. 优先使用缓存数据（Store）
+   * 2. 判断缓存是否过期
+   * 3. 过期则后台刷新
+   */
+  async loadStudentsWithCache() {
+    // 优先显示缓存数据
+    const cachedStudents = StudentStore.getStudentList();
+    if (cachedStudents.length > 0) {
+      this.studentList = cachedStudents as StudentWithGuardian[];
+      LogUtil.info('AdminStudentsPage', `Using cached students: ${cachedStudents.length} items`);
+    }
+    
+    // 判断是否需要刷新
+    const now = Date.now();
+    const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
+    
+    if (shouldRefresh || cachedStudents.length === 0) {
+      await this.loadStudents();
+    }
   }
 
   async loadStudents() {
@@ -74,10 +108,16 @@ export struct AdminStudentsPage {
           }
           list.push(processed);
         }
+        
+        // 更新 Store 缓存
+        StudentStore.setStudentList(list);
+        
+        // 同步到本地状态
         this.studentList = list;
         this.totalPages = Math.ceil(resp.data.total / 20);
+        this.lastLoadTime = Date.now();
         
-        LogUtil.info('AdminStudentsPage', `Loaded ${list.length} students`);
+        LogUtil.info('AdminStudentsPage', `Loaded and cached ${list.length} students`);
       }
     } catch (error) {
       LogUtil.error('AdminStudentsPage', `Load students failed: ${JSON.stringify(error)}`);
@@ -191,7 +231,7 @@ export struct AdminStudentsPage {
 
   @Builder
   buildStudentList() {
-    if (this.isLoading) {
+    if (this.isLoading && this.studentList.length === 0) {
       Column() {
         LoadingProgress()
           .color($r('app.color.primary'))

@@ -1,12 +1,18 @@
 /**
  * SmartGuardian - Teacher Attendance Page
  * Teacher can manage attendance - sign in/out students
+ * 
+ * @optimized Using AttendanceStore for state management
+ * @migrated 2026-04-18 - P1 Migration
  */
 
+import { router } from '@kit.ArkUI';
 import { AttendanceService } from '../../services/api/attendance';
 import { AttendanceRecord, SignInRequest, SignOutRequest } from '../../models/attendance';
 import { SessionService } from '../../services/api/service';
 import { SessionWithStudents } from '../../models/service';
+import { AttendanceStore } from '../../stores/attendanceStore';
+import { LogUtil } from '../../utils/LogUtil';
 
 interface AttendanceStudent {
   studentId: number;
@@ -19,13 +25,44 @@ interface AttendanceStudent {
 
 @Component
 export struct TeacherAttendancePage {
+  // ✅ 使用 Store 管理考勤数据（缓存优先）
+  @StorageLink('today_attendance') todayAttendance: AttendanceRecord[] = [];
+  @StorageLink('current_session') currentSessionData: SessionWithStudents | null = null;
+  
+  // 本地 UI 状态
   @State sessions: SessionWithStudents[] = [];
   @State currentSessionIndex: number = 0;
   @State isLoading: boolean = false;
   @State errorMessage: string = '';
+  
+  // 缓存时间戳
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 3 * 60 * 1000; // 3分钟缓存
 
   aboutToAppear() {
-    this.loadTodaySessions();
+    this.loadTodaySessionsWithCache();
+  }
+
+  /**
+   * 带缓存的班次加载策略
+   * 1. 优先使用缓存数据（Store）
+   * 2. 判断缓存是否过期
+   * 3. 过期则后台刷新
+   */
+  async loadTodaySessionsWithCache() {
+    // 尝试从 Store 恢复当前班次
+    const cachedSession = AttendanceStore.getCurrentSession();
+    if (cachedSession) {
+      LogUtil.info('TeacherAttendancePage', `Using cached session: ${cachedSession.id}`);
+    }
+    
+    // 判断是否需要刷新
+    const now = Date.now();
+    const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
+    
+    if (shouldRefresh || !cachedSession) {
+      await this.loadTodaySessions();
+    }
   }
 
   async loadTodaySessions() {
@@ -46,13 +83,63 @@ export struct TeacherAttendancePage {
             sessionDetails.push(detailResp.data);
           }
         }
+        
         this.sessions = sessionDetails;
+        
+        // 更新 Store - 保存当前班次
+        if (sessionDetails.length > 0) {
+          AttendanceStore.setCurrentSession(sessionDetails[this.currentSessionIndex]);
+        }
+        
+        // 更新今日考勤缓存
+        if (sessionDetails[this.currentSessionIndex]?.students) {
+          const records = this.convertStudentsToRecords(sessionDetails[this.currentSessionIndex].students);
+          AttendanceStore.setTodayAttendance(records);
+          this.todayAttendance = records;
+        }
+        
+        this.lastLoadTime = Date.now();
+        LogUtil.info('TeacherAttendancePage', `Loaded ${sessionDetails.length} sessions`);
       }
     } catch (error) {
       this.errorMessage = '加载班次失败';
+      LogUtil.error('TeacherAttendancePage', `Load failed: ${JSON.stringify(error)}`);
     } finally {
       this.isLoading = false;
     }
+  }
+
+  /**
+   * 将学生数据转换为考勤记录
+   */
+  convertStudentsToRecords(students: AttendanceStudent[]): AttendanceRecord[] {
+    const records: AttendanceRecord[] = [];
+    for (let i = 0; i < students.length; i++) {
+      const s = students[i];
+      const record: AttendanceRecord = {
+        id: 0,
+        studentId: s.studentId,
+        studentName: s.studentName,
+        sessionId: this.sessions[this.currentSessionIndex]?.id || 0,
+        status: this.mapStatus(s.attendanceStatus),
+        signInTime: s.signInTime,
+        signOutTime: s.signOutTime
+      };
+      records.push(record);
+    }
+    return records;
+  }
+
+  /**
+   * 映射考勤状态
+   */
+  mapStatus(status: string): string {
+    const statusMap: Record<string, string> = {
+      'NOT_SIGNED': 'ABSENT',
+      'SIGNED_IN': 'SIGNED_IN',
+      'SIGNED_OUT': 'SIGNED_OUT'
+    };
+    return statusMap[status] || 'ABSENT';
   }
 
   async handleSignIn(studentId: number) {
@@ -62,10 +149,24 @@ export struct TeacherAttendancePage {
         sessionId: this.sessions[this.currentSessionIndex].id,
         signMethod: 'MANUAL'
       };
+      
       await AttendanceService.signIn(request);
-      this.loadTodaySessions();
+      
+      // 更新 Store
+      const record = AttendanceStore.findAttendanceByStudentId(studentId);
+      if (record) {
+        record.status = 'SIGNED_IN';
+        record.signInTime = new Date().toISOString();
+        AttendanceStore.updateTodayAttendance(record);
+      }
+      
+      // 刷新数据
+      await this.loadTodaySessions();
+      
+      LogUtil.info('TeacherAttendancePage', `Student ${studentId} signed in`);
     } catch (error) {
       this.errorMessage = '签到失败';
+      LogUtil.error('TeacherAttendancePage', `Sign in failed: ${JSON.stringify(error)}`);
     }
   }
 
@@ -76,15 +177,45 @@ export struct TeacherAttendancePage {
         sessionId: this.sessions[this.currentSessionIndex].id,
         signMethod: 'MANUAL'
       };
+      
       await AttendanceService.signOut(request);
-      this.loadTodaySessions();
+      
+      // 更新 Store
+      const record = AttendanceStore.findAttendanceByStudentId(studentId);
+      if (record) {
+        record.status = 'SIGNED_OUT';
+        record.signOutTime = new Date().toISOString();
+        AttendanceStore.updateTodayAttendance(record);
+      }
+      
+      // 刷新数据
+      await this.loadTodaySessions();
+      
+      LogUtil.info('TeacherAttendancePage', `Student ${studentId} signed out`);
     } catch (error) {
       this.errorMessage = '签退失败';
+      LogUtil.error('TeacherAttendancePage', `Sign out failed: ${JSON.stringify(error)}`);
     }
   }
 
+  handleOpenScan(scanType: 'SIGN_IN' | 'SIGN_OUT') {
+    const currentSession = this.sessions[this.currentSessionIndex];
+    if (!currentSession) {
+      this.errorMessage = '暂无可用班次';
+      return;
+    }
+
+    router.pushUrl({
+      url: 'pages/teacher/TeacherScanPage',
+      params: {
+        sessionId: currentSession.id,
+        scanType
+      }
+    });
+  }
+
   getCurrentStudents(): AttendanceStudent[] {
-    return this.sessions[this.currentSessionIndex].students || [];
+    return this.sessions[this.currentSessionIndex]?.students || [];
   }
 
   getSignedInCount(students: AttendanceStudent[]): number {
@@ -134,14 +265,37 @@ export struct TeacherAttendancePage {
   @Builder
   buildSessionSelector() {
     Row() {
-      Text(this.sessions[this.currentSessionIndex]?.sessionNo || '选择班次')
-        .fontSize($r('app.float.text_primary_size'))
-        .fontColor($r('app.color.text_primary'))
+      Column() {
+        Text(this.sessions[this.currentSessionIndex]?.sessionNo || '选择班次')
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_primary'))
 
-      Text(`${this.sessions[this.currentSessionIndex]?.startTime || ''} - ${this.sessions[this.currentSessionIndex]?.endTime || ''}`)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ left: 8 })
+        Text(`${this.sessions[this.currentSessionIndex]?.startTime || ''} - ${this.sessions[this.currentSessionIndex]?.endTime || ''}`)
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 4 })
+      }
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+
+      Row() {
+        Button('扫码签到')
+          .fontSize($r('app.float.text_tiny_size'))
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.primary'))
+          .borderRadius($r('app.float.button_radius'))
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .onClick(() => this.handleOpenScan('SIGN_IN'))
+
+        Button('扫码签退')
+          .fontSize($r('app.float.text_tiny_size'))
+          .fontColor($r('app.color.primary'))
+          .backgroundColor('#EAF3FF')
+          .borderRadius($r('app.float.button_radius'))
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .margin({ left: 8 })
+          .onClick(() => this.handleOpenScan('SIGN_OUT'))
+      }
     }
     .width('100%')
     .padding($r('app.float.card_padding'))

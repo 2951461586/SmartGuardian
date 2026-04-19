@@ -6,19 +6,12 @@
 import { router } from '@kit.ArkUI';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { http } from '@kit.NetworkKit';
+import { ApiConfig } from '../config/api.config';
+import { MockService } from '../services/mock/mockService';
 
 const TAG = 'SmartGuardian/Request';
 const DOMAIN = 0x0001;
 
-// Base URL - should be configured per environment
-const BASE_URL = 'https://api.smartguardian.local';
-
-// Request timeout in milliseconds
-const TIMEOUT = 30000;
-
-/**
- * HTTP Methods
- */
 export enum HttpMethod {
   GET = 'GET',
   POST = 'POST',
@@ -27,9 +20,6 @@ export enum HttpMethod {
   PATCH = 'PATCH'
 }
 
-/**
- * Request options
- */
 export interface RequestOptions {
   url: string;
   method: HttpMethod;
@@ -38,57 +28,36 @@ export interface RequestOptions {
   needAuth?: boolean;
 }
 
-/**
- * Response wrapper
- */
 export interface HttpResponse<T = object> {
   code: number;
   message: string;
   data: T;
 }
 
-/**
- * Token and user storage keys
- */
 const TOKEN_KEY = 'smart_guardian_token';
 const USER_INFO_KEY = 'user_info';
 const IS_LOGGED_IN_KEY = 'is_logged_in';
 
 let isRedirectingToLogin: boolean = false;
 
-/**
- * Get stored token
- */
 export function getToken(): string | null {
   return AppStorage.get<string>(TOKEN_KEY) ?? null;
 }
 
-/**
- * Set stored token
- */
 export function setToken(token: string): void {
   AppStorage.setOrCreate(TOKEN_KEY, token);
 }
 
-/**
- * Remove stored token
- */
 export function removeToken(): void {
   AppStorage.delete(TOKEN_KEY);
 }
 
-/**
- * Clear local auth state
- */
 function clearAuthState(): void {
   removeToken();
   AppStorage.delete(USER_INFO_KEY);
   AppStorage.delete(IS_LOGGED_IN_KEY);
 }
 
-/**
- * Handle unauthorized state globally
- */
 function handleUnauthorized(): void {
   clearAuthState();
 
@@ -108,28 +77,25 @@ function handleUnauthorized(): void {
   }, 300);
 }
 
-/**
- * HTTP Request helper
- */
 export async function httpRequest<T = object>(
   options: RequestOptions
 ): Promise<HttpResponse<T>> {
+  if (ApiConfig.USE_MOCK_DATA) {
+    return MockService.handleMockRequest<T>(options);
+  }
+
   const url = options.url;
   const method = options.method;
   const data = options.data;
   const headers = options.headers ?? {};
   const needAuth = options.needAuth ?? true;
+  const fullUrl = url.startsWith('http') ? url : `${ApiConfig.BASE_URL}${url}`;
 
-  // Build full URL
-  const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
-
-  // Build headers
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers
   };
 
-  // Add auth token if needed
   if (needAuth) {
     const token = getToken();
     if (token) {
@@ -137,8 +103,7 @@ export async function httpRequest<T = object>(
     }
   }
 
-  // Build HTTP request
-  const httpRequest = http.createHttp();
+  const httpClient = http.createHttp();
   let requestMethod: http.RequestMethod = http.RequestMethod.GET;
   switch (method) {
     case HttpMethod.POST:
@@ -156,18 +121,21 @@ export async function httpRequest<T = object>(
     default:
       requestMethod = http.RequestMethod.GET;
   }
+
   const httpOptions: http.HttpRequestOptions = {
     method: requestMethod,
     header: requestHeaders,
-    connectTimeout: TIMEOUT,
-    readTimeout: TIMEOUT,
+    connectTimeout: ApiConfig.TIMEOUT,
+    readTimeout: ApiConfig.TIMEOUT,
     extraData: method !== HttpMethod.GET && data ? JSON.stringify(data) : undefined
   };
 
-  hilog.info(DOMAIN, TAG, `[${method}] ${fullUrl}`);
+  if (ApiConfig.ENABLE_LOGGING) {
+    hilog.info(DOMAIN, TAG, `[${method}] ${fullUrl}`);
+  }
 
   try {
-    const response = await httpRequest.request(fullUrl, httpOptions);
+    const response = await httpClient.request(fullUrl, httpOptions);
 
     if (!response.responseCode || response.responseCode >= 400) {
       hilog.error(DOMAIN, TAG, `HTTP Error: ${response.responseCode}`);
@@ -179,7 +147,9 @@ export async function httpRequest<T = object>(
 
     const result = JSON.parse(response.result as string) as HttpResponse<T>;
 
-    hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
+    if (ApiConfig.ENABLE_LOGGING) {
+      hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
+    }
 
     if (result.code === 401) {
       hilog.error(DOMAIN, TAG, `Unauthorized: ${result.message}`);
@@ -197,13 +167,10 @@ export async function httpRequest<T = object>(
     hilog.error(DOMAIN, TAG, `Request failed: ${error}`);
     throw error;
   } finally {
-    httpRequest.destroy();
+    httpClient.destroy();
   }
 }
 
-/**
- * GET request helper
- */
 export async function get<T = object>(
   url: string,
   params?: object,
@@ -223,9 +190,6 @@ export async function get<T = object>(
   });
 }
 
-/**
- * POST request helper
- */
 export async function post<T = object>(
   url: string,
   data?: object,
@@ -239,9 +203,6 @@ export async function post<T = object>(
   });
 }
 
-/**
- * PUT request helper
- */
 export async function put<T = object>(
   url: string,
   data?: object,
@@ -255,9 +216,6 @@ export async function put<T = object>(
   });
 }
 
-/**
- * DELETE request helper
- */
 export async function del<T = object>(
   url: string,
   options?: Partial<RequestOptions>

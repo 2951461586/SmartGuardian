@@ -5,7 +5,8 @@
 
 import { UserStore } from '../../stores/userStore';
 import { CardsService, TodaySummaryCard } from '../../services/api/reports';
-import { HomeworkService, HomeworkTask } from '../../services/api/attendance';
+import { HomeworkService } from '../../services/api/homework';
+import { HomeworkTask } from '../../models/homework';
 
 @Component
 export struct ParentHomePage {
@@ -230,7 +231,7 @@ export struct ParentHomePage {
         .fontColor($r('app.color.text_primary'))
         .margin({ top: $r('app.float.text_margin_small') })
     }
-    .width('22%')
+    .layoutWeight(1)
     .padding($r('app.float.card_padding'))
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))

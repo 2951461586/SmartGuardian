@@ -145,7 +145,7 @@ export struct AdminHomePage {
         .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
     }
-    .width('23%')
+    .layoutWeight(1)
     .padding(12)
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))

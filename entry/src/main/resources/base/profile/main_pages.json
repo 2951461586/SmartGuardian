@@ -12,6 +12,7 @@
     "pages/parent/ParentAlertsPage",
     "pages/parent/ParentRefundPage",
     "pages/teacher/TeacherSchedulePage",
+    "pages/teacher/TeacherScanPage",
     "pages/admin/AdminStudentsPage",
     "pages/common/QRCodeScanPage"
   ]

@@ -86,7 +86,8 @@ export struct PrivacyDialog {
       .width('100%')
       .padding({ left: 20, right: 20, top: 16, bottom: 20 })
     }
-    .width('90%')
+    .width('100%')
+    .constraintSize({ maxWidth: $r('app.float.layout_dialog_max_width_xlarge') })
     .backgroundColor(Color.White)
     .borderRadius(16)
   }

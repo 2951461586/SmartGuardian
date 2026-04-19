@@ -4,8 +4,10 @@
  */
 
 import { router } from '@kit.ArkUI';
+import { scanCore, scanBarcode } from '@kit.ScanKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
-import { camera } from '@kit.CameraKit';
 import { AttendanceService } from '../../services/api/attendance';
 import { SignInRequest, SignOutRequest } from '../../models/attendance';
 import { LogUtil } from '../../utils/LogUtil';
@@ -19,9 +21,9 @@ class QRCodeData {
   type: 'SIGN_IN' | 'SIGN_OUT' = 'SIGN_IN';
 }
 
-interface RouterParams {
-  sessionId?: number;
-  scanType?: 'SIGN_IN' | 'SIGN_OUT';
+class RouterParams {
+  sessionId: number = 0;
+  scanType: 'SIGN_IN' | 'SIGN_OUT' = 'SIGN_IN';
 }
 
 @Entry
@@ -34,186 +36,156 @@ struct TeacherScanPage {
   @State showResult: boolean = false;
   @State currentSessionId: number = 0;
   @State scanType: 'SIGN_IN' | 'SIGN_OUT' = 'SIGN_IN';
-  
-  private cameraManager?: camera.CameraManager;
-  private cameraInput?: camera.CameraInput;
-  // private scanner?: camera.ScanInterface; // Demo mode
 
-  aboutToAppear() {
-    // Get current session ID from router params
-    const params = router.getParams() as RouterParams;
-    if (params) {
-      this.currentSessionId = params.sessionId ?? 0;
-      this.scanType = params.scanType ?? 'SIGN_IN';
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+
+  aboutToAppear(): void {
+    const rawParams: Object | undefined = router.getParams();
+    if (rawParams) {
+      const params: RouterParams = rawParams as RouterParams;
+      this.currentSessionId = params.sessionId;
+      this.scanType = params.scanType;
     }
   }
 
-  aboutToDisappear() {
-    this.releaseCamera();
-  }
-
-  /**
-   * Start scanning
-   */
-  async startScan() {
+  async startScan(): Promise<void> {
     try {
       this.isScanning = true;
       this.errorMessage = '';
       this.successMessage = '';
       this.showResult = false;
-      
-      // Request camera permission
-      const context = getContext(this) as common.UIAbilityContext;
-      const hasPermission = await PermissionUtil.requestCameraPermission(context);
-      
+      this.scanResult = '';
+
+      const hasPermission: boolean = await PermissionUtil.requestCameraPermission(this.context);
       if (!hasPermission) {
-        this.errorMessage = '需要相机权限才能扫描二维码';
         this.isScanning = false;
-        ErrorHandlerUtil.showErrorToast('请在设置中开启相机权限');
+        this.errorMessage = $r('app.string.teacher_scan_camera_required').toString();
+        ErrorHandlerUtil.showErrorToast($r('app.string.teacher_scan_open_settings').toString());
         return;
       }
-      
-      // Initialize camera
-      await this.initCamera();
-      
-      LogUtil.info('TeacherScanPage', 'Scanner started');
+
+      const options: scanBarcode.ScanOptions = {
+        scanTypes: [scanCore.ScanType.ALL],
+        enableMultiMode: false,
+        enableAlbum: true
+      };
+
+      const hostContext: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const result: scanBarcode.ScanResult = await scanBarcode.startScanForResult(hostContext, options);
+      hilog.info(0x0001, '[TeacherScanPage]', `Succeeded in getting scanResult, result is ${JSON.stringify(result)}`);
+
+      this.isScanning = false;
+      await this.handleScanResult(JSON.stringify(result));
     } catch (error) {
-      this.errorMessage = '启动扫描失败，请检查相机权限';
-      LogUtil.error('TeacherScanPage', `Start scan failed: ${JSON.stringify(error)}`);
+      this.isScanning = false;
+      const businessError: BusinessError = error as BusinessError;
+      if (this.isScanCancelled(businessError)) {
+        this.errorMessage = $r('app.string.scan_cancelled').toString();
+        ErrorHandlerUtil.showErrorToast($r('app.string.scan_cancelled_retry').toString());
+        LogUtil.info('TeacherScanPage', 'User cancelled scan');
+        return;
+      }
+      this.errorMessage = $r('app.string.scan_start_failed_retry').toString();
+      LogUtil.error('TeacherScanPage', `Start scan failed: ${businessError.code}, ${businessError.message}`);
+      hilog.error(0x0001, '[TeacherScanPage]', `Failed to start scan. Code: ${businessError.code}, message: ${businessError.message}`);
       ErrorHandlerUtil.showErrorToast(this.errorMessage);
     }
   }
 
-  /**
-   * Initialize camera
-   */
-  async initCamera() {
+  async handleScanResult(resultText: string): Promise<void> {
     try {
-      // Get camera manager
-      this.cameraManager = camera.getCameraManager(getContext(this) as common.UIAbilityContext);
-      
-      if (!this.cameraManager) {
-        this.errorMessage = '无法获取相机服务';
-        return;
-      }
-      
-      // For demo purposes, simulate QR code scanning
-      // In production, use actual camera scanning API
-      
-      // Simulate scan result after 3 seconds
-      setTimeout(() => {
-        this.handleScanResult('{"studentId":1001,"studentName":"张小明","studentNo":"S001","type":"SIGN_IN"}');
-      }, 3000);
-      
-    } catch (error) {
-      LogUtil.error('TeacherScanPage', `Init camera failed: ${JSON.stringify(error)}`);
-      throw new Error('Init camera failed');
-    }
-  }
-
-  /**
-   * Release camera resources
-   */
-  releaseCamera() {
-    try {
-      if (this.cameraInput) {
-        this.cameraInput.close();
-        this.cameraInput = undefined;
-      }
-      this.isScanning = false;
-    } catch (error) {
-      LogUtil.error('TeacherScanPage', `Release camera failed: ${JSON.stringify(error)}`);
-    }
-  }
-
-  /**
-   * Handle scan result
-   */
-  async handleScanResult(qrCode: string) {
-    try {
-      this.scanResult = qrCode;
+      this.scanResult = resultText;
       this.showResult = true;
-      
-      // Parse QR code data
-      const data: QRCodeData = JSON.parse(qrCode);
-      
-      // Validate scan type
-      if (data.type !== this.scanType) {
-        this.errorMessage = `二维码类型不匹配，请扫描${this.scanType === 'SIGN_IN' ? '签到' : '签退'}码`;
+
+      const scanResult: scanBarcode.ScanResult = JSON.parse(resultText) as scanBarcode.ScanResult;
+      const originalValue: string = this.extractScanValue(scanResult);
+      if (originalValue.length === 0) {
+        this.errorMessage = $r('app.string.scan_no_content').toString();
         return;
       }
-      
-      // Call attendance API
+
+      const data: QRCodeData = JSON.parse(originalValue) as QRCodeData;
+
+      if (data.type !== this.scanType) {
+        this.errorMessage = this.scanType === 'SIGN_IN'
+          ? $r('app.string.teacher_scan_type_mismatch_sign_in').toString()
+          : $r('app.string.teacher_scan_type_mismatch_sign_out').toString();
+        return;
+      }
+
       if (this.scanType === 'SIGN_IN') {
         await this.performSignIn(data);
       } else {
         await this.performSignOut(data);
       }
-      
     } catch (error) {
-      this.errorMessage = '二维码格式错误';
+      this.errorMessage = $r('app.string.scan_format_error').toString();
       LogUtil.error('TeacherScanPage', `Parse QR code failed: ${JSON.stringify(error)}`);
     }
   }
 
-  /**
-   * Perform sign-in
-   */
-  async performSignIn(data: QRCodeData) {
+  private extractScanValue(result: scanBarcode.ScanResult): string {
+    if (result.originalValue && result.originalValue.length > 0) {
+      return result.originalValue;
+    }
+
+    return '';
+  }
+
+  private isScanCancelled(error: BusinessError): boolean {
+    const errorMessage: string = error.message ? error.message : '';
+    return errorMessage.indexOf('cancel') >= 0 || errorMessage.indexOf('Cancel') >= 0 || errorMessage.indexOf('取消') >= 0;
+  }
+
+  async performSignIn(data: QRCodeData): Promise<void> {
     try {
       const request: SignInRequest = {
         studentId: data.studentId,
         sessionId: this.currentSessionId,
         signMethod: 'QR_CODE'
       };
-      
+
       const resp = await AttendanceService.signIn(request);
-      
+
       if (resp.code === 0) {
-        this.successMessage = `${data.studentName} 签到成功！`;
+        this.successMessage = `${data.studentName}${$r('app.string.teacher_scan_sign_in_success_suffix').toString()}`;
         ErrorHandlerUtil.showSuccessToast(this.successMessage);
       } else {
-        this.errorMessage = resp.message || '签到失败';
-        const error = ErrorHandlerUtil.handleApiError(resp);
-        this.errorMessage = error.message;
+        this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_in_failed').toString();
+        const handledError = ErrorHandlerUtil.handleApiError(resp);
+        this.errorMessage = handledError.message;
       }
     } catch (error) {
-      this.errorMessage = '签到请求失败';
+      this.errorMessage = $r('app.string.teacher_scan_sign_in_request_failed').toString();
       LogUtil.error('TeacherScanPage', `Sign in failed: ${JSON.stringify(error)}`);
     }
   }
 
-  /**
-   * Perform sign-out
-   */
-  async performSignOut(data: QRCodeData) {
+  async performSignOut(data: QRCodeData): Promise<void> {
     try {
       const request: SignOutRequest = {
         studentId: data.studentId,
         sessionId: this.currentSessionId,
         signMethod: 'QR_CODE'
       };
-      
+
       const resp = await AttendanceService.signOut(request);
-      
+
       if (resp.code === 0) {
-        this.successMessage = `${data.studentName} 签退成功！`;
+        this.successMessage = `${data.studentName}${$r('app.string.teacher_scan_sign_out_success_suffix').toString()}`;
         ErrorHandlerUtil.showSuccessToast(this.successMessage);
       } else {
-        this.errorMessage = resp.message || '签退失败';
-        const error = ErrorHandlerUtil.handleApiError(resp);
-        this.errorMessage = error.message;
+        this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_out_failed').toString();
+        const handledError = ErrorHandlerUtil.handleApiError(resp);
+        this.errorMessage = handledError.message;
       }
     } catch (error) {
-      this.errorMessage = '签退请求失败';
+      this.errorMessage = $r('app.string.teacher_scan_sign_out_request_failed').toString();
       LogUtil.error('TeacherScanPage', `Sign out failed: ${JSON.stringify(error)}`);
     }
   }
 
-  /**
-   * Continue scanning
-   */
-  continueScan() {
+  continueScan(): void {
     this.showResult = false;
     this.errorMessage = '';
     this.successMessage = '';
@@ -223,247 +195,167 @@ struct TeacherScanPage {
 
   build() {
     Column() {
-      // Header
       this.buildHeader()
-      
-      // Camera preview
-      this.buildCameraView()
-      
-      // Result overlay
+      this.buildScanIntro()
+
       if (this.showResult) {
         this.buildResultOverlay()
       }
-      
-      // Instructions
+
       this.buildInstructions()
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#000000')
+    .backgroundColor($r('app.color.scan_page_background'))
   }
 
   @Builder
   buildHeader() {
     Row() {
       Image($r('app.media.ic_arrow_left'))
-        .width(24)
-        .height(24)
-        .fillColor(Color.White)
+        .width($r('app.float.icon_large_size'))
+        .height($r('app.float.icon_large_size'))
+        .fillColor($r('app.color.scan_text_light'))
         .onClick(() => router.back())
-      
-      Text(this.scanType === 'SIGN_IN' ? '扫码签到' : '扫码签退')
-        .fontSize(20)
+
+      Text(this.scanType === 'SIGN_IN' ? $r('app.string.scan_sign_in_title') : $r('app.string.scan_sign_out_title'))
+        .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.scan_text_light'))
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
-      
+
       Blank()
-        .width(24)
+        .width($r('app.float.icon_large_size'))
     }
     .width('100%')
-    .padding(16)
-    .backgroundColor('#1A1A1A')
+    .padding($r('app.float.page_padding'))
+    .backgroundColor($r('app.color.scan_header_background'))
   }
 
   @Builder
-  buildCameraView() {
+  buildScanIntro() {
     Column() {
-      if (this.isScanning) {
-        // Camera preview area
-        Stack({ alignContent: Alignment.Center }) {
-          // Placeholder for camera preview
-          // In production, use XComponent with camera preview
-          Column() {
-            Text('相机预览区域')
-              .fontSize(16)
-              .fontColor('#666666')
-              .margin({ bottom: 16 })
-            
-            Text('对准学生二维码扫描')
-              .fontSize(14)
-              .fontColor('#999999')
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
-          .backgroundColor('#2A2A2A')
-          
-          // Scan frame
-          Column() {
-            Row() {
-              // Top-left corner
-              Column() {
-                Row()
-                  .width(40)
-                  .height(3)
-                  .backgroundColor('#00BFFF')
-                Row()
-                  .width(3)
-                  .height(40)
-                  .backgroundColor('#00BFFF')
-              }
-              .alignItems(HorizontalAlign.Start)
-              
-              Blank()
-              
-              // Top-right corner
-              Column() {
-                Row()
-                  .width(40)
-                  .height(3)
-                  .backgroundColor('#00BFFF')
-                Row()
-                  .width(3)
-                  .height(40)
-                  .backgroundColor('#00BFFF')
-              }
-              .alignItems(HorizontalAlign.End)
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.SpaceBetween)
-            
-            Blank()
-            
-            Row() {
-              // Bottom-left corner
-              Column() {
-                Row()
-                  .width(3)
-                  .height(40)
-                  .backgroundColor('#00BFFF')
-                Row()
-                  .width(40)
-                  .height(3)
-                  .backgroundColor('#00BFFF')
-              }
-              .alignItems(HorizontalAlign.Start)
-              
-              Blank()
-              
-              // Bottom-right corner
-              Column() {
-                Row()
-                  .width(3)
-                  .height(40)
-                  .backgroundColor('#00BFFF')
-                Row()
-                  .width(40)
-                  .height(3)
-                  .backgroundColor('#00BFFF')
-              }
-              .alignItems(HorizontalAlign.End)
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.SpaceBetween)
-          }
-          .width(250)
-          .height(250)
-        }
-        .layoutWeight(1)
-        .width('100%')
-      } else {
-        // Not scanning - show start button
-        Column() {
-          Image($r('app.media.ic_qrcode'))
-            .width(80)
-            .height(80)
-            .fillColor('#666666')
-            .margin({ bottom: 16 })
-          
-          Button('开始扫描')
-            .fontSize(16)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.primary'))
-            .borderRadius(24)
-            .padding({ left: 40, right: 40, top: 12, bottom: 12 })
-            .onClick(() => this.startScan())
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .justifyContent(FlexAlign.Center)
-      }
+      Image($r('app.media.ic_qrcode'))
+        .width($r('app.float.scan_qrcode_icon_size'))
+        .height($r('app.float.scan_qrcode_icon_size'))
+        .fillColor($r('app.color.scan_text_light'))
+        .margin({ bottom: $r('app.float.scan_section_gap_small') })
+
+      Text(this.scanType === 'SIGN_IN' ? $r('app.string.scan_teacher_sign_in_intro') : $r('app.string.scan_teacher_sign_out_intro'))
+        .fontSize($r('app.float.scan_intro_title_size'))
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.scan_text_light'))
+        .textAlign(TextAlign.Center)
+        .margin({ bottom: $r('app.float.scan_section_gap_xsmall') })
+
+      Text($r('app.string.scan_album_supported'))
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.scan_text_hint'))
+        .textAlign(TextAlign.Center)
+        .margin({ bottom: $r('app.float.scan_section_gap_large') })
+
+      Button(this.isScanning ? $r('app.string.scan_starting_button') : $r('app.string.scan_start_button'))
+        .fontSize($r('app.float.button_text_size'))
+        .fontColor($r('app.color.scan_text_light'))
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius($r('app.float.scan_button_radius_xlarge'))
+        .padding({
+          left: $r('app.float.layout_button_padding_horizontal_large'),
+          right: $r('app.float.layout_button_padding_horizontal_large'),
+          top: $r('app.float.layout_button_padding_vertical_medium'),
+          bottom: $r('app.float.layout_button_padding_vertical_medium')
+        })
+        .constraintSize({ maxWidth: $r('app.float.layout_button_max_width_medium') })
+        .enabled(!this.isScanning)
+        .onClick(() => this.startScan())
     }
     .width('100%')
     .layoutWeight(1)
+    .justifyContent(FlexAlign.Center)
+    .padding({
+      left: $r('app.float.layout_content_side_padding_compact'),
+      right: $r('app.float.layout_content_side_padding_compact')
+    })
   }
 
   @Builder
   buildResultOverlay() {
     Column() {
-      // Result card
       Column() {
-        if (this.successMessage) {
+        if (this.successMessage.length > 0) {
           Image($r('app.media.ic_success'))
-            .width(60)
-            .height(60)
-            .fillColor('#4CAF50')
-            .margin({ bottom: 16 })
-          
+            .width($r('app.float.scan_result_icon_size'))
+            .height($r('app.float.scan_result_icon_size'))
+            .fillColor($r('app.color.status_completed'))
+            .margin({ bottom: $r('app.float.page_padding') })
+
           Text(this.successMessage)
-            .fontSize(18)
+            .fontSize($r('app.float.card_title_size'))
             .fontWeight(FontWeight.Bold)
-            .fontColor('#4CAF50')
+            .fontColor($r('app.color.status_completed'))
             .textAlign(TextAlign.Center)
-        } else if (this.errorMessage) {
+        } else if (this.errorMessage.length > 0) {
           Image($r('app.media.ic_error'))
-            .width(60)
-            .height(60)
-            .fillColor('#F44336')
-            .margin({ bottom: 16 })
-          
+            .width($r('app.float.scan_result_icon_size'))
+            .height($r('app.float.scan_result_icon_size'))
+            .fillColor($r('app.color.error'))
+            .margin({ bottom: $r('app.float.page_padding') })
+
           Text(this.errorMessage)
-            .fontSize(16)
-            .fontColor('#F44336')
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor($r('app.color.error'))
             .textAlign(TextAlign.Center)
         }
-        
+
         Row() {
-          Button('继续扫描')
-            .fontSize(16)
-            .fontColor(Color.White)
+          Button($r('app.string.scan_continue'))
+            .fontSize($r('app.float.button_text_size'))
+            .fontColor($r('app.color.scan_text_light'))
             .backgroundColor($r('app.color.primary'))
-            .borderRadius(24)
+            .borderRadius($r('app.float.scan_button_radius_xlarge'))
             .layoutWeight(1)
             .onClick(() => this.continueScan())
-          
-          Button('返回')
-            .fontSize(16)
+
+          Button($r('app.string.common_back'))
+            .fontSize($r('app.float.button_text_size'))
             .fontColor($r('app.color.text_secondary'))
-            .backgroundColor('#F5F5F5')
-            .borderRadius(24)
+            .backgroundColor($r('app.color.scan_result_secondary_button_bg'))
+            .borderRadius($r('app.float.scan_button_radius_xlarge'))
             .layoutWeight(1)
-            .margin({ left: 12 })
+            .margin({ left: $r('app.float.card_margin') })
             .onClick(() => router.back())
         }
         .width('100%')
-        .margin({ top: 24 })
+        .margin({ top: $r('app.float.scan_error_top_margin') })
       }
-      .width('80%')
-      .padding(24)
-      .backgroundColor(Color.White)
-      .borderRadius(16)
+      .width('100%')
+      .constraintSize({ maxWidth: $r('app.float.layout_dialog_max_width_medium') })
+      .padding($r('app.float.scan_result_dialog_padding'))
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius($r('app.float.scan_dialog_radius'))
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('rgba(0,0,0,0.7)')
+    .backgroundColor($r('app.color.scan_overlay_background'))
     .justifyContent(FlexAlign.Center)
+    .padding($r('app.float.page_padding'))
   }
 
   @Builder
   buildInstructions() {
     Column() {
-      Text('将二维码放入框内，自动扫描')
-        .fontSize(14)
-        .fontColor('#999999')
-        .margin({ bottom: 8 })
-      
-      Text('仅支持学生签到/签退二维码')
-        .fontSize(12)
-        .fontColor('#666666')
+      Text($r('app.string.scan_instruction_open_official'))
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.scan_text_hint'))
+        .margin({ bottom: $r('app.float.scan_instruction_gap') })
+
+      Text($r('app.string.scan_instruction_student_only'))
+        .fontSize($r('app.float.text_tiny_size'))
+        .fontColor($r('app.color.text_secondary'))
     }
     .width('100%')
-    .padding(16)
-    .backgroundColor('#1A1A1A')
+    .padding($r('app.float.page_padding'))
+    .backgroundColor($r('app.color.scan_header_background'))
   }
 }

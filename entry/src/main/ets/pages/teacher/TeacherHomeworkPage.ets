@@ -3,10 +3,12 @@
  * Teacher can manage homework tasks and feedback
  */
 
-import { HomeworkService } from '../../services/api/attendance';
-import { HomeworkTask, HomeworkFeedback, HomeworkFeedbackCreateRequest } from '../../models/attendance';
+import { HomeworkService } from '../../services/api/homework';
+import { HomeworkTask, HomeworkFeedbackCreateRequest, HomeworkTaskStatus, PerformanceLevel } from '../../models/homework';
 import { SessionService } from '../../services/api/service';
 import { SessionSchedule } from '../../models/service';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { PageResponse } from '../../models/common';
 
 @Component
 export struct TeacherHomeworkPage {
@@ -18,8 +20,13 @@ export struct TeacherHomeworkPage {
   @State selectedTask: HomeworkTask | null = null;
   @State feedbackContent: string = '';
   @State errorMessage: string = '';
+  @State isSubmittingFeedback: boolean = false;
 
-  private tabs: string[] = ['待辅导', '已完成', '待确认'];
+  private tabs: string[] = [
+    $r('app.string.homework_tab_pending').toString(),
+    $r('app.string.homework_tab_completed').toString(),
+    $r('app.string.homework_tab_confirmed').toString()
+  ];
 
   aboutToAppear() {
     this.loadData();
@@ -28,7 +35,6 @@ export struct TeacherHomeworkPage {
   async loadData() {
     this.isLoading = true;
     try {
-      // Load sessions
       const today = new Date().toISOString().split('T')[0];
       const sessionResp = await SessionService.getSessions({
         sessionDate: today,
@@ -39,78 +45,121 @@ export struct TeacherHomeworkPage {
         this.sessions = Array.isArray(sessionResp.data) ? sessionResp.data : [];
       }
 
-      // Load homework based on tab
       await this.loadHomeworkByTab();
     } catch (error) {
-      this.errorMessage = '加载数据失败';
+      this.errorMessage = $r('app.string.homework_data_loading_failed').toString();
     } finally {
       this.isLoading = false;
     }
   }
 
+  private getPageList(data: PageResponse<HomeworkTask> | HomeworkTask[] | null | undefined): HomeworkTask[] {
+    if (!data) {
+      return [];
+    }
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return data.list ? data.list : [];
+  }
+
   async loadHomeworkByTab() {
-    let status: string | undefined;
-    if (this.currentTab === 0) status = 'PENDING';
-    else if (this.currentTab === 1) status = 'COMPLETED';
-    else if (this.currentTab === 2) status = 'CONFIRMED';
+    let status: HomeworkTaskStatus | undefined = undefined;
+    if (this.currentTab === 0) {
+      status = HomeworkTaskStatus.PENDING;
+    } else if (this.currentTab === 1) {
+      status = HomeworkTaskStatus.COMPLETED;
+    } else if (this.currentTab === 2) {
+      status = HomeworkTaskStatus.CONFIRMED;
+    }
 
     try {
       const resp = await HomeworkService.getTasks({
         pageNum: 1,
         pageSize: 20,
-        status
+        status: status
       });
 
-      if (resp.code === 0 && resp.data) {
-        this.homeworkList = Array.isArray(resp.data) ? resp.data : [];
+      if (resp.code === 0) {
+        this.homeworkList = this.getPageList(resp.data);
       }
     } catch (error) {
-      this.errorMessage = '加载作业失败';
+      this.errorMessage = $r('app.string.homework_loading_failed').toString();
     }
   }
 
+  openFeedbackDialog(task: HomeworkTask): void {
+    this.selectedTask = task;
+    this.feedbackContent = '';
+    this.errorMessage = '';
+    this.showFeedbackDialog = true;
+  }
+
+  closeFeedbackDialog(): void {
+    this.showFeedbackDialog = false;
+    this.selectedTask = null;
+    this.feedbackContent = '';
+    this.isSubmittingFeedback = false;
+  }
+
   async handleSubmitFeedback() {
-    if (!this.selectedTask || !this.feedbackContent) {
+    if (!this.selectedTask) {
       return;
     }
 
+    if (this.feedbackContent.trim().length === 0) {
+      ErrorHandlerUtil.showErrorToast($r('app.string.homework_feedback_dialog_hint').toString());
+      return;
+    }
+
+    this.isSubmittingFeedback = true;
     try {
       const request: HomeworkFeedbackCreateRequest = {
         taskId: this.selectedTask.id,
         feedbackContent: this.feedbackContent,
-        performance: 'GOOD'
+        performance: PerformanceLevel.GOOD
       };
 
-      await HomeworkService.submitFeedback(request);
-      this.showFeedbackDialog = false;
-      this.feedbackContent = '';
-      this.selectedTask = null;
-      this.loadHomeworkByTab();
+      const resp = await HomeworkService.submitFeedback(request);
+      if (resp.code === 0) {
+        ErrorHandlerUtil.showSuccessToast($r('app.string.homework_feedback_submit_success').toString());
+        this.closeFeedbackDialog();
+        await this.loadHomeworkByTab();
+      } else {
+        this.errorMessage = resp.message ? resp.message : $r('app.string.homework_feedback_submit_failed').toString();
+        ErrorHandlerUtil.showErrorToast(this.errorMessage);
+      }
     } catch (error) {
-      this.errorMessage = '提交反馈失败';
+      this.errorMessage = $r('app.string.homework_feedback_submit_failed').toString();
+      ErrorHandlerUtil.showErrorToast(this.errorMessage);
+    } finally {
+      this.isSubmittingFeedback = false;
     }
   }
 
   build() {
-    Column() {
-      // Header
-      this.buildHeader()
+    Stack() {
+      Column() {
+        this.buildHeader()
+        this.buildTabBar()
+        this.buildHomeworkList()
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
 
-      // Tab bar
-      this.buildTabBar()
-
-      // Homework list
-      this.buildHomeworkList()
+      if (this.showFeedbackDialog) {
+        this.buildFeedbackDialog()
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
   buildHeader() {
     Row() {
-      Text('作业管理')
+      Text($r('app.string.homework_title'))
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
         .textAlign(TextAlign.Center)
@@ -118,7 +167,10 @@ export struct TeacherHomeworkPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
+    .padding({
+      top: Number($r('app.float.status_bar_height')) + Number($r('app.float.homework_header_top_extra')),
+      bottom: $r('app.float.homework_header_bottom_padding')
+    })
     .backgroundColor($r('app.color.primary'))
   }
 
@@ -133,14 +185,14 @@ export struct TeacherHomeworkPage {
 
           if (this.currentTab === index) {
             Row()
-              .width(20)
-              .height(2)
+              .width($r('app.float.homework_tab_indicator_width'))
+              .height($r('app.float.homework_tab_indicator_height'))
               .backgroundColor($r('app.color.primary'))
-              .borderRadius(1)
+              .borderRadius($r('app.float.homework_tab_indicator_radius'))
           }
         }
         .width('33%')
-        .height(44)
+        .height($r('app.float.homework_tab_height'))
         .justifyContent(FlexAlign.Center)
         .onClick(() => {
           this.currentTab = index;
@@ -149,7 +201,7 @@ export struct TeacherHomeworkPage {
       })
     }
     .width('100%')
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.homework_tab_background'))
   }
 
   @Builder
@@ -165,11 +217,11 @@ export struct TeacherHomeworkPage {
     } else if (this.homeworkList.length === 0) {
       Column() {
         Image($r('app.media.ic_empty'))
-          .width(120)
-          .height(120)
+          .width($r('app.float.homework_empty_icon_size'))
+          .height($r('app.float.homework_empty_icon_size'))
           .objectFit(ImageFit.Contain)
 
-        Text('暂无作业')
+        Text($r('app.string.homework_empty'))
           .fontSize($r('app.float.text_primary_size'))
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: $r('app.float.card_margin') })
@@ -196,9 +248,8 @@ export struct TeacherHomeworkPage {
   @Builder
   buildHomeworkItem(task: HomeworkTask) {
     Column() {
-      // Header
       Row() {
-        Text(task.studentName || '学生')
+        Text(task.studentName ? task.studentName : $r('app.string.homework_feedback_student'))
           .fontSize($r('app.float.text_primary_size'))
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
@@ -209,29 +260,31 @@ export struct TeacherHomeworkPage {
       .justifyContent(FlexAlign.SpaceBetween)
       .margin({ bottom: $r('app.float.card_content_margin') })
 
-      // Content
-      Text(task.content)
+      Text(task.content ? task.content : '')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.text_secondary'))
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-      // Date and action
       Row() {
         Text(task.taskDate)
           .fontSize($r('app.float.text_tiny_size'))
           .fontColor($r('app.color.text_tertiary'))
 
         if (this.currentTab === 0) {
-          Button('提交反馈')
+          Button($r('app.string.homework_submit_feedback'))
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(Color.White)
             .backgroundColor($r('app.color.primary'))
             .borderRadius($r('app.float.button_radius'))
-            .padding({ left: 12, right: 12, top: 4, bottom: 4 })
+            .padding({
+              left: $r('app.float.homework_feedback_button_padding_horizontal'),
+              right: $r('app.float.homework_feedback_button_padding_horizontal'),
+              top: $r('app.float.homework_feedback_button_padding_vertical'),
+              bottom: $r('app.float.homework_feedback_button_padding_vertical')
+            })
             .onClick(() => {
-              this.selectedTask = task;
-              this.showFeedbackDialog = true;
+              this.openFeedbackDialog(task);
             })
         }
       }
@@ -241,13 +294,99 @@ export struct TeacherHomeworkPage {
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.card_background'))
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
   }
 
   @Builder
-  buildStatusBadge(status: string) {
+  buildFeedbackDialog() {
+    Column() {
+      Column() {
+        Text($r('app.string.homework_feedback_dialog_title'))
+          .fontSize($r('app.float.card_title_size'))
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .margin({ bottom: $r('app.float.card_margin') })
+
+        if (this.selectedTask) {
+          Column() {
+            Text(`${$r('app.string.homework_feedback_student').toString()}：${this.selectedTask.studentName ? this.selectedTask.studentName : ''}`)
+              .fontSize($r('app.float.text_secondary_size'))
+              .fontColor($r('app.color.text_secondary'))
+              .width('100%')
+              .margin({ bottom: $r('app.float.card_content_margin') })
+
+            Text(`${$r('app.string.homework_feedback_task_content').toString()}：${this.selectedTask.content ? this.selectedTask.content : ''}`)
+              .fontSize($r('app.float.text_secondary_size'))
+              .fontColor($r('app.color.text_secondary'))
+              .width('100%')
+              .maxLines(3)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .margin({ bottom: $r('app.float.card_margin') })
+          }
+          .width('100%')
+          .padding($r('app.float.card_padding'))
+          .backgroundColor($r('app.color.page_background'))
+          .borderRadius($r('app.float.card_border_radius'))
+          .margin({ bottom: $r('app.float.card_margin') })
+        }
+
+        TextArea({ text: this.feedbackContent, placeholder: $r('app.string.homework_feedback_dialog_hint').toString() })
+          .width('100%')
+          .height($r('app.float.feedback_input_height'))
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_primary'))
+          .backgroundColor($r('app.color.page_background'))
+          .borderRadius($r('app.float.card_border_radius'))
+          .onChange((value: string) => {
+            this.feedbackContent = value;
+          })
+
+        Row() {
+          Button($r('app.string.common_cancel'))
+            .layoutWeight(1)
+            .height($r('app.float.button_height'))
+            .fontSize($r('app.float.button_text_size'))
+            .fontColor($r('app.color.text_secondary'))
+            .backgroundColor($r('app.color.page_background'))
+            .borderRadius($r('app.float.button_radius'))
+            .enabled(!this.isSubmittingFeedback)
+            .onClick(() => {
+              this.closeFeedbackDialog();
+            })
+
+          Button(this.isSubmittingFeedback ? $r('app.string.homework_feedback_submitting') : $r('app.string.common_confirm'))
+            .layoutWeight(1)
+            .height($r('app.float.button_height'))
+            .fontSize($r('app.float.button_text_size'))
+            .fontColor(Color.White)
+            .backgroundColor($r('app.color.primary'))
+            .borderRadius($r('app.float.button_radius'))
+            .enabled(!this.isSubmittingFeedback)
+            .margin({ left: $r('app.float.card_margin') })
+            .onClick(() => {
+              this.handleSubmitFeedback();
+            })
+        }
+        .width('100%')
+        .margin({ top: $r('app.float.card_margin') })
+      }
+      .width('100%')
+      .constraintSize({ maxWidth: $r('app.float.layout_dialog_max_width_large') })
+      .padding($r('app.float.card_padding'))
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius($r('app.float.card_border_radius'))
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.scan_overlay_background'))
+    .justifyContent(FlexAlign.Center)
+    .padding($r('app.float.page_padding'))
+  }
+
+  @Builder
+  buildStatusBadge(status: HomeworkTaskStatus) {
     Text(this.getStatusText(status))
       .fontSize($r('app.float.badge_text_size'))
       .fontColor(this.getStatusColor(status))
@@ -261,33 +400,51 @@ export struct TeacherHomeworkPage {
       .borderRadius($r('app.float.badge_radius'))
   }
 
-  getStatusText(status: string): string {
-    const statusMap: Record<string, string> = {
-      'PENDING': '待辅导',
-      'IN_PROGRESS': '辅导中',
-      'COMPLETED': '已完成',
-      'CONFIRMED': '已确认'
-    };
-    return statusMap[status] || status;
+  getStatusText(status: HomeworkTaskStatus): string {
+    if (status === HomeworkTaskStatus.PENDING) {
+      return $r('app.string.homework_status_pending').toString();
+    }
+    if (status === HomeworkTaskStatus.IN_PROGRESS) {
+      return $r('app.string.homework_status_in_progress').toString();
+    }
+    if (status === HomeworkTaskStatus.COMPLETED) {
+      return $r('app.string.homework_status_completed').toString();
+    }
+    if (status === HomeworkTaskStatus.CONFIRMED) {
+      return $r('app.string.homework_status_confirmed').toString();
+    }
+    return '';
   }
 
-  getStatusColor(status: string): string {
-    const colorMap: Record<string, string> = {
-      'PENDING': '#FF9800',
-      'IN_PROGRESS': '#2196F3',
-      'COMPLETED': '#4CAF50',
-      'CONFIRMED': '#9C27B0'
-    };
-    return colorMap[status] || '#666666';
+  getStatusColor(status: HomeworkTaskStatus): ResourceColor {
+    if (status === HomeworkTaskStatus.PENDING) {
+      return $r('app.color.status_pending');
+    }
+    if (status === HomeworkTaskStatus.IN_PROGRESS) {
+      return $r('app.color.status_in_progress');
+    }
+    if (status === HomeworkTaskStatus.COMPLETED) {
+      return $r('app.color.status_completed');
+    }
+    if (status === HomeworkTaskStatus.CONFIRMED) {
+      return $r('app.color.status_confirmed');
+    }
+    return $r('app.color.text_secondary');
   }
 
-  getStatusBgColor(status: string): string {
-    const colorMap: Record<string, string> = {
-      'PENDING': '#FFF3E0',
-      'IN_PROGRESS': '#E3F2FD',
-      'COMPLETED': '#E8F5E9',
-      'CONFIRMED': '#F3E5F5'
-    };
-    return colorMap[status] || '#F5F5F5';
+  getStatusBgColor(status: HomeworkTaskStatus): ResourceColor {
+    if (status === HomeworkTaskStatus.PENDING) {
+      return $r('app.color.status_pending_bg');
+    }
+    if (status === HomeworkTaskStatus.IN_PROGRESS) {
+      return $r('app.color.status_in_progress_bg');
+    }
+    if (status === HomeworkTaskStatus.COMPLETED) {
+      return $r('app.color.status_completed_bg');
+    }
+    if (status === HomeworkTaskStatus.CONFIRMED) {
+      return $r('app.color.status_confirmed_bg');
+    }
+    return $r('app.color.page_background');
   }
 }
