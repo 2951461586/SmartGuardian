@@ -1,6 +1,21 @@
 /**
  * SmartGuardian - Mock Service
  * Mock service wrapper for API calls
+ * 
+ * @status PENDING - Ready to use, awaiting integration with request.ts
+ * @description This mock service provides simulated API responses for development and testing.
+ *              It is fully implemented but not yet integrated into the request pipeline.
+ *              
+ * @usage To activate:
+ *   1. Set ApiConfig.USE_MOCK_DATA = true in api.config.ts
+ *   2. Add mock handling in request.ts httpRequest function
+ *   3. Optionally use MockSwitch for fine-grained control per service
+ *   
+ * @benefits
+ *   - Frontend development independent of backend
+ *   - Consistent test data for UI development
+ *   - Simulated network delays for realistic testing
+ *   - Error scenario simulation
  */
 
 import { ApiResponse, PageResponse } from '../../models/common';

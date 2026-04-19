@@ -10,8 +10,27 @@ export class ApiConfig {
   /**
    * Enable mock data mode
    * Set to true when backend API is not ready
+   * 
+   * @status PENDING - Mock system is implemented but not yet integrated into request.ts
+   * @usage To enable mock:
+   *   1. Set USE_MOCK_DATA = true
+   *   2. Add mock interceptor in request.ts (see example below)
+   *   3. Import MockService in request interceptor
+   * 
+   * @example Mock integration in request.ts
+   * ```typescript
+   * import { ApiConfig } from '../config/api.config';
+   * import { MockService } from '../services/mock/mockService';
+   * 
+   * async function httpRequest<T>(options: RequestOptions): Promise<HttpResponse<T>> {
+   *   if (ApiConfig.USE_MOCK_DATA) {
+   *     return MockService.handleMockRequest(options);
+   *   }
+   *   // ... real API call
+   * }
+   * ```
    */
-  static readonly USE_MOCK_DATA: boolean = true;
+  static readonly USE_MOCK_DATA: boolean = false;  // ⚠️ Changed to false - backend API is ready
 
   /**
    * API base URL
@@ -51,6 +70,8 @@ export class ApiConfig {
 
 /**
  * Mock data switch for each service
+ * @status PENDING - Not currently used, reserved for future mock integration
+ * @note This class allows fine-grained control over which services use mock data
  */
 export class MockSwitch {
   // Auth & User
