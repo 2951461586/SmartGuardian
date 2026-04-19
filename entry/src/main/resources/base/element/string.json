@@ -43,6 +43,34 @@
     {
       "name": "nav_reports",
       "value": "统计"
+    },
+    {
+      "name": "form_today_guardian_display_name",
+      "value": "今日托管卡片"
+    },
+    {
+      "name": "form_today_guardian_description",
+      "value": "实时查看学生托管状态和进度"
+    },
+    {
+      "name": "form_abnormal_alert_display_name",
+      "value": "异常提醒卡片"
+    },
+    {
+      "name": "form_abnormal_alert_description",
+      "value": "接收学生异常情况及时提醒"
+    },
+    {
+      "name": "camera_reason",
+      "value": "需要使用相机扫描二维码来完成签到签退操作"
+    },
+    {
+      "name": "read_media_reason",
+      "value": "需要读取相册中的二维码图片"
+    },
+    {
+      "name": "write_media_reason",
+      "value": "需要保存二维码图片到相册"
     }
   ]
 }

@@ -5,6 +5,7 @@
 
 import { UserRole } from '../models/common';
 import { UserInfo } from '../models/user';
+import { removeToken } from '../utils/request';
 
 /**
  * User store keys
@@ -43,7 +44,7 @@ export class UserStore {
    */
   static getUserRole(): UserRole | null {
     const userInfo = this.getUserInfo();
-    return userInfo?.role ?? null;
+    return userInfo?.roleType ?? null;
   }
 
   /**
@@ -72,6 +73,7 @@ export class UserStore {
    * Clear user info (logout)
    */
   static clearUserInfo(): void {
+    removeToken();
     AppStorage.delete(USER_INFO_KEY);
     AppStorage.delete(IS_LOGGED_IN_KEY);
   }

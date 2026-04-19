@@ -1,43 +1,46 @@
 /**
  * SmartGuardian - Attendance & Homework Models
- * Attendance, homework, feedback related types
+ * Attendance, homework, feedback, message related types
  */
 
 /**
  * Attendance record
+ * OpenAPI base fields + optional compatibility fields.
  */
 export interface AttendanceRecord {
   id: number;
   studentId: number;
+  sessionId: number;
+  signInTime?: string;
+  status: string;
   studentName?: string;
   studentNo?: string;
-  orderId: number;
-  sessionId: number;
+  orderId?: number;
   sessionNo?: string;
-  attendanceDate: string;
-  signInTime?: string;
+  attendanceDate?: string;
   signOutTime?: string;
-  signInMethod?: 'QR_CODE' | 'NFC' | 'FACE' | 'MANUAL';
-  signOutMethod?: 'QR_CODE' | 'NFC' | 'FACE' | 'MANUAL';
+  signInMethod?: string;
+  signOutMethod?: string;
   signInLocation?: string;
   signOutLocation?: string;
   operatorUserId?: number;
   operatorName?: string;
-  status: 'NOT_SIGNED' | 'SIGNED_IN' | 'SIGNED_OUT' | 'ABSENT' | 'LATE' | 'LEAVE';
-  abnormalFlag: boolean;
+  abnormalFlag?: boolean;
   abnormalType?: string;
   abnormalDesc?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
  * Sign in request
+ * Keep both OpenAPI names and current page names for compatibility.
  */
 export interface SignInRequest {
   studentId: number;
   sessionId: number;
-  signMethod: 'QR_CODE' | 'NFC' | 'FACE' | 'MANUAL';
+  signInType?: string;
+  signMethod?: string;
   location?: string;
 }
 
@@ -47,7 +50,9 @@ export interface SignInRequest {
 export interface SignOutRequest {
   studentId: number;
   sessionId: number;
-  signMethod: 'QR_CODE' | 'NFC' | 'FACE' | 'MANUAL';
+  signOutType?: string;
+  signMethod?: string;
+  guardianId?: number;
   pickupUserId?: number;
   location?: string;
 }
@@ -58,31 +63,34 @@ export interface SignOutRequest {
 export interface LeaveRequest {
   studentId: number;
   leaveDate: string;
-  leaveType: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER';
+  leaveType: string;
   reason: string;
   attachments?: string[];
 }
 
 /**
  * Homework task
+ * OpenAPI base fields + optional UI fields.
  */
 export interface HomeworkTask {
   id: number;
-  taskNo: string;
   studentId: number;
-  studentName?: string;
-  sessionId: number;
-  sessionNo?: string;
-  teacherId: number;
-  teacherName?: string;
   taskDate: string;
   subject?: string;
-  content: string;
+  title?: string;
+  content?: string;
+  sourceType?: string;
+  status: string;
+  taskNo?: string;
+  studentName?: string;
+  sessionId?: number;
+  sessionNo?: string;
+  teacherId?: number;
+  teacherName?: string;
   attachments?: string[];
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CONFIRMED';
   completedTime?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -90,10 +98,12 @@ export interface HomeworkTask {
  */
 export interface HomeworkTaskCreateRequest {
   studentId: number;
-  sessionId: number;
   taskDate: string;
-  subject?: string;
-  content: string;
+  subject: string;
+  title: string;
+  content?: string;
+  sourceType?: string;
+  sessionId?: number;
   attachments?: string[];
 }
 
@@ -103,17 +113,17 @@ export interface HomeworkTaskCreateRequest {
 export interface HomeworkFeedback {
   id: number;
   taskId: number;
-  teacherId: number;
+  teacherId?: number;
   teacherName?: string;
-  studentId: number;
+  studentId?: number;
   feedbackContent: string;
   performance?: string;
   attachments?: string[];
-  status: 'DRAFT' | 'SUBMITTED' | 'CONFIRMED' | 'DISPUTED';
+  status?: string;
   guardianConfirmTime?: string;
   guardianRemark?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -139,17 +149,17 @@ export interface HomeworkConfirmRequest {
  */
 export interface MessageRecord {
   id: number;
-  senderUserId: number;
+  senderUserId?: number;
   senderName?: string;
   senderAvatar?: string;
-  receiverUserId: number;
+  receiverUserId?: number;
   receiverName?: string;
-  conversationId: number;
+  conversationId?: number;
   msgType: 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER' | 'CHAT';
   content: string;
   attachments?: string[];
-  readStatus: boolean;
-  createdAt: string;
+  readStatus?: boolean;
+  createdAt?: string;
 }
 
 /**
@@ -169,9 +179,10 @@ export interface StudentTimeline {
   id: number;
   studentId: number;
   timelineType: 'ATTENDANCE' | 'HOMEWORK' | 'MESSAGE' | 'ORDER' | 'NOTE';
-  bizId: number;
+  bizId?: number;
   title: string;
   content: string;
+  bizDate?: string;
   timestamp: string;
   operatorUserId?: number;
   operatorName?: string;

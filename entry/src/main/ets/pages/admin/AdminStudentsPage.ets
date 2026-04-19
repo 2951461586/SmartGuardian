@@ -1,12 +1,14 @@
 /**
  * SmartGuardian - 学生档案管理页
  * 机构管理员管理学生信息
+ * Features: Data mask for privacy protection
  */
 
 import { router } from '@kit.ArkUI';
 import { StudentService } from '../../services/api/auth';
 import { Student, GuardianRelation } from '../../models/user';
-import { SecurityUtils } from '../../utils/security';
+import { DataMaskUtil } from '../../utils/DataMaskUtil';
+import { LogUtil } from '../../utils/LogUtil';
 
 interface StudentWithGuardian extends Student {
   guardianName?: string;
@@ -44,10 +46,12 @@ export struct AdminStudentsPage {
         const rawList = resp.data.list || [];
         for (let i = 0; i < rawList.length; i++) {
           const s = rawList[i];
+          
+          // 应用数据脱敏
           const processed: StudentWithGuardian = {
             id: s.id,
-            name: SecurityUtils.desensitizeName(s.name),
-            studentNo: s.studentNo,
+            name: DataMaskUtil.maskName(s.name), // 姓名脱敏
+            studentNo: DataMaskUtil.maskStudentNo(s.studentNo), // 学号脱敏
             grade: s.grade,
             className: s.className,
             gender: s.gender,
@@ -60,17 +64,23 @@ export struct AdminStudentsPage {
           processed.schoolId = s.schoolId;
           processed.guardianUserId = s.guardianUserId;
           processed.status = s.status;
+          
+          // 监护人信息脱敏
           if (s.guardianName) {
-            processed.guardianName = SecurityUtils.desensitizeName(s.guardianName);
+            processed.guardianName = DataMaskUtil.maskName(s.guardianName);
           }
           if (s.guardianMobile) {
-            processed.guardianMobile = SecurityUtils.desensitizeMobile(s.guardianMobile);
+            processed.guardianMobile = DataMaskUtil.maskPhone(s.guardianMobile);
           }
           list.push(processed);
         }
         this.studentList = list;
         this.totalPages = Math.ceil(resp.data.total / 20);
+        
+        LogUtil.info('AdminStudentsPage', `Loaded ${list.length} students`);
       }
+    } catch (error) {
+      LogUtil.error('AdminStudentsPage', `Load students failed: ${JSON.stringify(error)}`);
     } finally {
       this.isLoading = false;
     }
@@ -185,6 +195,13 @@ export struct AdminStudentsPage {
       Column() {
         LoadingProgress()
           .color($r('app.color.primary'))
+          .width(48)
+          .height(48)
+        
+        Text('加载中...')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 16 })
       }
       .width('100%')
       .layoutWeight(1)
@@ -199,6 +216,7 @@ export struct AdminStudentsPage {
         Text('暂无学生数据')
           .fontSize($r('app.float.text_primary_size'))
           .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 16 })
       }
       .width('100%')
       .layoutWeight(1)
@@ -239,21 +257,48 @@ export struct AdminStudentsPage {
 
       // Student info
       Column() {
-        Text(student.name)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-
+        Row() {
+          Text(student.name)
+            .fontSize($r('app.float.text_primary_size'))
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.text_primary'))
+          
+          // 性别标识
+          if (student.gender) {
+            Text(student.gender === 'MALE' ? '👦' : '👧')
+              .fontSize(14)
+              .margin({ left: 4 })
+          }
+        }
+        
         Text(`学号: ${student.studentNo || '--'}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 2 })
 
+        Text(`${student.grade}年级 ${student.className}`)
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_tertiary'))
+          .margin({ top: 2 })
+
         if (student.guardianName) {
-          Text(`监护人: ${student.guardianName} ${student.guardianMobile || ''}`)
-            .fontSize($r('app.float.text_tiny_size'))
-            .fontColor($r('app.color.text_tertiary'))
-            .margin({ top: 2 })
+          Row() {
+            Image($r('app.media.ic_user'))
+              .width(12)
+              .height(12)
+              .fillColor($r('app.color.text_tertiary'))
+            
+            Text(` 监护人: ${student.guardianName}`)
+              .fontSize($r('app.float.text_tiny_size'))
+              .fontColor($r('app.color.text_tertiary'))
+            
+            if (student.guardianMobile) {
+              Text(` ${student.guardianMobile}`)
+                .fontSize($r('app.float.text_tiny_size'))
+                .fontColor($r('app.color.text_tertiary'))
+            }
+          }
+          .margin({ top: 4 })
         }
       }
       .alignItems(HorizontalAlign.Start)
@@ -278,15 +323,26 @@ export struct AdminStudentsPage {
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
+    .shadow({
+      radius: 2,
+      color: '#1A000000',
+      offsetX: 0,
+      offsetY: 1
+    })
   }
 
   @Builder
   buildPagination() {
     Row() {
-      Text('上一页')
+      Button('上一页')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary'))
+        .backgroundColor(Color.Transparent)
+        .border({ width: 1, color: this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary') })
+        .borderRadius(4)
+        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
         .enabled(this.currentPage > 1)
+        .opacity(this.currentPage > 1 ? 1 : 0.3)
         .onClick(() => {
           if (this.currentPage > 1) {
             this.currentPage--;
@@ -299,10 +355,15 @@ export struct AdminStudentsPage {
         .fontColor($r('app.color.text_primary'))
         .margin({ left: 20, right: 20 })
 
-      Text('下一页')
+      Button('下一页')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary'))
+        .backgroundColor(Color.Transparent)
+        .border({ width: 1, color: this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary') })
+        .borderRadius(4)
+        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
         .enabled(this.currentPage < this.totalPages)
+        .opacity(this.currentPage < this.totalPages ? 1 : 0.3)
         .onClick(() => {
           if (this.currentPage < this.totalPages) {
             this.currentPage++;

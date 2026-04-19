@@ -5,30 +5,30 @@
 
 /**
  * Service product (托管服务)
+ * OpenAPI core fields + compatibility aliases used by existing pages.
  */
 export interface ServiceProduct {
   id: number;
-  // 主字段
   serviceName: string;
-  serviceType: 'AFTER_SCHOOL' | 'HOLIDAY' | 'FULL_DAY' | 'WEEKEND';
-  description: string;
+  serviceType: string;
   price: number;
-  unit: 'DAY' | 'WEEK' | 'MONTH' | 'SESSION';
+  capacity?: number;
+  status: string;
+  description?: string;
+  unit?: string;
   gradeRange?: string;
-  maxStudents: number;
-  currentStudents: number;
-  serviceStartDate: string;
-  serviceEndDate: string;
-  signInStartTime: string;
-  signInEndTime: string;
-  signOutStartTime: string;
-  signOutEndTime: string;
-  orgId: number;
+  maxStudents?: number;
+  currentStudents?: number;
+  serviceStartDate?: string;
+  serviceEndDate?: string;
+  signInStartTime?: string;
+  signInEndTime?: string;
+  signOutStartTime?: string;
+  signOutEndTime?: string;
+  orgId?: number;
   orgName?: string;
-  status: 'DRAFT' | 'PUBLISHED' | 'PAUSED' | 'CLOSED';
-  createdAt: string;
-  updatedAt: string;
-  // 兼容别名（用于旧组件兼容）
+  createdAt?: string;
+  updatedAt?: string;
   name?: string;
   category?: string;
   startTime?: string;
@@ -40,45 +40,50 @@ export interface ServiceProduct {
  */
 export interface ServiceProductCreateRequest {
   serviceName: string;
-  serviceType: 'AFTER_SCHOOL' | 'HOLIDAY' | 'FULL_DAY' | 'WEEKEND';
-  description: string;
+  serviceType: string;
+  description?: string;
   price: number;
-  unit: 'DAY' | 'WEEK' | 'MONTH' | 'SESSION';
+  unit?: string;
   gradeRange?: string;
-  maxStudents: number;
-  serviceStartDate: string;
-  serviceEndDate: string;
-  signInStartTime: string;
-  signInEndTime: string;
-  signOutStartTime: string;
-  signOutEndTime: string;
+  maxStudents?: number;
+  capacity?: number;
+  serviceStartDate?: string;
+  serviceEndDate?: string;
+  signInStartTime?: string;
+  signInEndTime?: string;
+  signOutStartTime?: string;
+  signOutEndTime?: string;
 }
 
 /**
  * Order (托管订单)
+ * OpenAPI fields are required; extra UI-friendly fields are optional.
  */
 export interface Order {
   id: number;
   orderNo: string;
   studentId: number;
-  studentName?: string;
-  guardianUserId: number;
-  guardianName?: string;
   serviceProductId: number;
+  orderStatus: string;
+  amount: number;
+  paidAmount: number;
+  payStatus: string;
+  auditStatus?: string;
+  studentName?: string;
+  guardianUserId?: number;
+  guardianName?: string;
   serviceProductName?: string;
-  startDate: string;
-  endDate: string;
-  totalAmount: number;
-  discountAmount: number;
-  actualAmount: number;
-  orderStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED';
-  payStatus: 'UNPAID' | 'PAID' | 'REFUNDING' | 'REFUNDED';
+  startDate?: string;
+  endDate?: string;
+  totalAmount?: number;
+  discountAmount?: number;
+  actualAmount?: number;
   payTime?: string;
   auditTime?: string;
   auditUserId?: number;
   auditRemark?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -89,7 +94,7 @@ export interface OrderCreateRequest {
   serviceProductId: number;
   startDate: string;
   endDate: string;
-  totalAmount: number;
+  totalAmount?: number;
   discountAmount?: number;
 }
 
@@ -111,23 +116,26 @@ export interface OrderRefundRequest {
 
 /**
  * Session schedule (班次排课)
+ * Includes OpenAPI SessionInfo fields and current page compatibility fields.
  */
 export interface SessionSchedule {
   id: number;
-  sessionNo: string;
-  serviceProductId: number;
-  serviceProductName?: string;
   sessionDate: string;
   startTime: string;
   endTime: string;
-  teacherId: number;
-  teacherName?: string;
-  maxCapacity: number;
+  teacherUserId?: number;
+  capacity?: number;
   currentCount: number;
+  sessionNo?: string;
+  serviceProductId?: number;
+  serviceProductName?: string;
+  teacherId?: number;
+  teacherName?: string;
+  maxCapacity?: number;
   location?: string;
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  createdAt: string;
-  updatedAt: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
@@ -137,19 +145,12 @@ export interface AutoScheduleRequest {
   serviceProductId: number;
   startDate: string;
   endDate: string;
-  weekdays: number[]; // 1-7, 1=Monday
+  weekdays: number[];
   startTime: string;
   endTime: string;
   teacherIds: number[];
   maxCapacity: number;
   location?: string;
-}
-
-/**
- * Session with student list
- */
-export interface SessionWithStudents extends SessionSchedule {
-  students: SessionStudent[];
 }
 
 /**
@@ -162,4 +163,11 @@ export interface SessionStudent {
   attendanceStatus: string;
   signInTime?: string;
   signOutTime?: string;
+}
+
+/**
+ * Session with student list
+ */
+export interface SessionWithStudents extends SessionSchedule {
+  students: SessionStudent[];
 }

@@ -1,49 +1,79 @@
+/**
+ * SmartGuardian - 应用入口
+ * 初始化应用并加载主页面
+ */
+
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { AppInitializationService } from '../services/AppInitializationService';
+import { LogUtil } from '../utils/LogUtil';
 
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
+  private initService: AppInitializationService = AppInitializationService.getInstance();
+
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    LogUtil.info('EntryAbility onCreate');
+
+    // 设置颜色模式
     try {
       this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
     } catch (err) {
-      hilog.error(DOMAIN, 'testTag', 'Failed to set colorMode. Cause: %{public}s', JSON.stringify(err));
+      LogUtil.error('Failed to set colorMode:', String(err));
     }
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+
+    // 初始化所有服务
+    this.initializeServices();
+  }
+
+  /**
+   * 初始化应用服务
+   */
+  private async initializeServices(): Promise<void> {
+    try {
+      const status = await this.initService.initializeAll(this.context);
+      
+      if (status.overall) {
+        LogUtil.info('All services initialized successfully');
+      } else {
+        LogUtil.warn('Some services failed to initialize: ' + JSON.stringify(status));
+      }
+    } catch (error) {
+      LogUtil.error('Service initialization error:', String(error));
+    }
   }
 
   onDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
+    LogUtil.info('EntryAbility onDestroy');
+    
+    // 销毁所有服务
+    this.initService.destroy();
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+    LogUtil.info('EntryAbility onWindowStageCreate');
 
-    // 加载登录页作为入口，实际项目可配置从哪个页面开始
-    windowStage.loadContent('pages/LoginPage', (err) => {
+    // 加载主页面
+    windowStage.loadContent('pages/MainPage', (err) => {
       if (err.code) {
-        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        LogUtil.error('Failed to load content:', String(err));
         return;
       }
-      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      LogUtil.info('Succeeded in loading the content.');
     });
   }
 
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+    LogUtil.info('EntryAbility onWindowStageDestroy');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+    LogUtil.info('EntryAbility onForeground');
   }
 
   onBackground(): void {
-    // Ability has back to background
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
+    LogUtil.info('EntryAbility onBackground');
   }
 }

@@ -5,6 +5,8 @@
 
 import { OrderService } from '../../services/api/service';
 import { Order, OrderAuditRequest } from '../../models/service';
+import { DataMaskUtil } from '../../utils/DataMaskUtil';
+import { LogUtil } from '../../utils/LogUtil';
 
 @Component
 export struct AdminOrdersPage {
@@ -36,7 +38,30 @@ export struct AdminOrdersPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.orders = resp.data.list;
+        const rawOrders = Array.isArray(resp.data) ? resp.data : [];
+        // Apply data masking for privacy protection
+        this.orders = rawOrders.map((order: Order) => {
+          const maskedOrder: Order = {
+            id: order.id,
+            orderNo: order.orderNo,
+            studentId: order.studentId,
+            studentName: DataMaskUtil.maskName(order.studentName || ''),
+            serviceProductId: order.serviceProductId,
+            serviceProductName: order.serviceProductName,
+            startDate: order.startDate,
+            endDate: order.endDate,
+            actualAmount: order.actualAmount,
+            orderStatus: order.orderStatus,
+            payStatus: order.payStatus,
+            discountAmount: order.discountAmount,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+            amount: order.amount,
+            paidAmount: order.paidAmount
+          };
+          return maskedOrder;
+        });
+        LogUtil.info('AdminOrdersPage', `Loaded ${this.orders.length} orders`);
       }
     } catch (error) {
       this.errorMessage = '加载订单失败';

@@ -36,7 +36,7 @@ export struct TeacherHomeworkPage {
       });
 
       if (sessionResp.code === 0 && sessionResp.data) {
-        this.sessions = sessionResp.data.list;
+        this.sessions = Array.isArray(sessionResp.data) ? sessionResp.data : [];
       }
 
       // Load homework based on tab
@@ -62,7 +62,7 @@ export struct TeacherHomeworkPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.homeworkList = resp.data.list;
+        this.homeworkList = Array.isArray(resp.data) ? resp.data : [];
       }
     } catch (error) {
       this.errorMessage = '加载作业失败';

@@ -52,14 +52,14 @@
 
 ### 2.5 Sessions
 - `GET /api/v1/sessions`：查询班次列表
-- `POST /api/v1/sessions/auto-schedule`：智能排课
+- `POST /api/v1/sessions/generate`：智能排课
 - `GET /api/v1/sessions/{sessionId}`：查询班次详情
 
 ### 2.6 Attendance
 - `GET /api/v1/attendance`：查询考勤列表
 - `POST /api/v1/attendance/sign-in`：签到
 - `POST /api/v1/attendance/sign-out`：签退
-- `GET /api/v1/attendance/abnormal`：查询异常考勤
+- `GET /api/v1/attendance/abnormal-events`：查询异常考勤事件
 
 ### 2.7 Homework
 - `GET /api/v1/homework/tasks`：查询作业任务
@@ -73,10 +73,10 @@
 - `POST /api/v1/messages/{messageId}/read`：消息已读
 
 ### 2.9 Timeline
-- `GET /api/v1/timeline/{studentId}`：查询学生动态时间线
+- `GET /api/v1/timeline/students/{studentId}`：查询学生动态时间线
 
 ### 2.10 Payments
-- `POST /api/v1/payments/create`：创建支付单
+- `POST /api/v1/payments`：创建支付单
 - `POST /api/v1/payments/callback`：支付回调
 
 ### 2.11 Reports
@@ -85,7 +85,7 @@
 - `GET /api/v1/reports/performance`：教师绩效统计
 
 ### 2.12 Cards
-- `GET /api/v1/cards/today-summary`：今日托管卡片摘要
+- `GET /api/v1/cards/today-status`：今日托管卡片摘要
 - `GET /api/v1/cards/abnormal-alert`：异常提醒卡片摘要
 
 ## 3. 统一规范

@@ -59,6 +59,14 @@
     {
       "name": "start_window_background",
       "value": "#007AFF"
+    },
+    {
+      "name": "price",
+      "value": "#FF5722"
+    },
+    {
+      "name": "text_hint",
+      "value": "#BDBDBD"
     }
   ]
 }

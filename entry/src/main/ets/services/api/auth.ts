@@ -3,7 +3,7 @@
  * Authentication and user management API
  */
 
-import { get, post } from '../../utils/request';
+import { get, post, put } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
 import { LoginRequest, LoginResponse, UserInfo, Student, StudentCreateRequest, GuardianRelation, CreateGuardianRequest } from '../../models/user';
 
@@ -68,7 +68,7 @@ export class StudentService {
    * Update student profile
    */
   static async updateStudent(studentId: number, data: Partial<StudentCreateRequest>): Promise<ApiResponse<Student>> {
-    return post<Student>(`/api/v1/students/${studentId}`, data);
+    return put<Student>(`/api/v1/students/${studentId}`, data);
   }
 
   /**

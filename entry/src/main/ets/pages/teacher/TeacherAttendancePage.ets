@@ -40,7 +40,7 @@ export struct TeacherAttendancePage {
       if (resp.code === 0 && resp.data) {
         // Load detail for each session
         const sessionDetails: SessionWithStudents[] = [];
-        for (const session of resp.data.list) {
+        for (const session of resp.data) {
           const detailResp = await SessionService.getSessionDetail(session.id);
           if (detailResp.code === 0 && detailResp.data) {
             sessionDetails.push(detailResp.data);

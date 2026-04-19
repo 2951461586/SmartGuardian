@@ -32,7 +32,7 @@ export struct TeacherHomePage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.todaySessions = resp.data.list;
+        this.todaySessions = Array.isArray(resp.data) ? resp.data : [];
       }
     } catch (error) {
       // Handle error
@@ -225,17 +225,17 @@ export struct TeacherHomePage {
   }
 
   @Builder
-  buildStatusBadge(status: string) {
-    Text(this.getStatusText(status))
+  buildStatusBadge(status: string | undefined) {
+    Text(this.getStatusText(status || 'SCHEDULED'))
       .fontSize($r('app.float.badge_text_size'))
-      .fontColor(this.getStatusColor(status))
+      .fontColor(this.getStatusColor(status || 'SCHEDULED'))
       .padding({
         left: $r('app.float.badge_padding'),
         right: $r('app.float.badge_padding'),
         top: $r('app.float.badge_padding'),
         bottom: $r('app.float.badge_padding')
       })
-      .backgroundColor(this.getStatusBgColor(status))
+      .backgroundColor(this.getStatusBgColor(status || 'SCHEDULED'))
       .borderRadius($r('app.float.badge_radius'))
   }
 

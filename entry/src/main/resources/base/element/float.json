@@ -131,6 +131,18 @@
     {
       "name": "list_item_height",
       "value": "56fp"
+    },
+    {
+      "name": "icon_medium_size",
+      "value": "24fp"
+    },
+    {
+      "name": "text_small_size",
+      "value": "12fp"
+    },
+    {
+      "name": "button_text_size",
+      "value": "16fp"
     }
   ]
 }

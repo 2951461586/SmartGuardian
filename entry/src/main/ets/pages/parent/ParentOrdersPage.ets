@@ -6,6 +6,8 @@
 import { OrderService } from '../../services/api/service';
 import { Order } from '../../models/service';
 import { UserStore } from '../../stores/userStore';
+import { DataMaskUtil } from '../../utils/DataMaskUtil';
+import { LogUtil } from '../../utils/LogUtil';
 
 @Component
 export struct ParentOrdersPage {
@@ -35,7 +37,10 @@ export struct ParentOrdersPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.orders = resp.data.list;
+        const rawOrders = Array.isArray(resp.data) ? resp.data : [];
+        // No need to mask order data for parent view (they own the data)
+        this.orders = rawOrders;
+        LogUtil.info('ParentOrdersPage', `Loaded ${this.orders.length} orders`);
       }
     } catch (error) {
       this.errorMessage = '加载订单失败';

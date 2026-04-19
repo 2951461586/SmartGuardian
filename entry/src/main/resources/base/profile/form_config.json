@@ -1,0 +1,48 @@
+{
+  "forms": [
+    {
+      "name": "TodayGuardianCard",
+      "displayName": "$string:form_today_guardian_display_name",
+      "description": "$string:form_today_guardian_description",
+      "src": "./ets/formability/pages/TodayGuardianCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDefault": true,
+      "updateEnabled": true,
+      "scheduledUpdateTime": "17:00",
+      "updateDuration": 1,
+      "defaultDimension": "2*4",
+      "supportDimensions": ["2*2", "2*4", "4*4"],
+      "formConfigAbility": "ability://com.smartguardian.app.TodayGuardianFormAbility",
+      "metadata": [
+        {
+          "name": "ohos.extability.form",
+          "resource": "$profile:form_config"
+        }
+      ]
+    },
+    {
+      "name": "AbnormalAlertCard",
+      "displayName": "$string:form_abnormal_alert_display_name",
+      "description": "$string:form_abnormal_alert_description",
+      "src": "./ets/formability/pages/AbnormalAlertCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDefault": false,
+      "updateEnabled": true,
+      "scheduledUpdateTime": "10:00",
+      "updateDuration": 0,
+      "defaultDimension": "2*4",
+      "supportDimensions": ["2*2", "2*4"],
+      "formConfigAbility": "ability://com.smartguardian.app.AbnormalAlertFormAbility"
+    }
+  ]
+}

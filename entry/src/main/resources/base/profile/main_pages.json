@@ -3,8 +3,16 @@
     "pages/LoginPage",
     "pages/MainPage",
     "pages/parent/ParentServicesPage",
+    "pages/parent/ParentServiceDetailPage",
+    "pages/parent/ParentOrderCreatePage",
+    "pages/parent/ParentOrderDetailPage",
+    "pages/parent/ParentPaymentPage",
+    "pages/parent/ParentTimelinePage",
     "pages/parent/ParentLeavePage",
+    "pages/parent/ParentAlertsPage",
+    "pages/parent/ParentRefundPage",
     "pages/teacher/TeacherSchedulePage",
-    "pages/admin/AdminStudentsPage"
+    "pages/admin/AdminStudentsPage",
+    "pages/common/QRCodeScanPage"
   ]
 }

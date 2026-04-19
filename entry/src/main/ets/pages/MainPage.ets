@@ -3,8 +3,11 @@
  * Main shell with bottom navigation for different roles
  */
 
+import { router } from '@kit.ArkUI';
+import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
 import { UserRole } from '../models/common';
+import { getToken } from '../utils/request';
 
 // Import page components
 import { ParentHomePage } from './parent/ParentHomePage';
@@ -23,22 +26,70 @@ import { AdminReportsPage } from './admin/AdminReportsPage';
 struct MainPage {
   @State currentIndex: number = 0;
   @State currentRole: UserRole = UserRole.PARENT;
+  @State isInitializing: boolean = true;
 
   aboutToAppear() {
-    // Get current user role from store
+    this.initAuthState();
+  }
+
+  async initAuthState(): Promise<void> {
+    const token = getToken();
+    if (!token || !UserStore.isLoggedIn()) {
+      UserStore.clearUserInfo();
+      this.isInitializing = false;
+      router.replaceUrl({ url: 'pages/LoginPage' });
+      return;
+    }
+
+    try {
+      const resp = await AuthService.getCurrentUser();
+      if (resp.code === 0 && resp.data) {
+        UserStore.setUserInfo(resp.data);
+        this.currentRole = resp.data.roleType;
+      } else {
+        UserStore.clearUserInfo();
+        router.replaceUrl({ url: 'pages/LoginPage' });
+        return;
+      }
+    } catch (error) {
+      UserStore.clearUserInfo();
+      router.replaceUrl({ url: 'pages/LoginPage' });
+      return;
+    }
+
     const userInfo = UserStore.getUserInfo();
     if (userInfo) {
-      this.currentRole = userInfo.role;
+      this.currentRole = userInfo.roleType;
+    }
+    this.ensureValidCurrentIndex();
+    this.isInitializing = false;
+  }
+
+  getNavItemWidth(): string {
+    return this.currentRole === UserRole.PARENT ? '25%' : '33.33%';
+  }
+
+  ensureValidCurrentIndex(): void {
+    const maxIndex = this.currentRole === UserRole.PARENT ? 3 : 2;
+    if (this.currentIndex > maxIndex) {
+      this.currentIndex = 0;
     }
   }
 
   build() {
     Column() {
-      // Main content area
-      this.buildContent()
-
-      // Bottom navigation
-      this.buildBottomNav()
+      if (this.isInitializing) {
+        Column() {
+          LoadingProgress()
+            .color($r('app.color.primary'))
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else {
+        this.buildContent()
+        this.buildBottomNav()
+      }
     }
     .width('100%')
     .height('100%')
@@ -47,7 +98,6 @@ struct MainPage {
 
   @Builder
   buildContent() {
-    // Parent role pages
     if (this.currentRole === UserRole.PARENT) {
       Stack() {
         if (this.currentIndex === 0) {
@@ -61,9 +111,7 @@ struct MainPage {
         }
       }
       .layoutWeight(1)
-    }
-    // Teacher role pages
-    else if (this.currentRole === UserRole.TEACHER) {
+    } else if (this.currentRole === UserRole.TEACHER) {
       Stack() {
         if (this.currentIndex === 0) {
           TeacherHomePage()
@@ -74,9 +122,7 @@ struct MainPage {
         }
       }
       .layoutWeight(1)
-    }
-    // Admin role pages
-    else {
+    } else {
       Stack() {
         if (this.currentIndex === 0) {
           AdminHomePage()
@@ -128,7 +174,7 @@ struct MainPage {
         .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
         .margin({ top: $r('app.float.nav_text_margin') })
     }
-    .width('25%')
+    .width(this.getNavItemWidth())
     .height('100%')
     .justifyContent(FlexAlign.Center)
     .onClick(() => {

@@ -1,0 +1,27 @@
+===== MessageRecord =====
+NOT FOUND
+
+===== MessageListResponse =====
+NOT FOUND
+
+===== SessionInfo =====
+    SessionInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        sessionDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+        endTime:
+          type: string
+        teacherUserId:
+          type: integer
+          format: int64
+        capacity:
+          type: integer
+        currentCount:
+          type: integer

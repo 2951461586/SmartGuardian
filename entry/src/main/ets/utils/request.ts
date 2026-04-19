@@ -3,6 +3,7 @@
  * HTTP request wrapper with authentication and error handling
  */
 
+import { router } from '@kit.ArkUI';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { http } from '@kit.NetworkKit';
 
@@ -47,16 +48,18 @@ export interface HttpResponse<T = object> {
 }
 
 /**
- * Token storage key
+ * Token and user storage keys
  */
 const TOKEN_KEY = 'smart_guardian_token';
+const USER_INFO_KEY = 'user_info';
+const IS_LOGGED_IN_KEY = 'is_logged_in';
+
+let isRedirectingToLogin: boolean = false;
 
 /**
  * Get stored token
  */
 export function getToken(): string | null {
-  // TODO: Use proper storage after implementing storage utility
-  // For now, return placeholder
   return AppStorage.get<string>(TOKEN_KEY) ?? null;
 }
 
@@ -75,12 +78,47 @@ export function removeToken(): void {
 }
 
 /**
+ * Clear local auth state
+ */
+function clearAuthState(): void {
+  removeToken();
+  AppStorage.delete(USER_INFO_KEY);
+  AppStorage.delete(IS_LOGGED_IN_KEY);
+}
+
+/**
+ * Handle unauthorized state globally
+ */
+function handleUnauthorized(): void {
+  clearAuthState();
+
+  if (isRedirectingToLogin) {
+    return;
+  }
+
+  isRedirectingToLogin = true;
+  try {
+    router.replaceUrl({ url: 'pages/LoginPage' });
+  } catch (error) {
+    hilog.error(DOMAIN, TAG, `Redirect to login failed: ${error}`);
+  }
+
+  setTimeout((): void => {
+    isRedirectingToLogin = false;
+  }, 300);
+}
+
+/**
  * HTTP Request helper
  */
 export async function httpRequest<T = object>(
   options: RequestOptions
 ): Promise<HttpResponse<T>> {
-  const { url, method, data, headers = {}, needAuth = true } = options;
+  const url = options.url;
+  const method = options.method;
+  const data = options.data;
+  const headers = options.headers ?? {};
+  const needAuth = options.needAuth ?? true;
 
   // Build full URL
   const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
@@ -101,7 +139,6 @@ export async function httpRequest<T = object>(
 
   // Build HTTP request
   const httpRequest = http.createHttp();
-  // Convert custom HttpMethod to http.RequestMethod
   let requestMethod: http.RequestMethod = http.RequestMethod.GET;
   switch (method) {
     case HttpMethod.POST:
@@ -132,9 +169,11 @@ export async function httpRequest<T = object>(
   try {
     const response = await httpRequest.request(fullUrl, httpOptions);
 
-    // response.responseCode is the HTTP status code
     if (!response.responseCode || response.responseCode >= 400) {
       hilog.error(DOMAIN, TAG, `HTTP Error: ${response.responseCode}`);
+      if (response.responseCode === 401) {
+        handleUnauthorized();
+      }
       throw new Error(`HTTP Error: ${response.responseCode}`);
     }
 
@@ -142,7 +181,12 @@ export async function httpRequest<T = object>(
 
     hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
 
-    // Handle business error
+    if (result.code === 401) {
+      hilog.error(DOMAIN, TAG, `Unauthorized: ${result.message}`);
+      handleUnauthorized();
+      throw new Error(result.message || '登录已失效');
+    }
+
     if (result.code !== 0 && result.code !== 200) {
       hilog.error(DOMAIN, TAG, `Business Error: ${result.code} - ${result.message}`);
       throw new Error(result.message || 'Business error');
@@ -153,7 +197,6 @@ export async function httpRequest<T = object>(
     hilog.error(DOMAIN, TAG, `Request failed: ${error}`);
     throw error;
   } finally {
-    // Destroy http instance to release resources
     httpRequest.destroy();
   }
 }

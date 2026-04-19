@@ -3,8 +3,8 @@
  * Service product, order, session scheduling API
  */
 
-import { get, post } from '../../utils/request';
-import { ApiResponse, PageResponse } from '../../models/common';
+import { get, post, put } from '../../utils/request';
+import { ApiResponse } from '../../models/common';
 import { ServiceProduct, ServiceProductCreateRequest, Order, OrderCreateRequest, OrderAuditRequest, OrderRefundRequest, SessionSchedule, AutoScheduleRequest, SessionWithStudents } from '../../models/service';
 
 /**
@@ -13,14 +13,15 @@ import { ServiceProduct, ServiceProductCreateRequest, Order, OrderCreateRequest,
 export class ServiceProductService {
   /**
    * Get service product list
+   * OpenAPI returns array data.
    */
   static async getProducts(params?: {
     pageNum?: number;
     pageSize?: number;
     status?: string;
     serviceType?: string;
-  }): Promise<ApiResponse<PageResponse<ServiceProduct>>> {
-    return get<PageResponse<ServiceProduct>>('/api/v1/service-products', params);
+  }): Promise<ApiResponse<ServiceProduct[]>> {
+    return get<ServiceProduct[]>('/api/v1/service-products', params);
   }
 
   /**
@@ -41,7 +42,7 @@ export class ServiceProductService {
    * Update service product
    */
   static async updateProduct(serviceId: number, data: Partial<ServiceProductCreateRequest>): Promise<ApiResponse<ServiceProduct>> {
-    return post<ServiceProduct>(`/api/v1/service-products/${serviceId}`, data);
+    return put<ServiceProduct>(`/api/v1/service-products/${serviceId}`, data);
   }
 }
 
@@ -51,6 +52,7 @@ export class ServiceProductService {
 export class OrderService {
   /**
    * Get order list
+   * OpenAPI returns array data.
    */
   static async getOrders(params?: {
     pageNum?: number;
@@ -58,8 +60,8 @@ export class OrderService {
     orderStatus?: string;
     payStatus?: string;
     studentId?: number;
-  }): Promise<ApiResponse<PageResponse<Order>>> {
-    return get<PageResponse<Order>>('/api/v1/orders', params);
+  }): Promise<ApiResponse<Order[]>> {
+    return get<Order[]>('/api/v1/orders', params);
   }
 
   /**
@@ -97,15 +99,17 @@ export class OrderService {
 export class SessionService {
   /**
    * Get session list
+   * OpenAPI returns array data.
    */
   static async getSessions(params?: {
     pageNum?: number;
     pageSize?: number;
     serviceProductId?: number;
     sessionDate?: string;
+    teacherUserId?: number;
     status?: string;
-  }): Promise<ApiResponse<PageResponse<SessionSchedule>>> {
-    return get<PageResponse<SessionSchedule>>('/api/v1/sessions', params);
+  }): Promise<ApiResponse<SessionSchedule[]>> {
+    return get<SessionSchedule[]>('/api/v1/sessions', params);
   }
 
   /**
@@ -116,9 +120,42 @@ export class SessionService {
   }
 
   /**
+   * Create session (Migrated from session.ts)
+   */
+  static async createSession(data: Partial<SessionSchedule>): Promise<ApiResponse<SessionSchedule>> {
+    return post<SessionSchedule>('/api/v1/sessions', data);
+  }
+
+  /**
+   * Update session (Migrated from session.ts)
+   */
+  static async updateSession(sessionId: number, data: Partial<SessionSchedule>): Promise<ApiResponse<SessionSchedule>> {
+    return post<SessionSchedule>(`/api/v1/sessions/${sessionId}`, data);
+  }
+
+  /**
+   * Get today's sessions (Migrated from session.ts)
+   */
+  static async getTodaySessions(params?: {
+    teacherUserId?: number;
+    serviceProductId?: number;
+  }): Promise<ApiResponse<SessionSchedule[]>> {
+    const today = new Date().toISOString().split('T')[0];
+    return get<SessionSchedule[]>('/api/v1/sessions', { sessionDate: today, ...params });
+  }
+
+  /**
    * Auto schedule
    */
   static async autoSchedule(data: AutoScheduleRequest): Promise<ApiResponse<SessionSchedule[]>> {
-    return post<SessionSchedule[]>('/api/v1/sessions/auto-schedule', data);
+    return post<SessionSchedule[]>('/api/v1/sessions/generate', data);
+  }
+
+  /**
+   * Get session students (Migrated from session.ts)
+   * Alias for getSessionDetail
+   */
+  static async getSessionStudents(sessionId: number): Promise<ApiResponse<SessionWithStudents>> {
+    return this.getSessionDetail(sessionId);
   }
 }

@@ -32,7 +32,7 @@ export struct ParentServicesPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.serviceList = resp.data.list || [];
+        this.serviceList = Array.isArray(resp.data) ? resp.data : [];
       }
     } catch (error) {
       // Handle error

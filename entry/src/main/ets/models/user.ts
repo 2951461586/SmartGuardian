@@ -9,7 +9,7 @@ import { UserRole } from './common';
  * Login request
  */
 export interface LoginRequest {
-  accountNo: string;
+  username: string;
   password: string;
 }
 
@@ -27,11 +27,10 @@ export interface LoginResponse {
  */
 export interface UserInfo {
   id: number;
-  accountNo: string;
   username: string;
   realName: string;
   mobile: string;
-  role: UserRole;
+  roleType: UserRole;
   avatar?: string;
   orgId?: number;
   schoolId?: number;

@@ -29,14 +29,30 @@ export class AttendanceService {
    * Sign in
    */
   static async signIn(data: SignInRequest): Promise<ApiResponse<AttendanceRecord>> {
-    return post<AttendanceRecord>('/api/v1/attendance/sign-in', data);
+    const payload: SignInRequest = {
+      studentId: data.studentId,
+      sessionId: data.sessionId,
+      signInType: data.signInType ? data.signInType : data.signMethod,
+      signMethod: data.signMethod,
+      location: data.location
+    };
+    return post<AttendanceRecord>('/api/v1/attendance/sign-in', payload);
   }
 
   /**
    * Sign out
    */
   static async signOut(data: SignOutRequest): Promise<ApiResponse<AttendanceRecord>> {
-    return post<AttendanceRecord>('/api/v1/attendance/sign-out', data);
+    const payload: SignOutRequest = {
+      studentId: data.studentId,
+      sessionId: data.sessionId,
+      signOutType: data.signOutType ? data.signOutType : data.signMethod,
+      signMethod: data.signMethod,
+      guardianId: data.guardianId ? data.guardianId : data.pickupUserId,
+      pickupUserId: data.pickupUserId,
+      location: data.location
+    };
+    return post<AttendanceRecord>('/api/v1/attendance/sign-out', payload);
   }
 
   /**
@@ -48,7 +64,7 @@ export class AttendanceService {
     startDate?: string;
     endDate?: string;
   }): Promise<ApiResponse<PageResponse<AttendanceRecord>>> {
-    return get<PageResponse<AttendanceRecord>>('/api/v1/attendance/abnormal', params);
+    return get<PageResponse<AttendanceRecord>>('/api/v1/attendance/abnormal-events', params);
   }
 
   /**
@@ -65,6 +81,7 @@ export class AttendanceService {
 export class HomeworkService {
   /**
    * Get homework tasks
+   * Kept as paged response to match current page usage.
    */
   static async getTasks(params?: {
     pageNum?: number;
@@ -130,13 +147,15 @@ export class MessageService {
 
   /**
    * Get student timeline
+   * OpenAPI returns array data.
    */
   static async getTimeline(studentId: number, params?: {
     pageNum?: number;
     pageSize?: number;
     timelineType?: string;
-  }): Promise<ApiResponse<PageResponse<StudentTimeline>>> {
-    return get<PageResponse<StudentTimeline>>(`/api/v1/timeline/${studentId}`, params);
+    bizDate?: string;
+  }): Promise<ApiResponse<StudentTimeline[]>> {
+    return get<StudentTimeline[]>(`/api/v1/timeline/students/${studentId}`, params);
   }
 }
 
