@@ -6,7 +6,8 @@
  * @example
  * MessageListItem({
  *   message: message,
- *   onMarkRead: () => { ... }
+ *   onMarkRead: () => { ... },
+ *   onItemClick: () => { ... }
  * })
  */
 
@@ -19,6 +20,9 @@ export struct MessageListItem {
   
   /** 标记已读回调 */
   onMarkRead?: () => void;
+
+  /** 点击消息项回调 */
+  onItemClick?: () => void;
 
   /** 获取消息类型图标 */
   private getMsgTypeIcon(msgType: string): Resource {
@@ -96,6 +100,12 @@ export struct MessageListItem {
         .layoutWeight(1)
         .margin({ left: 12 })
         .alignItems(HorizontalAlign.Start)
+
+        // 右箭头
+        Image($r('app.media.ic_arrow_right'))
+          .width(16)
+          .height(16)
+          .fillColor($r('app.color.text_tertiary'))
       }
     }
     .width('100%')
@@ -104,7 +114,10 @@ export struct MessageListItem {
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: 12 })
     .onClick(() => {
-      if (!this.message?.readStatus && this.onMarkRead) {
+      // 优先触发消息项点击事件
+      if (this.onItemClick) {
+        this.onItemClick();
+      } else if (!this.message?.readStatus && this.onMarkRead) {
         this.onMarkRead();
       }
     })

@@ -29,6 +29,7 @@ export struct ParentMessagesPage {
   @State currentTab: number = 0;
   @State selectedTab: MessageTab = 'ALL';
   @State statistics: MessageStatistics | null = null;
+  @State filteredMessages: MessageRecord[] = [];
   
   // 缓存时间戳
   private lastLoadTime: number = 0;
@@ -53,6 +54,7 @@ export struct ParentMessagesPage {
     if (cachedMessages.length > 0) {
       this.messages = cachedMessages;
       this.unreadCount = cachedUnread;
+      this.filterMessages();
       LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items`);
     }
     
@@ -73,11 +75,6 @@ export struct ParentMessagesPage {
         pageSize: 50
       };
 
-      // 根据Tab设置消息类型过滤
-      if (this.selectedTab !== 'ALL') {
-        params.msgType = this.selectedTab;
-      }
-
       const resp = await MessageService.getMessages(params);
       if (resp.code === 0 && resp.data) {
         const messageList = resp.data.list || [];
@@ -90,15 +87,18 @@ export struct ParentMessagesPage {
         this.messages = messageList;
         this.unreadCount = unread;
         this.lastLoadTime = Date.now();
+        this.filterMessages();
         
         LogUtil.info('ParentMessagesPage', `Loaded ${messageList.length} messages, unread: ${unread}`);
       } else {
         this.messages = this.getMockMessages();
+        this.filterMessages();
         MessageStore.setMessageList(this.messages);
       }
     } catch (error) {
       LogUtil.error('ParentMessagesPage', `Load failed: ${JSON.stringify(error)}`);
       this.messages = this.getMockMessages();
+      this.filterMessages();
       MessageStore.setMessageList(this.messages);
     } finally {
       this.isLoading = false;
@@ -146,12 +146,42 @@ export struct ParentMessagesPage {
   }
 
   /**
-   * 处理Tab切换
+   * 处理Tab切换 - 真正的筛选功能
    */
   private handleTabChange(index: number): void {
     this.currentTab = index;
     this.selectedTab = this.tabTypes[index];
-    this.loadMessages();
+    this.filterMessages();
+  }
+
+  /**
+   * 根据选中的Tab筛选消息
+   */
+  private filterMessages(): void {
+    if (this.selectedTab === 'ALL') {
+      this.filteredMessages = this.messages;
+    } else {
+      this.filteredMessages = this.messages.filter((msg: MessageRecord) => msg.msgType === this.selectedTab);
+    }
+  }
+
+  /**
+   * 打开消息详情
+   */
+  private openMessageDetail(message: MessageRecord): void {
+    // 标记为已读
+    if (!message.readStatus) {
+      this.markAsRead(message.id);
+    }
+    
+    // 跳转到消息详情页
+    router.pushUrl({
+      url: 'pages/parent/ParentMessageDetailPage',
+      params: {
+        messageId: message.id,
+        message: message
+      }
+    });
   }
 
   build() {
@@ -174,7 +204,7 @@ export struct ParentMessagesPage {
         }
       }
 
-      // 使用通用TabBar
+      // 使用通用TabBar，带筛选功能
       TabBar({
         tabs: this.tabs,
         currentIndex: $currentTab,
@@ -196,7 +226,7 @@ export struct ParentMessagesPage {
         loadingSize: LoadingSize.LARGE,
         fullscreen: false 
       })
-    } else if (this.messages.length === 0) {
+    } else if (this.filteredMessages.length === 0) {
       EmptyState({ 
         type: EmptyType.NO_MESSAGE,
         actionText: '刷新',
@@ -211,11 +241,15 @@ export struct ParentMessagesPage {
   buildMessageList() {
     Scroll() {
       Column() {
-        ForEach(this.messages, (message: MessageRecord) => {
+        ForEach(this.filteredMessages, (message: MessageRecord) => {
           MessageListItem({
             message: message,
             onMarkRead: () => {
               this.markAsRead(message.id);
+            },
+            onItemClick: () => {
+              // 添加点击事件，跳转到详情
+              this.openMessageDetail(message);
             }
           })
         })
@@ -230,17 +264,19 @@ export struct ParentMessagesPage {
 
   getMockMessages(): MessageRecord[] {
     return [
-      { id: 1, userId: 1, msgType: 'SYSTEM', title: '系统维护通知', content: '系统维护升级', readStatus: false, createdAt: '2026-04-16 10:00:00', updatedAt: '2026-04-16' },
-      { id: 2, userId: 1, msgType: 'ATTENDANCE', title: '签到提醒', content: '孩子已签到', readStatus: false, createdAt: '2026-04-16 14:00:00', updatedAt: '2026-04-16' },
-      { id: 3, userId: 1, msgType: 'HOMEWORK', title: '作业完成', content: '作业已完成', readStatus: true, createdAt: '2026-04-15 16:00:00', updatedAt: '2026-04-15' }
+      { id: 1, userId: 1, msgType: 'SYSTEM', title: '系统维护通知', content: '系统将在今晚22:00进行维护升级，届时将暂停服务，请提前做好准备。', readStatus: false, createdAt: '2026-04-16 10:00:00', updatedAt: '2026-04-16' },
+      { id: 2, userId: 1, msgType: 'ATTENDANCE', title: '签到提醒', content: '您的孩子张三已于08:35签到进入托管中心。', readStatus: false, createdAt: '2026-04-16 14:00:00', updatedAt: '2026-04-16' },
+      { id: 3, userId: 1, msgType: 'HOMEWORK', title: '作业完成', content: '您的孩子已完成今日数学作业，正确率95%。', readStatus: true, createdAt: '2026-04-15 16:00:00', updatedAt: '2026-04-15' },
+      { id: 4, userId: 1, msgType: 'ORDER', title: '订单审核通过', content: '您提交的托管服务订单已通过审核，请及时完成支付。', readStatus: false, createdAt: '2026-04-15 12:00:00', updatedAt: '2026-04-15' },
+      { id: 5, userId: 1, msgType: 'ATTENDANCE', title: '签退提醒', content: '您的孩子张三已于17:30签退离开托管中心。', readStatus: true, createdAt: '2026-04-14 17:30:00', updatedAt: '2026-04-14' }
     ];
   }
 
   getMockStatistics(): MessageStatistics {
     return {
-      total: 3,
-      unread: 2,
-      byType: { SYSTEM: 1, ATTENDANCE: 1, HOMEWORK: 0, ORDER: 0 }
+      total: 5,
+      unread: 3,
+      byType: { SYSTEM: 1, ATTENDANCE: 2, HOMEWORK: 0, ORDER: 0 }
     };
   }
 }

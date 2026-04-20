@@ -16,9 +16,19 @@ export struct ParentQRCodePage {
   @State selectedStudent: Student | null = null;
   @State qrCodeData: string = '';
   @State isLoading: boolean = true;
+  @State remainingTime: number = 300; // 5分钟 = 300秒
+  private timer: number = -1;
 
   async aboutToAppear() {
     await this.loadStudents();
+    this.startTimer();
+  }
+
+  aboutToDisappear() {
+    // 清除定时器
+    if (this.timer !== -1) {
+      clearInterval(this.timer);
+    }
   }
 
   async loadStudents() {
@@ -52,7 +62,25 @@ export struct ParentQRCodePage {
         guardianId: UserStore.getUserInfo()?.id,
         timestamp: timestamp
       });
+      this.remainingTime = 300; // 重置时间为5分钟
     }
+  }
+
+  startTimer() {
+    this.timer = setInterval(() => {
+      if (this.remainingTime > 0) {
+        this.remainingTime--;
+      } else {
+        // 二维码过期，重新生成
+        this.generateQRCode();
+      }
+    }, 1000);
+  }
+
+  formatTime(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   }
 
   build() {
@@ -125,23 +153,28 @@ export struct ParentQRCodePage {
               .fontColor('#333333')
               .margin({ bottom: 16 })
 
+            // 二维码显示区域
             Column() {
-              Text('扫码接送')
-                .fontSize(24)
-                .fontColor('#4F7CFF')
-                .fontWeight(FontWeight.Bold)
+              if (this.qrCodeData) {
+                // 使用 QRCode 组件显示真实二维码
+                QRCode(this.qrCodeData)
+                  .width(180)
+                  .height(180)
+                  .color('#4F7CFF')
+              }
               
               Text('请在托管中心出示此码')
                 .fontSize(12)
                 .fontColor('#999999')
-                .margin({ top: 8 })
+                .margin({ top: 12 })
             }
-            .width(200)
-            .height(200)
-            .backgroundColor('#F5F5F5')
+            .width(220)
+            .height(220)
+            .backgroundColor(Color.White)
             .borderRadius(12)
             .justifyContent(FlexAlign.Center)
-            .border({ width: 2, color: '#4F7CFF', style: BorderStyle.Dashed })
+            .border({ width: 2, color: '#4F7CFF', style: BorderStyle.Solid })
+            .shadow({ radius: 10, color: '#1A4F7CFF', offsetX: 0, offsetY: 4 })
 
             if (this.selectedStudent) {
               Column() {
@@ -158,10 +191,28 @@ export struct ParentQRCodePage {
               .margin({ top: 16 })
             }
 
-            Text('二维码有效期：5分钟')
-              .fontSize(12)
-              .fontColor('#999999')
-              .margin({ top: 24 })
+            Row() {
+              Text('二维码有效期：')
+                .fontSize(12)
+                .fontColor('#999999')
+              
+              Text(this.formatTime(this.remainingTime))
+                .fontSize(14)
+                .fontColor('#4F7CFF')
+                .fontWeight(FontWeight.Bold)
+            }
+            .margin({ top: 24 })
+
+            Button('刷新二维码')
+              .fontSize(14)
+              .fontColor('#4F7CFF')
+              .backgroundColor('#F0F4FF')
+              .borderRadius(20)
+              .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+              .margin({ top: 12 })
+              .onClick(() => {
+                this.generateQRCode();
+              })
           }
           .layoutWeight(1)
           .justifyContent(FlexAlign.Center)

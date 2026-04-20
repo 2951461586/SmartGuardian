@@ -104,22 +104,33 @@ export struct ParentProfilePage {
     .padding($r('app.float.card_padding'))
     .backgroundColor(Color.White)
     .margin({ top: $r('app.float.card_margin') })
+    .onClick(() => {
+      // 跳转到个人信息编辑页
+      router.pushUrl({ url: 'pages/parent/ParentProfileEditPage' });
+    })
   }
 
   @Builder
   buildMenuItems() {
     Column() {
       this.buildMenuItem('我的孩子', $r('app.media.ic_child'), () => {
-        // TODO: Navigate to children management
+        // 跳转到孩子管理页
+        router.pushUrl({ url: 'pages/parent/ParentChildrenPage' });
       })
+      
       this.buildMenuItem('账户设置', $r('app.media.ic_settings'), () => {
-        // TODO: Navigate to settings
+        // 跳转到账户设置页
+        router.pushUrl({ url: 'pages/parent/ParentSettingsPage' });
       })
+      
       this.buildMenuItem('帮助与反馈', $r('app.media.ic_help'), () => {
-        // TODO: Navigate to help
+        // 跳转到帮助与反馈页
+        router.pushUrl({ url: 'pages/parent/ParentHelpPage' });
       })
+      
       this.buildMenuItem('关于我们', $r('app.media.ic_about'), () => {
-        // TODO: Navigate to about
+        // 跳转到关于我们页
+        router.pushUrl({ url: 'pages/parent/ParentAboutPage' });
       })
 
       Divider()

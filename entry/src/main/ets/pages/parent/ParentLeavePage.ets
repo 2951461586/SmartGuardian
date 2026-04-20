@@ -23,9 +23,12 @@ struct ParentLeavePage {
   @State attachments: string[] = [];
   @State selectedStudentId: number = 0;
   @State availableStudents: StudentItem[] = [];
+  @State showDatePicker: boolean = false;
+  @State showTimePicker: boolean = false;
+  @State selectedTime: string = '08:00';
 
   aboutToAppear() {
-    // Load available students - using proper type
+    // Load available students
     const students: StudentItem[] = [];
     students.push({ id: 1, name: '张三' });
     students.push({ id: 2, name: '李四' });
@@ -37,11 +40,9 @@ struct ParentLeavePage {
 
   async submitLeave() {
     if (!this.selectedStudentId) {
-      // Show error: 请选择学生
       return;
     }
     if (!this.reason.trim()) {
-      // Show error: 请填写请假原因
       return;
     }
 
@@ -60,13 +61,23 @@ struct ParentLeavePage {
 
       const resp = await AttendanceService.submitLeave(request);
       if (resp.code === 0) {
-        // Show success and navigate back
         router.back();
       }
     } catch (error) {
-      // Handle error
+      console.error('Submit leave failed:', error);
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  // 选择图片
+  async selectImage() {
+    try {
+      // TODO: 实现图片选择功能
+      // 临时添加一个占位图片
+      this.attachments.push('mock_image_' + this.attachments.length.toString());
+    } catch (error) {
+      console.error('Select image failed:', error);
     }
   }
 
@@ -117,6 +128,11 @@ struct ParentLeavePage {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
+    .bindSheet($$this.showDatePicker, this.buildDatePickerSheet(), {
+      height: 420,
+      backgroundColor: Color.White,
+      dragBar: true
+    })
   }
 
   @Builder
@@ -199,12 +215,49 @@ struct ParentLeavePage {
       .padding(12)
       .backgroundColor($r('app.color.page_background'))
       .borderRadius($r('app.float.button_radius'))
+      .onClick(() => {
+        this.showDatePicker = true;
+      })
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
+  }
+
+  @Builder
+  buildDatePickerSheet() {
+    Column() {
+      Text('选择日期')
+        .fontSize(18)
+        .fontWeight(FontWeight.Medium)
+        .margin({ top: 16, bottom: 16 })
+
+      DatePicker({
+        start: new Date(),
+        end: new Date(2030, 11, 31),
+        selected: this.leaveDate
+      })
+        .width('100%')
+        .onDateChange((value: Date) => {
+          this.leaveDate = value;
+        })
+
+      Button('确定')
+        .width('90%')
+        .height(44)
+        .margin({ top: 20 })
+        .fontSize(16)
+        .fontColor(Color.White)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius(22)
+        .onClick(() => {
+          this.showDatePicker = false;
+        })
+    }
+    .width('100%')
+    .padding(20)
   }
 
   @Builder
@@ -289,24 +342,49 @@ struct ParentLeavePage {
         .margin({ bottom: 12 })
 
       Row() {
-        Column() {
-          Image($r('app.media.ic_add'))
-            .width(32)
-            .height(32)
-            .fillColor($r('app.color.text_tertiary'))
+        // 已选择的图片列表
+        ForEach(this.attachments, (uri: string, index: number) => {
+          Stack({ alignContent: Alignment.TopEnd }) {
+            Image(uri)
+              .width(80)
+              .height(80)
+              .borderRadius(8)
+              .objectFit(ImageFit.Cover)
 
-          Text('添加图片')
-            .fontSize($r('app.float.text_tiny_size'))
-            .fontColor($r('app.color.text_tertiary'))
-        }
-        .width(80)
-        .height(80)
-        .backgroundColor($r('app.color.page_background'))
-        .borderRadius($r('app.float.button_radius'))
-        .justifyContent(FlexAlign.Center)
-        .onClick(() => {
-          // TODO: Open photo picker
+            // 删除按钮
+            Image($r('app.media.ic_close'))
+              .width(20)
+              .height(20)
+              .margin({ top: -8, right: -8 })
+              .onClick(() => {
+                this.attachments.splice(index, 1);
+              })
+          }
+          .margin({ right: 8 })
         })
+
+        // 添加图片按钮
+        if (this.attachments.length < 3) {
+          Column() {
+            Image($r('app.media.ic_add'))
+              .width(32)
+              .height(32)
+              .fillColor($r('app.color.text_tertiary'))
+
+            Text('添加图片')
+              .fontSize($r('app.float.text_tiny_size'))
+              .fontColor($r('app.color.text_tertiary'))
+              .margin({ top: 4 })
+          }
+          .width(80)
+          .height(80)
+          .backgroundColor($r('app.color.page_background'))
+          .borderRadius($r('app.float.button_radius'))
+          .justifyContent(FlexAlign.Center)
+          .onClick(() => {
+            this.selectImage();
+          })
+        }
       }
       .width('100%')
     }

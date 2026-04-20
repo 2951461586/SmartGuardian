@@ -25,6 +25,7 @@ export struct ParentOrdersPage {
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
   @State errorMessage: string = '';
+  @State payingOrderId: number = 0;
 
   private lastLoadTime: number = 0;
   private readonly CACHE_DURATION: number = 5 * 60 * 1000;
@@ -97,6 +98,28 @@ export struct ParentOrdersPage {
     return order.amount || 0;
   }
 
+  canPay(order: Order): boolean {
+    return order.orderStatus === 'APPROVED' && order.payStatus === 'UNPAID';
+  }
+
+  async handlePayOrder(order: Order) {
+    this.payingOrderId = order.id;
+    try {
+      router.pushUrl({
+        url: 'pages/parent/ParentPaymentPage',
+        params: {
+          orderId: order.id,
+          orderNo: order.orderNo,
+          amount: this.getDisplayAmount(order)
+        }
+      });
+    } catch (error) {
+      LogUtil.error('ParentOrdersPage', `Navigate to payment failed: ${JSON.stringify(error)}`);
+    } finally {
+      this.payingOrderId = 0;
+    }
+  }
+
   openOrderDetail(order: Order) {
     OrderStore.setCurrentOrder(order);
     router.pushUrl({
@@ -155,13 +178,37 @@ export struct ParentOrdersPage {
     Scroll() {
       Column() {
         ForEach(this.orders, (order: Order) => {
-          OrderListItem({
-            order: order,
-            mode: OrderItemMode.SIMPLE,
-            onItemClick: () => {
-              this.openOrderDetail(order);
+          Column() {
+            // 订单卡片
+            OrderListItem({
+              order: order,
+              mode: OrderItemMode.SIMPLE,
+              onItemClick: () => {
+                this.openOrderDetail(order);
+              }
+            })
+
+            // 立即支付按钮（仅针对已审核未支付的订单）
+            if (this.canPay(order)) {
+              Button('立即支付')
+                .width('100%')
+                .height(44)
+                .fontSize(16)
+                .fontColor(Color.White)
+                .backgroundColor($r('app.color.primary'))
+                .borderRadius(22)
+                .margin({ top: 12 })
+                .enabled(this.payingOrderId !== order.id)
+                .onClick(() => {
+                  this.handlePayOrder(order);
+                })
             }
-          })
+          }
+          .width('100%')
+          .padding(16)
+          .backgroundColor(Color.White)
+          .borderRadius(12)
+          .margin({ bottom: 12 })
         })
       }
       .width('100%')
