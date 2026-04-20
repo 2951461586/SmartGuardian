@@ -178,7 +178,7 @@ export struct AdminOrdersPage {
         loadingSize: LoadingSize.LARGE,
         fullscreen: false 
       })
-    } else if (this.orders.length === 0) {
+    } else if (!this.orders || this.orders.length === 0) {
       EmptyState({ 
         type: EmptyType.NO_ORDER,
         actionText: '刷新',
@@ -276,7 +276,7 @@ export struct AdminOrdersPage {
           .backgroundColor('#F44336')
           .borderRadius(22)
           .margin({ left: 12 })
-          .enabled(this.auditRemark.trim().length > 0)
+          .enabled(this.auditRemark?.trim().length > 0)
           .onClick(() => {
             this.handleAudit('REJECTED');
           })

@@ -18,7 +18,6 @@ import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, T
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
-@Entry
 @Component
 export struct ParentMessagesPage {
   // 使用 Store 管理消息数据（缓存优先）

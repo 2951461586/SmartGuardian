@@ -62,8 +62,10 @@ struct ParentRefundPage {
   async loadRefundRecords() {
     try {
       const resp = await RefundService.getRefunds({ orderId: this.orderId });
-      if (resp.code === 0 && resp.data) {
-        this.refundRecords = resp.data.list || [];
+      if (resp.code === 0 && resp.data && resp.data.list) {
+        this.refundRecords = resp.data.list;
+      } else {
+        this.refundRecords = [];
       }
     } catch (error) {
       console.error('Failed to load refund records:', error);

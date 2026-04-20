@@ -5,8 +5,9 @@
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
-import router from '@ohos.router';
+import { router } from '@kit.ArkUI';
 import { UserStore } from '../../stores/userStore';
+import { StudentStore } from '../../stores/studentStore';
 import { CardService } from '../../services/api/card';
 import { TodayStatusCard } from '../../models/card';
 import { HomeworkService } from '../../services/api/homework';
@@ -18,7 +19,6 @@ import { GreetingHeader, Card, StatCard, LoadingState, LoadingSize, HeaderTheme,
 import { AttendanceBadge, HomeworkBadge } from '../../components/StatusBadge';
 import { StatusType } from '../../constants/StatusMapping';
 
-@Entry
 @Component
 export struct ParentHomePage {
   @State userName: string = '';
@@ -39,8 +39,8 @@ export struct ParentHomePage {
   async loadData() {
     this.isLoading = true;
     try {
-      // Load today's summary
-      const summaryResp = await CardService.getTodayStatus(1);
+      const studentId = StudentStore.getCurrentStudentId() ?? undefined;
+      const summaryResp = await CardService.getTodayStatus(studentId);
       if (summaryResp.code === 0 && summaryResp.data) {
         this.todaySummary = summaryResp.data;
       }
@@ -50,8 +50,10 @@ export struct ParentHomePage {
         pageSize: 3
       };
       const homeworkResp = await HomeworkService.getTasks(params);
-      if (homeworkResp.code === 0 && homeworkResp.data) {
-        this.recentHomework = homeworkResp.data.list ?? [];
+      if (homeworkResp.code === 0 && homeworkResp.data && homeworkResp.data.list) {
+        this.recentHomework = homeworkResp.data.list;
+      } else {
+        this.recentHomework = [];
       }
     } catch (error) {
       this.errorMessage = ErrorMessages.DATA_LOAD_FAILED;
@@ -232,7 +234,7 @@ export struct ParentHomePage {
 
   @Builder
   buildRecentHomeworkContent() {
-    if (this.recentHomework.length > 0) {
+    if (this.recentHomework && this.recentHomework.length > 0) {
       Column() {
         ForEach(this.recentHomework, (item: HomeworkTask, index: number) => {
           HomeworkCard({

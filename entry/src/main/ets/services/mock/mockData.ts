@@ -14,6 +14,7 @@ import { TodayStatusCard, AbnormalAlertCard } from '../../models/card';
 import { RefundRecord, RefundStatistics } from '../../models/refund';
 import { PaymentOrder } from '../../models/payment';
 import { DailyAttendanceStats, StudentAttendanceSummary, DailyRevenueStats, ServiceProductRevenue, AttendanceReport, FinanceReport, TeacherPerformance } from '../../models/report';
+import { AlertRecord, AlertStatistics } from '../../models/alert';
 
 /**
  * Mock Users
@@ -535,6 +536,123 @@ export const mockServiceProductRevenue: ServiceProductRevenue[] = [
     percentage: 30
   }
 ];
+
+/**
+ * Mock Alerts
+ */
+export const mockAlerts: AlertRecord[] = [
+  {
+    id: 1,
+    studentId: 1,
+    studentName: '王小明',
+    alertType: 'ATTENDANCE_ANOMALY',
+    severity: 'HIGH',
+    title: '未按时签到',
+    description: '学生今日未在规定时间内完成签到，请及时关注',
+    suggestedAction: '请联系班主任确认学生情况',
+    status: 'ACTIVE',
+    createdAt: '2026-04-16T09:00:00Z',
+    updatedAt: '2026-04-16T09:00:00Z'
+  },
+  {
+    id: 2,
+    studentId: 1,
+    studentName: '王小明',
+    alertType: 'SAFETY_CONCERN',
+    severity: 'MEDIUM',
+    title: '位置异常',
+    description: '学生签到位置与活动地点不符',
+    suggestedAction: '请核实学生实际位置',
+    status: 'ACTIVE',
+    createdAt: '2026-04-16T10:30:00Z',
+    updatedAt: '2026-04-16T10:30:00Z'
+  },
+  {
+    id: 3,
+    studentId: 2,
+    studentName: '李小红',
+    alertType: 'ACADEMIC_PERFORMANCE',
+    severity: 'LOW',
+    title: '作业完成率下降',
+    description: '学生本周作业完成率较上周下降20%',
+    suggestedAction: '建议与家长沟通了解情况',
+    status: 'ACKNOWLEDGED',
+    acknowledgedBy: 1,
+    acknowledgedAt: '2026-04-16T11:00:00Z',
+    createdAt: '2026-04-16T08:00:00Z',
+    updatedAt: '2026-04-16T11:00:00Z'
+  }
+];
+
+/**
+ * Mock Alert Statistics
+ */
+export const mockAlertStatistics: AlertStatistics = {
+  total: 5,
+  active: 2,
+  acknowledged: 1,
+  resolved: 2,
+  byType: {
+    ATTENDANCE_ANOMALY: 3,
+    SAFETY_CONCERN: 1,
+    ACADEMIC_PERFORMANCE: 1
+  },
+  bySeverity: {
+    HIGH: 1,
+    MEDIUM: 1,
+    LOW: 3
+  }
+};
+
+/**
+ * Mock V2 API Response Examples
+ * @beta 实验性 V2 API Mock 数据
+ */
+export const mockV2Examples = {
+  // V2 Auth API 响应示例
+  authResponse: {
+    token: 'v2_mock_token_' + Date.now(),
+    refreshToken: 'v2_refresh_token_' + Date.now(),
+    expiresIn: 7200,
+    tokenType: 'Bearer',
+    userInfo: {
+      id: 1,
+      username: 'parent_zhang',
+      realName: '张丽',
+      mobile: '13800000001',
+      roleType: 'PARENT',
+      avatar: 'https://example.com/avatar/parent_zhang.jpg'
+    }
+  },
+
+  // V2 Attendance 响应示例
+  attendanceResponse: {
+    id: 1,
+    studentId: 1,
+    sessionId: 1,
+    signInTime: new Date().toISOString(),
+    signOutTime: null,
+    status: 'SIGNED_IN',
+    studentName: '王小明',
+    studentNo: 'S20260001',
+    sessionNo: 'SES20260416001',
+    attendanceDate: new Date().toISOString().split('T')[0],
+    signInMethod: 'FACE',
+    signInLocation: '实验小学托管教室A'
+  },
+
+  // V2 Message 响应示例
+  messageResponse: {
+    id: Date.now(),
+    userId: 1,
+    msgType: 'ATTENDANCE',
+    title: '签到通知',
+    content: '王小明同学已安全到达托管教室，请家长放心。',
+    readStatus: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+};
 
 /**
  * Mock Login Response

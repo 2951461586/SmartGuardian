@@ -10,7 +10,6 @@ import { SessionSchedule, SessionService } from '../../services/api/service';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
 import { formatDate, formatTime } from '../../utils/date';
 
-@Entry
 @Component
 export struct TeacherAttendancePage {
   @State sessions: SessionSchedule[] = [];
@@ -31,14 +30,17 @@ export struct TeacherAttendancePage {
       const today = formatDate(new Date());
       const response = await SessionService.getSessions({ sessionDate: today });
       if (response.code === 0 && response.data) {
-        this.sessions = response.data;
-        if (this.sessions.length > 0) {
+        this.sessions = response.data ?? [];
+        if (this.sessions && this.sessions.length > 0) {
           this.selectedSession = this.sessions.find(s => s.status === 'ONGOING') ?? this.sessions[0];
           await this.loadAttendance();
         }
+      } else {
+        this.sessions = [];
       }
     } catch (error) {
       console.error('Failed to load sessions:', error);
+      this.sessions = [];
     } finally {
       this.isLoading = false;
     }
@@ -53,11 +55,14 @@ export struct TeacherAttendancePage {
         sessionId: this.selectedSession.id,
         attendanceDate: today
       });
-      if (response.code === 0 && response.data) {
-        this.attendanceList = response.data.list ?? [];
+      if (response.code === 0 && response.data && response.data.list) {
+        this.attendanceList = response.data.list;
+      } else {
+        this.attendanceList = [];
       }
     } catch (error) {
       console.error('Failed to load attendance:', error);
+      this.attendanceList = [];
     }
   }
 
@@ -101,7 +106,7 @@ export struct TeacherAttendancePage {
         colors: [['#52C41A', 0], ['#389E0D', 1]]
       })
 
-      if (this.sessions.length > 0) {
+      if (this.sessions && this.sessions.length > 0) {
         Row() {
           Text('班次: ')
             .fontSize(14)
@@ -155,7 +160,7 @@ export struct TeacherAttendancePage {
         }
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
-      } else if (this.getFilteredAttendance().length === 0) {
+      } else if (!this.getFilteredAttendance() || this.getFilteredAttendance().length === 0) {
         Column() {
           EmptyState({ type: EmptyType.NO_ATTENDANCE, customTitle: '暂无考勤记录' })
         }

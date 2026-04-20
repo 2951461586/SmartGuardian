@@ -11,7 +11,11 @@ import { SessionSchedule, SessionService } from '../../services/api/service';
 import { LoadingState, LoadingSize, EmptyState, EmptyType, Card } from '../../components/common';
 import { formatDate, formatTime } from '../../utils/date';
 
-@Entry
+interface SessionQueryParams {
+  sessionDate: string;
+  teacherUserId?: number;
+}
+
 @Component
 export struct TeacherHomePage {
   @State userName: string = '';
@@ -32,11 +36,19 @@ export struct TeacherHomePage {
     this.isLoading = true;
     try {
       const today = formatDate(new Date());
-      
-      const sessionsResp = await SessionService.getSessions({ sessionDate: today });
+      const userInfo = UserStore.getUserInfo();
+      const teacherUserId = userInfo?.id;
+      const sessionParams: SessionQueryParams = { sessionDate: today };
+      if (teacherUserId) {
+        sessionParams.teacherUserId = teacherUserId;
+      }
+      const sessionsResp = await SessionService.getSessions(sessionParams);
       if (sessionsResp.code === 0 && sessionsResp.data) {
-        this.todaySessions = sessionsResp.data;
+        this.todaySessions = sessionsResp.data ?? [];
         this.currentSession = this.todaySessions.find(s => s.status === 'ONGOING') ?? null;
+      } else {
+        this.todaySessions = [];
+        this.currentSession = null;
       }
 
       if (this.currentSession) {
@@ -44,8 +56,10 @@ export struct TeacherHomePage {
           sessionId: this.currentSession.id,
           attendanceDate: today
         });
-        if (attendanceResp.code === 0 && attendanceResp.data) {
-          this.todayAttendance = attendanceResp.data.list ?? [];
+        if (attendanceResp.code === 0 && attendanceResp.data && attendanceResp.data.list) {
+          this.todayAttendance = attendanceResp.data.list;
+        } else {
+          this.todayAttendance = [];
         }
       }
     } catch (error) {

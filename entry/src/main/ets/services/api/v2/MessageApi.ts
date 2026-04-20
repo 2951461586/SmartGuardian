@@ -1,8 +1,13 @@
 /**
- * SmartGuardian - Message API (V2)
+ * SmartGuardian - Message API (V2) [BETA]
  * Message API using ApiWrapper
  * 
- * @description 使用 ApiWrapper 的消息 API 服务
+ * @description 使用 ApiWrapper 的消息 API 服务（实验版本）
+ * @beta 此模块为实验版本，尚未启用
+ * @status RESERVED - 预留架构，暂未投入使用
+ * 
+ * @note 当前项目使用 v1 MessageService (../message.ts)，此模块为未来 API 升级预留
+ * @see ../message.ts - 当前生产环境消息服务
  */
 
 import { api, ApiResult } from '../../utils/api';

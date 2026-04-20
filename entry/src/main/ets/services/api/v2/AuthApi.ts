@@ -1,13 +1,19 @@
 /**
- * SmartGuardian - Auth API (V2)
+ * SmartGuardian - Auth API (V2) [BETA]
  * Authentication API using ApiWrapper
  * 
- * @description 使用 ApiWrapper 的认证 API 服务
+ * @description 使用 ApiWrapper 的认证 API 服务（实验版本）
+ * @beta 此模块为实验版本，尚未启用
+ * @status RESERVED - 预留架构，暂未投入使用
+ * 
  * @features
  * - 类型安全的 API 调用
  * - 统一的错误处理
  * - 自动重试机制
  * - 结果链式处理
+ * 
+ * @note 当前项目使用 v1 AuthService (../auth.ts)，此模块为未来 API 升级预留
+ * @see ../auth.ts - 当前生产环境认证服务
  */
 
 import { api, ApiResult } from '../../utils/api';

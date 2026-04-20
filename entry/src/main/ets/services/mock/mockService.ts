@@ -704,22 +704,7 @@ export class MockService {
   }
 
   static async getAlertStatistics(): Promise<ApiResponse<AlertStatistics>> {
-    const statistics: AlertStatistics = {
-      total: 3,
-      active: 2,
-      acknowledged: 1,
-      resolved: 0,
-      byType: {
-        ATTENDANCE_ANOMALY: 2,
-        SAFETY_CONCERN: 1
-      },
-      bySeverity: {
-        HIGH: 1,
-        MEDIUM: 1,
-        LOW: 1
-      }
-    };
-    return mockResponse(statistics);
+    return mockResponse(mockData.mockAlertStatistics);
   }
 
   static async acknowledgeAlert(params: { alertId: number; note?: string }): Promise<ApiResponse<void>> {

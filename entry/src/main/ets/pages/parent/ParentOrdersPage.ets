@@ -18,7 +18,6 @@ import { SimplePageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingS
 import { StatusBadge, OrderBadge } from '../../components/StatusBadge';
 import { StatusType, StatusMappingHelper } from '../../constants/StatusMapping';
 
-@Entry
 @Component
 export struct ParentOrdersPage {
   @StorageLink('order_list') orders: Order[] = [];

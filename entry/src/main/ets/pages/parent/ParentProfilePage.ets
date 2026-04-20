@@ -7,7 +7,6 @@ import { UserStore } from '../../stores/userStore';
 import { AuthService } from '../../services/api/auth';
 import { router } from '@kit.ArkUI';
 
-@Entry
 @Component
 export struct ParentProfilePage {
   @State userName: string = '';

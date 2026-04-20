@@ -16,7 +16,6 @@ interface DashboardStats {
   pendingOrders: number;
 }
 
-@Entry
 @Component
 export struct AdminHomePage {
   @State userName: string = '';
