@@ -12,15 +12,13 @@ export * from './user';
 // Service and order related
 export * from './service';
 
-// Attendance related (exclude homework types that conflict with homework.ts)
+// Attendance related (core types only)
 export {
   AttendanceRecord,
   SignInRequest,
   SignOutRequest,
   LeaveRequest,
-  MessageRecord,
-  SendMessageRequest,
-  StudentTimeline
+  LeaveRecord
 } from './attendance';
 
 // Homework specific models (complete definitions with enums)

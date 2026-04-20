@@ -61,6 +61,19 @@ export interface FinanceReport {
 }
 
 /**
+ * Teacher performance
+ */
+export interface TeacherPerformance {
+  teacherId: number;
+  teacherName: string;
+  totalSessions: number;
+  totalStudents: number;
+  avgAttendanceRate: number;
+  homeworkCompletedCount: number;
+  avgRating: number;
+}
+
+/**
  * Daily revenue statistics
  */
 export interface DailyRevenueStats {

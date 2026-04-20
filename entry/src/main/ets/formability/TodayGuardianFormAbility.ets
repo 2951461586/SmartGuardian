@@ -4,7 +4,7 @@
  */
 
 import { FormExtensionAbility, formBindingData, formProvider } from '@kit.FormKit';
-import { wantAgent, Want } from '@kit.AbilityKit';
+import { Want } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 import { LogUtil } from '../utils/LogUtil';
 
@@ -105,23 +105,41 @@ export default class TodayGuardianFormAbility extends FormExtensionAbility {
    * 获取存储的学生数据
    */
   private getStoredStudentData(): StudentData {
+    const fallbackData: StudentData = {
+      studentName: '张小明',
+      className: '三年级1班',
+      sessionTime: '15:30-18:00',
+      status: 'SIGNED_IN',
+      statusText: '已签到',
+      signInTime: '15:32',
+      homeworkProgress: '2/3',
+      teacherFeedback: '作业完成良好'
+    };
+
     try {
-      const studentData: StudentData = {
-        studentName: '张小明',
-        className: '三年级1班',
-        sessionTime: '15:30-18:00',
-        status: 'SIGNED_IN',
-        statusText: '已签到',
-        signInTime: '15:32',
-        homeworkProgress: '2/3',
-        teacherFeedback: '作业完成良好'
-      };
-      return studentData;
+      const dataPreferences = preferences.getPreferencesSync(this.context, {
+        name: 'SmartGuardianFormData'
+      });
+      const storedValue = dataPreferences.getSync(STUDENT_INFO_KEY, '') as string;
+      if (typeof storedValue === 'string' && storedValue.length > 0) {
+        const parsedData = JSON.parse(storedValue) as StudentData;
+        const mergedData: StudentData = {
+          studentName: parsedData.studentName ?? fallbackData.studentName,
+          className: parsedData.className ?? fallbackData.className,
+          sessionTime: parsedData.sessionTime ?? fallbackData.sessionTime,
+          status: parsedData.status ?? fallbackData.status,
+          statusText: parsedData.statusText ?? fallbackData.statusText,
+          signInTime: parsedData.signInTime ?? fallbackData.signInTime,
+          homeworkProgress: parsedData.homeworkProgress ?? fallbackData.homeworkProgress,
+          teacherFeedback: parsedData.teacherFeedback ?? fallbackData.teacherFeedback
+        };
+        return mergedData;
+      }
     } catch (error) {
       LogUtil.error('Get stored data failed:', String(error));
-      const emptyData: StudentData = {};
-      return emptyData;
     }
+
+    return fallbackData;
   }
   
   /**

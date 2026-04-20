@@ -21,6 +21,7 @@ import {
   BatchMarkReadParams
 } from '../../models/message';
 import { get, post } from '../../utils/request';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Message Service
@@ -29,8 +30,6 @@ import { get, post } from '../../utils/request';
  * @class
  */
 export class MessageService {
-  private static BASE_URL = '/api/v1/messages';
-
   /**
    * Get message list
    * 
@@ -39,7 +38,7 @@ export class MessageService {
    * @returns 分页消息响应
    */
   static async getMessages(params: MessageQueryParams): Promise<ApiResponse<PageResponse<MessageRecord>>> {
-    return get<PageResponse<MessageRecord>>(this.BASE_URL, params);
+    return get<PageResponse<MessageRecord>>(ApiEndpoints.MESSAGES, params);
   }
 
   /**
@@ -50,7 +49,7 @@ export class MessageService {
    * @returns 消息详情响应
    */
   static async getMessageDetail(messageId: number): Promise<ApiResponse<MessageDetail>> {
-    return get<MessageDetail>(`${this.BASE_URL}/${messageId}`);
+    return get<MessageDetail>(ApiEndpoints.messageDetail(messageId));
   }
 
   /**
@@ -61,7 +60,7 @@ export class MessageService {
    * @returns 操作响应
    */
   static async markAsRead(messageId: number): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${messageId}/read`);
+    return post<void>(ApiEndpoints.messageRead(messageId));
   }
 
   /**
@@ -72,7 +71,7 @@ export class MessageService {
    * @returns 操作响应
    */
   static async batchMarkAsRead(params: BatchMarkReadParams): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/batch-read`, params);
+    return post<void>(ApiEndpoints.MESSAGES_BATCH_READ, params);
   }
 
   /**
@@ -82,7 +81,7 @@ export class MessageService {
    * @returns 操作响应
    */
   static async markAllAsRead(): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/read-all`);
+    return post<void>(ApiEndpoints.MESSAGES_READ_ALL);
   }
 
   /**
@@ -93,7 +92,7 @@ export class MessageService {
    * @returns 操作响应
    */
   static async deleteMessage(messageId: number): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${messageId}/delete`);
+    return post<void>(ApiEndpoints.messageDelete(messageId));
   }
 
   /**
@@ -103,7 +102,7 @@ export class MessageService {
    * @returns 未读数量响应
    */
   static async getUnreadCount(): Promise<ApiResponse<{ count: number }>> {
-    return get<{ count: number }>(`${this.BASE_URL}/unread-count`);
+    return get<{ count: number }>(ApiEndpoints.MESSAGES_UNREAD_COUNT);
   }
 
   /**
@@ -113,7 +112,7 @@ export class MessageService {
    * @returns 统计数据响应
    */
   static async getStatistics(): Promise<ApiResponse<MessageStatistics>> {
-    return get<MessageStatistics>(`${this.BASE_URL}/statistics`);
+    return get<MessageStatistics>(ApiEndpoints.MESSAGES_STATISTICS);
   }
 
   /**
@@ -124,7 +123,7 @@ export class MessageService {
    * @returns 发送成功的消息响应
    */
   static async sendMessage(params: SendMessageParams): Promise<ApiResponse<MessageRecord>> {
-    return post<MessageRecord>(this.BASE_URL, params);
+    return post<MessageRecord>(ApiEndpoints.MESSAGES, params);
   }
 
   /**

@@ -12,6 +12,7 @@
 import { get, post } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
 import { AttendanceRecord, SignInRequest, SignOutRequest, LeaveRequest } from '../../models/attendance';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Attendance API Service
@@ -35,7 +36,7 @@ export class AttendanceService {
     attendanceDate?: string;
     status?: string;
   }): Promise<ApiResponse<PageResponse<AttendanceRecord>>> {
-    return get<PageResponse<AttendanceRecord>>('/api/v1/attendance', params);
+    return get<PageResponse<AttendanceRecord>>(ApiEndpoints.ATTENDANCE, params);
   }
 
   /**
@@ -53,7 +54,7 @@ export class AttendanceService {
       signMethod: data.signMethod,
       location: data.location
     };
-    return post<AttendanceRecord>('/api/v1/attendance/sign-in', payload);
+    return post<AttendanceRecord>(ApiEndpoints.ATTENDANCE_SIGN_IN, payload);
   }
 
   /**
@@ -73,7 +74,7 @@ export class AttendanceService {
       pickupUserId: data.pickupUserId,
       location: data.location
     };
-    return post<AttendanceRecord>('/api/v1/attendance/sign-out', payload);
+    return post<AttendanceRecord>(ApiEndpoints.ATTENDANCE_SIGN_OUT, payload);
   }
 
   /**
@@ -89,7 +90,7 @@ export class AttendanceService {
     startDate?: string;
     endDate?: string;
   }): Promise<ApiResponse<PageResponse<AttendanceRecord>>> {
-    return get<PageResponse<AttendanceRecord>>('/api/v1/attendance/abnormal-events', params);
+    return get<PageResponse<AttendanceRecord>>(ApiEndpoints.ATTENDANCE_ABNORMAL, params);
   }
 
   /**
@@ -100,6 +101,6 @@ export class AttendanceService {
    * @returns 请假记录响应
    */
   static async submitLeave(data: LeaveRequest): Promise<ApiResponse<AttendanceRecord>> {
-    return post<AttendanceRecord>('/api/v1/attendance/leave', data);
+    return post<AttendanceRecord>(ApiEndpoints.ATTENDANCE_LEAVE, data);
   }
 }

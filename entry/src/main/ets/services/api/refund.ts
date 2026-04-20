@@ -20,6 +20,7 @@ import {
   CancelRefundParams
 } from '../../models/refund';
 import { get, post } from '../../utils/request';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Refund Service
@@ -28,8 +29,6 @@ import { get, post } from '../../utils/request';
  * @class
  */
 export class RefundService {
-  private static BASE_URL = '/api/v1/refunds';
-
   /**
    * Create refund application
    * 
@@ -38,7 +37,7 @@ export class RefundService {
    * @returns 退款记录响应
    */
   static async createRefund(params: CreateRefundParams): Promise<ApiResponse<RefundRecord>> {
-    return post<RefundRecord>(this.BASE_URL, params);
+    return post<RefundRecord>(ApiEndpoints.REFUNDS, params);
   }
 
   /**
@@ -49,7 +48,7 @@ export class RefundService {
    * @returns 分页退款记录响应
    */
   static async getRefunds(params: RefundQueryParams): Promise<ApiResponse<PageResponse<RefundRecord>>> {
-    return get<PageResponse<RefundRecord>>(this.BASE_URL, params);
+    return get<PageResponse<RefundRecord>>(ApiEndpoints.REFUNDS, params);
   }
 
   /**
@@ -60,7 +59,7 @@ export class RefundService {
    * @returns 退款记录响应
    */
   static async getRefundDetail(refundId: number): Promise<ApiResponse<RefundRecord>> {
-    return get<RefundRecord>(`${this.BASE_URL}/${refundId}`);
+    return get<RefundRecord>(ApiEndpoints.refundDetail(refundId));
   }
 
   /**
@@ -71,7 +70,7 @@ export class RefundService {
    * @returns 操作响应
    */
   static async cancelRefund(params: CancelRefundParams): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${params.refundId}/cancel`, params);
+    return post<void>(ApiEndpoints.refundCancel(params.refundId), params);
   }
 
   /**
@@ -81,7 +80,7 @@ export class RefundService {
    * @returns 退款统计数据响应
    */
   static async getStatistics(): Promise<ApiResponse<RefundStatistics>> {
-    return get<RefundStatistics>(`${this.BASE_URL}/statistics`);
+    return get<RefundStatistics>(ApiEndpoints.REFUNDS_STATISTICS);
   }
 
   /**
@@ -97,7 +96,7 @@ export class RefundService {
     deduction: number;
     reason?: string;
   }>> {
-    return get(`${this.BASE_URL}/calculate`, { orderId });
+    return get(ApiEndpoints.REFUNDS_CALCULATE, { orderId });
   }
 
   /**
@@ -108,7 +107,7 @@ export class RefundService {
    * @returns 退款记录数组响应
    */
   static async getRefundsByOrder(orderId: number): Promise<ApiResponse<RefundRecord[]>> {
-    return get<RefundRecord[]>(`${this.BASE_URL}/order/${orderId}`);
+    return get<RefundRecord[]>(ApiEndpoints.refundsByOrder(orderId));
   }
 
   /**

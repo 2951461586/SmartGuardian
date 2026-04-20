@@ -55,8 +55,8 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     LogUtil.info('EntryAbility onWindowStageCreate');
 
-    // 加载主页面
-    windowStage.loadContent('pages/MainPage', (err) => {
+    // 统一入口到 Index，由 Index 负责登录态分流
+    windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
         LogUtil.error('Failed to load content:', String(err));
         return;

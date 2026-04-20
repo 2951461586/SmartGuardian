@@ -20,6 +20,7 @@ import {
   ServiceProductRevenue,
   ReportQueryParams 
 } from '../../models/report';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Attendance Report
@@ -79,31 +80,6 @@ export interface TeacherPerformance {
  * 
  * @description 今日状态卡片数据结构
  */
-export interface TodaySummaryCard {
-  studentId: number;
-  studentName: string;
-  sessionName: string;
-  sessionTime: string;
-  status: 'NOT_SIGNED' | 'SIGNED_IN' | 'IN_PROGRESS' | 'SIGNED_OUT';
-  latestDynamic: string;
-  homeworkProgress?: number;
-  teacherFeedback?: string;
-}
-
-/**
- * Abnormal Alert Card
- * 
- * @description 异常告警卡片数据结构
- */
-export interface AbnormalAlertCard {
-  studentId: number;
-  studentName: string;
-  abnormalType: string;
-  occurTime: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
-  suggestedAction: string;
-}
-
 /**
  * Reports API Service
  * 
@@ -124,7 +100,7 @@ export class ReportsService {
     orgId?: number;
     schoolId?: number;
   }): Promise<ApiResponse<AttendanceReport>> {
-    return get<AttendanceReport>('/api/v1/reports/attendance', params);
+    return get<AttendanceReport>(ApiEndpoints.REPORTS_ATTENDANCE, params);
   }
 
   /**
@@ -139,7 +115,7 @@ export class ReportsService {
     endDate?: string;
     orgId?: number;
   }): Promise<ApiResponse<FinanceReport>> {
-    return get<FinanceReport>('/api/v1/reports/finance', params);
+    return get<FinanceReport>(ApiEndpoints.REPORTS_FINANCE, params);
   }
 
   /**
@@ -155,7 +131,7 @@ export class ReportsService {
     teacherId?: number;
     orgId?: number;
   }): Promise<ApiResponse<TeacherPerformance[]>> {
-    return get<TeacherPerformance[]>('/api/v1/reports/performance', params);
+    return get<TeacherPerformance[]>(ApiEndpoints.REPORTS_PERFORMANCE, params);
   }
 
   /**
@@ -166,7 +142,7 @@ export class ReportsService {
    * @returns 每日考勤统计数组响应
    */
   static async getDailyAttendanceStats(params?: ReportQueryParams): Promise<ApiResponse<DailyAttendanceStats[]>> {
-    return get<DailyAttendanceStats[]>('/api/v1/reports/attendance/daily', params);
+    return get<DailyAttendanceStats[]>(ApiEndpoints.REPORTS_ATTENDANCE_DAILY, params);
   }
 
   /**
@@ -177,7 +153,7 @@ export class ReportsService {
    * @returns 学生考勤汇总数组响应
    */
   static async getStudentAttendanceSummary(params?: ReportQueryParams): Promise<ApiResponse<StudentAttendanceSummary[]>> {
-    return get<StudentAttendanceSummary[]>('/api/v1/reports/attendance/students', params);
+    return get<StudentAttendanceSummary[]>(ApiEndpoints.REPORTS_ATTENDANCE_STUDENTS, params);
   }
 
   /**
@@ -191,7 +167,7 @@ export class ReportsService {
     startDate?: string;
     endDate?: string;
   }): Promise<ApiResponse<DailyRevenueStats[]>> {
-    return get<DailyRevenueStats[]>('/api/v1/reports/finance/daily', params);
+    return get<DailyRevenueStats[]>(ApiEndpoints.REPORTS_FINANCE_DAILY, params);
   }
 
   /**
@@ -205,36 +181,6 @@ export class ReportsService {
     startDate?: string;
     endDate?: string;
   }): Promise<ApiResponse<ServiceProductRevenue[]>> {
-    return get<ServiceProductRevenue[]>('/api/v1/reports/finance/products', params);
-  }
-}
-
-/**
- * Cards API Service
- * 
- * @description 卡片服务类，提供首页卡片数据功能
- * @class
- */
-export class CardsService {
-  /**
-   * Get today summary card
-   * 
-   * @description 获取今日状态卡片数据
-   * @param studentId 学生ID
-   * @returns 今日状态卡片响应
-   */
-  static async getTodaySummary(studentId: number): Promise<ApiResponse<TodaySummaryCard>> {
-    return get<TodaySummaryCard>('/api/v1/cards/today-status', { studentId });
-  }
-
-  /**
-   * Get abnormal alert card
-   * 
-   * @description 获取异常告警卡片数据
-   * @param studentId 学生ID
-   * @returns 异常告警卡片响应（无异常时返回 null）
-   */
-  static async getAbnormalAlert(studentId: number): Promise<ApiResponse<AbnormalAlertCard | null>> {
-    return get<AbnormalAlertCard | null>('/api/v1/cards/abnormal-alert', { studentId });
+    return get<ServiceProductRevenue[]>(ApiEndpoints.REPORTS_FINANCE_PRODUCTS, params);
   }
 }

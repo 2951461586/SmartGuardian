@@ -1,12 +1,20 @@
 /**
  * SmartGuardian - Admin Orders Page
  * Admin can review and audit orders
+ * 
+ * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
 import { OrderService } from '../../services/api/service';
 import { Order, OrderAuditRequest } from '../../models/service';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
+import { ErrorMessages } from '../../constants/ErrorMessages';
+import { OrderQueryParams } from '../../models/common';
+// Common Components
+import { SimplePageHeader, TabBar, EmptyState, LoadingState, ErrorBanner, EmptyType, LoadingSize, OrderListItem, OrderItemMode } from '../../components/common';
+import { OrderBadge } from '../../components/StatusBadge';
+import { StatusMappingHelper } from '../../constants/StatusMapping';
 
 @Component
 export struct AdminOrdersPage {
@@ -26,60 +34,68 @@ export struct AdminOrdersPage {
 
   async loadOrders() {
     this.isLoading = true;
+    this.errorMessage = '';
+    
     try {
-      let orderStatus: string | undefined;
+      // 使用统一的查询参数类型
+      const params: OrderQueryParams = {
+        pageNum: 1,
+        pageSize: 20
+      };
+
+      // 根据Tab设置状态过滤
       if (this.currentTab === 0) {
-        orderStatus = 'PENDING';
+        params.orderStatus = 'PENDING';
       } else if (this.currentTab === 1) {
-        orderStatus = 'APPROVED';
+        params.orderStatus = 'APPROVED';
       }
 
-      const resp = await OrderService.getOrders({
-        pageNum: 1,
-        pageSize: 20,
-        orderStatus
-      });
+      const resp = await OrderService.getOrders(params);
 
       if (resp.code === 0 && resp.data) {
         const rawOrders = Array.isArray(resp.data) ? resp.data : [];
-        this.orders = rawOrders.map((order: Order) => {
-          const maskedOrder: Order = {
-            id: order.id,
-            orderNo: order.orderNo,
-            studentId: order.studentId,
-            studentName: DataMaskUtil.maskName(order.studentName || ''),
-            serviceProductId: order.serviceProductId,
-            serviceProductName: order.serviceProductName,
-            startDate: order.startDate,
-            endDate: order.endDate,
-            actualAmount: order.actualAmount,
-            orderStatus: order.orderStatus,
-            payStatus: order.payStatus,
-            discountAmount: order.discountAmount,
-            createdAt: order.createdAt,
-            updatedAt: order.updatedAt,
-            amount: order.amount,
-            paidAmount: order.paidAmount,
-            totalAmount: order.totalAmount,
-            auditStatus: order.auditStatus,
-            auditRemark: order.auditRemark,
-            studentName: DataMaskUtil.maskName(order.studentName || ''),
-            guardianUserId: order.guardianUserId,
-            guardianName: order.guardianName,
-            auditTime: order.auditTime
-          };
-          return maskedOrder;
-        });
+        // 数据脱敏处理
+        this.orders = rawOrders.map((order: Order) => this.maskOrder(order));
         LogUtil.info('AdminOrdersPage', `Loaded ${this.orders.length} orders`);
       } else {
         this.orders = [];
-        this.errorMessage = resp.message || '加载订单失败';
+        this.errorMessage = resp.message || ErrorMessages.ORDER_LOAD_FAILED;
       }
     } catch (error) {
-      this.errorMessage = '加载订单失败';
+      this.errorMessage = ErrorMessages.ORDER_LOAD_FAILED;
     } finally {
       this.isLoading = false;
     }
+  }
+
+  /**
+   * 订单数据脱敏
+   */
+  private maskOrder(order: Order): Order {
+    return {
+      id: order.id,
+      orderNo: order.orderNo,
+      studentId: order.studentId,
+      studentName: DataMaskUtil.maskName(order.studentName || ''),
+      serviceProductId: order.serviceProductId,
+      serviceProductName: order.serviceProductName,
+      startDate: order.startDate,
+      endDate: order.endDate,
+      actualAmount: order.actualAmount,
+      orderStatus: order.orderStatus,
+      payStatus: order.payStatus,
+      discountAmount: order.discountAmount,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      amount: order.amount,
+      paidAmount: order.paidAmount,
+      totalAmount: order.totalAmount,
+      auditStatus: order.auditStatus,
+      auditRemark: order.auditRemark,
+      guardianUserId: order.guardianUserId,
+      guardianName: order.guardianName,
+      auditTime: order.auditTime
+    };
   }
 
   async handleAudit(auditStatus: 'APPROVED' | 'REJECTED') {
@@ -98,10 +114,10 @@ export struct AdminOrdersPage {
         this.closeAuditDialog();
         this.loadOrders();
       } else {
-        this.errorMessage = resp.message || '审核失败';
+        this.errorMessage = resp.message || ErrorMessages.ORDER_AUDIT_FAILED;
       }
     } catch (error) {
-      this.errorMessage = '审核失败';
+      this.errorMessage = ErrorMessages.ORDER_AUDIT_FAILED;
     }
   }
 
@@ -120,14 +136,30 @@ export struct AdminOrdersPage {
 
   build() {
     Column() {
-      this.buildHeader()
-      this.buildTabBar()
+      // 使用通用PageHeader
+      SimplePageHeader({ title: '订单管理' })
 
+      // 使用通用TabBar
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: $currentTab,
+        onTabChange: () => {
+          this.loadOrders();
+        }
+      })
+
+      // 错误提示
       if (this.errorMessage) {
-        this.buildErrorMessage()
+        ErrorBanner({
+          message: this.errorMessage,
+          onDismiss: () => {
+            this.errorMessage = '';
+          }
+        })
       }
 
-      this.buildOrderList()
+      // 内容区域
+      this.buildContent()
     }
     .width('100%')
     .height('100%')
@@ -140,201 +172,49 @@ export struct AdminOrdersPage {
   }
 
   @Builder
-  buildHeader() {
-    Row() {
-      Text('订单管理')
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-    }
-    .width('100%')
-    .justifyContent(FlexAlign.Center)
-    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
-    .backgroundColor($r('app.color.primary'))
-  }
-
-  @Builder
-  buildTabBar() {
-    Row() {
-      ForEach(this.tabs, (tab: string, index: number) => {
-        Column() {
-          Text(tab)
-            .fontSize($r('app.float.text_primary_size'))
-            .fontColor(this.currentTab === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
-
-          if (this.currentTab === index) {
-            Row()
-              .width(20)
-              .height(2)
-              .backgroundColor($r('app.color.primary'))
-              .borderRadius(1)
-          }
-        }
-        .width('33%')
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .onClick(() => {
-          this.currentTab = index;
-          this.loadOrders();
-        })
+  buildContent() {
+    if (this.isLoading) {
+      LoadingState({ 
+        loadingSize: LoadingSize.LARGE,
+        fullscreen: false 
       })
+    } else if (this.orders.length === 0) {
+      EmptyState({ 
+        type: EmptyType.NO_ORDER,
+        actionText: '刷新',
+        onAction: () => { this.loadOrders(); }
+      })
+    } else {
+      this.buildOrderList()
     }
-    .width('100%')
-    .backgroundColor(Color.White)
-  }
-
-  @Builder
-  buildErrorMessage() {
-    Row() {
-      Text(this.errorMessage)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.error'))
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-    .backgroundColor('#FFF1F0')
   }
 
   @Builder
   buildOrderList() {
-    if (this.isLoading) {
+    Scroll() {
       Column() {
-        LoadingProgress()
-          .color($r('app.color.primary'))
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
-    } else if (this.orders.length === 0) {
-      Column() {
-        Image($r('app.media.ic_empty'))
-          .width(120)
-          .height(120)
-          .objectFit(ImageFit.Contain)
-
-        Text('暂无订单')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: $r('app.float.card_margin') })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
-    } else {
-      Scroll() {
-        Column() {
-          ForEach(this.orders, (order: Order) => {
-            this.buildOrderItem(order)
-          })
-        }
-        .width('100%')
-        .padding($r('app.float.page_padding'))
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-    }
-  }
-
-  @Builder
-  buildOrderItem(order: Order) {
-    Column() {
-      Row() {
-        Text(order.orderNo)
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(this.getOrderStatusText(order.orderStatus))
-          .fontSize($r('app.float.badge_text_size'))
-          .fontColor(this.getOrderStatusColor(order.orderStatus))
-          .padding({
-            left: $r('app.float.badge_padding'),
-            right: $r('app.float.badge_padding'),
-            top: 2,
-            bottom: 2
-          })
-          .backgroundColor(this.getOrderStatusBgColor(order.orderStatus))
-          .borderRadius($r('app.float.badge_radius'))
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ bottom: $r('app.float.card_content_margin') })
-
-      Row() {
-        Column() {
-          Text('学生')
-            .fontSize($r('app.float.text_tiny_size'))
-            .fontColor($r('app.color.text_tertiary'))
-          Text(order.studentName || '-')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_primary'))
-        }
-        .layoutWeight(1)
-
-        Column() {
-          Text('服务')
-            .fontSize($r('app.float.text_tiny_size'))
-            .fontColor($r('app.color.text_tertiary'))
-          Text(order.serviceProductName || '-')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_primary'))
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-        }
-        .layoutWeight(1)
-
-        Column() {
-          Text('金额')
-            .fontSize($r('app.float.text_tiny_size'))
-            .fontColor($r('app.color.text_tertiary'))
-          Text(`¥${order.actualAmount || order.amount}`)
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.error'))
-        }
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ bottom: $r('app.float.card_content_margin') })
-
-      Text(`托管时间：${order.startDate || '-'} - ${order.endDate || '-'}`)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ bottom: $r('app.float.card_content_margin') })
-
-      if (order.orderStatus === 'PENDING') {
-        Row() {
-          Button('拒绝')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor('#F44336')
-            .backgroundColor('#FFEBEE')
-            .borderRadius($r('app.float.button_radius'))
-            .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-            .onClick(() => {
-              this.openRejectDialog(order);
-            })
-
-          Button('通过')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(Color.White)
-            .backgroundColor('#4CAF50')
-            .borderRadius($r('app.float.button_radius'))
-            .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-            .margin({ left: $r('app.float.card_content_margin') })
-            .onClick(() => {
+        ForEach(this.orders, (order: Order) => {
+          OrderListItem({
+            order: order,
+            mode: OrderItemMode.DETAIL,
+            onItemClick: () => {},
+            onApprove: () => {
               this.selectedOrder = order;
               this.auditRemark = '审核通过';
               this.handleAudit('APPROVED');
-            })
-        }
-        .width('100%')
-        .justifyContent(FlexAlign.End)
+            },
+            onReject: () => {
+              this.openRejectDialog(order);
+            }
+          })
+        })
       }
+      .width('100%')
+      .padding($r('app.float.page_padding'))
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ bottom: $r('app.float.card_margin') })
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
   }
 
   @Builder
@@ -406,41 +286,5 @@ export struct AdminOrdersPage {
     }
     .width('100%')
     .padding(20)
-  }
-
-  getOrderStatusText(status: string): string {
-    const statusMap: Record<string, string> = {
-      'PENDING': '待审核',
-      'APPROVED': '已通过',
-      'REJECTED': '已拒绝',
-      'CANCELLED': '已取消',
-      'COMPLETED': '已完成',
-      'REFUNDED': '已退款'
-    };
-    return statusMap[status] || status;
-  }
-
-  getOrderStatusColor(status: string): string {
-    const colorMap: Record<string, string> = {
-      'PENDING': '#FF9800',
-      'APPROVED': '#4CAF50',
-      'REJECTED': '#F44336',
-      'CANCELLED': '#9E9E9E',
-      'COMPLETED': '#2196F3',
-      'REFUNDED': '#9E9E9E'
-    };
-    return colorMap[status] || '#666666';
-  }
-
-  getOrderStatusBgColor(status: string): string {
-    const colorMap: Record<string, string> = {
-      'PENDING': '#FFF3E0',
-      'APPROVED': '#E8F5E9',
-      'REJECTED': '#FFEBEE',
-      'CANCELLED': '#F5F5F5',
-      'COMPLETED': '#E3F2FD',
-      'REFUNDED': '#F5F5F5'
-    };
-    return colorMap[status] || '#F5F5F5';
   }
 }

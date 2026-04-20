@@ -1,0 +1,175 @@
+/**
+ * SmartGuardian - Parent QR Code Page
+ * Display QR code for student pickup
+ */
+
+import router from '@ohos.router';
+import { UserStore } from '../../stores/userStore';
+import { Student } from '../../models/user';
+import { StudentService } from '../../services/api/auth';
+import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
+
+@Entry
+@Component
+export struct ParentQRCodePage {
+  @State students: Student[] = [];
+  @State selectedStudent: Student | null = null;
+  @State qrCodeData: string = '';
+  @State isLoading: boolean = true;
+
+  async aboutToAppear() {
+    await this.loadStudents();
+  }
+
+  async loadStudents() {
+    this.isLoading = true;
+    try {
+      const userInfo = UserStore.getUserInfo();
+      if (userInfo?.id) {
+        const response = await StudentService.getStudents({ pageNum: 1, pageSize: 100 });
+        if (response.code === 0 && response.data) {
+          this.students = response.data.list ?? [];
+          if (this.students.length > 0) {
+            this.selectedStudent = this.students[0];
+            this.generateQRCode();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load students:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  generateQRCode() {
+    if (this.selectedStudent) {
+      const timestamp = Date.now();
+      this.qrCodeData = JSON.stringify({
+        type: 'PICKUP',
+        studentId: this.selectedStudent.id,
+        studentName: this.selectedStudent.name,
+        guardianId: UserStore.getUserInfo()?.id,
+        timestamp: timestamp
+      });
+    }
+  }
+
+  build() {
+    Column() {
+      Row() {
+        Button({ type: ButtonType.Circle }) {
+          Text('←')
+            .fontSize(20)
+            .fontColor(Color.White)
+        }
+        .width(36)
+        .height(36)
+        .backgroundColor('#1AFFFFFF')
+        .onClick(() => router.back())
+
+        Text('接送码')
+          .fontSize(18)
+          .fontColor(Color.White)
+          .fontWeight(FontWeight.Bold)
+          .layoutWeight(1)
+          .textAlign(TextAlign.Center)
+
+        Blank().width(36)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .linearGradient({
+        angle: 135,
+        colors: [['#4F7CFF', 0], ['#7B68EE', 1]]
+      })
+
+      if (this.isLoading) {
+        Column() {
+          LoadingState({ loadingSize: LoadingSize.LARGE })
+        }
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else if (this.students.length === 0) {
+        Column() {
+          EmptyState({ type: EmptyType.DEFAULT, customTitle: '暂无学生信息' })
+        }
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else {
+        Column() {
+          if (this.students.length > 1) {
+            Row() {
+              ForEach(this.students, (student: Student) => {
+                Button(student.name)
+                  .fontSize(14)
+                  .fontColor(this.selectedStudent?.id === student.id ? Color.White : '#4F7CFF')
+                  .backgroundColor(this.selectedStudent?.id === student.id ? '#4F7CFF' : '#F5F5F5')
+                  .borderRadius(16)
+                  .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+                  .margin({ left: 4, right: 4 })
+                  .onClick(() => {
+                    this.selectedStudent = student;
+                    this.generateQRCode();
+                  })
+              })
+            }
+            .width('100%')
+            .padding(16)
+            .justifyContent(FlexAlign.Center)
+          }
+
+          Column() {
+            Text('接送二维码')
+              .fontSize(16)
+              .fontColor('#333333')
+              .margin({ bottom: 16 })
+
+            Column() {
+              Text('扫码接送')
+                .fontSize(24)
+                .fontColor('#4F7CFF')
+                .fontWeight(FontWeight.Bold)
+              
+              Text('请在托管中心出示此码')
+                .fontSize(12)
+                .fontColor('#999999')
+                .margin({ top: 8 })
+            }
+            .width(200)
+            .height(200)
+            .backgroundColor('#F5F5F5')
+            .borderRadius(12)
+            .justifyContent(FlexAlign.Center)
+            .border({ width: 2, color: '#4F7CFF', style: BorderStyle.Dashed })
+
+            if (this.selectedStudent) {
+              Column() {
+                Text(this.selectedStudent.name)
+                  .fontSize(18)
+                  .fontColor('#333333')
+                  .fontWeight(FontWeight.Medium)
+                
+                Text(`学号: ${this.selectedStudent.studentNo}`)
+                  .fontSize(14)
+                  .fontColor('#666666')
+                  .margin({ top: 4 })
+              }
+              .margin({ top: 16 })
+            }
+
+            Text('二维码有效期：5分钟')
+              .fontSize(12)
+              .fontColor('#999999')
+              .margin({ top: 24 })
+          }
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        }
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#FFFFFF')
+  }
+}

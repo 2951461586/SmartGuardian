@@ -47,6 +47,93 @@ export class AppColors {
   static readonly TEXT_SECONDARY = '#6B7280';
   static readonly TEXT_TERTIARY = '#9CA3AF';
   static readonly TEXT_PLACEHOLDER = '#D1D5DB';
+
+  // ============================================
+  // Status Colors (状态颜色)
+  // ============================================
+  
+  /** 待处理/待审核 - 橙色 */
+  static readonly STATUS_PENDING = '#FF9800';
+  /** 成功/已完成 - 绿色 */
+  static readonly STATUS_SUCCESS = '#4CAF50';
+  /** 错误/失败 - 红色 */
+  static readonly STATUS_ERROR = '#F44336';
+  /** 信息/进行中 - 蓝色 */
+  static readonly STATUS_INFO = '#2196F3';
+  /** 中性/已取消 - 灰色 */
+  static readonly STATUS_NEUTRAL = '#9E9E9E';
+
+  // ============================================
+  // Status Background Colors (状态背景颜色)
+  // ============================================
+  
+  /** 待处理背景 - 浅橙色 */
+  static readonly BG_PENDING = '#FFF3E0';
+  /** 成功背景 - 浅绿色 */
+  static readonly BG_SUCCESS = '#E8F5E9';
+  /** 错误背景 - 浅红色 */
+  static readonly BG_ERROR = '#FFEBEE';
+  /** 信息背景 - 浅蓝色 */
+  static readonly BG_INFO = '#E3F2FD';
+  /** 中性背景 - 浅灰色 */
+  static readonly BG_NEUTRAL = '#F5F5F5';
+
+  // ============================================
+  // Semantic Colors (语义化颜色)
+  // ============================================
+  
+  /** 签到/出勤 */
+  static readonly ATTENDANCE_SIGNED = '#4CAF50';
+  /** 未签到/待签到 */
+  static readonly ATTENDANCE_PENDING = '#FF9800';
+  /** 迟到 */
+  static readonly ATTENDANCE_LATE = '#FF9800';
+  /** 缺勤 */
+  static readonly ATTENDANCE_ABSENT = '#F44336';
+  /** 请假 */
+  static readonly ATTENDANCE_LEAVE = '#2196F3';
+
+  /** 订单待审核 */
+  static readonly ORDER_PENDING = '#FF9800';
+  /** 订单已审核 */
+  static readonly ORDER_APPROVED = '#4CAF50';
+  /** 订单已拒绝 */
+  static readonly ORDER_REJECTED = '#F44336';
+  /** 订单已完成 */
+  static readonly ORDER_COMPLETED = '#4CAF50';
+
+  /** 作业待辅导 */
+  static readonly HOMEWORK_PENDING = '#FF9800';
+  /** 作业辅导中 */
+  static readonly HOMEWORK_PROGRESS = '#2196F3';
+  /** 作业已完成 */
+  static readonly HOMEWORK_COMPLETED = '#4CAF50';
+
+  // ============================================
+  // Message Type Colors (消息类型颜色)
+  // ============================================
+  
+  /** 系统消息 */
+  static readonly MSG_SYSTEM = '#9C27B0';
+  /** 考勤消息 */
+  static readonly MSG_ATTENDANCE = '#4CAF50';
+  /** 作业消息 */
+  static readonly MSG_HOMEWORK = '#2196F3';
+  /** 订单消息 */
+  static readonly MSG_ORDER = '#FF9800';
+  /** 聊天消息 */
+  static readonly MSG_CHAT = '#3B82F6';
+
+  // ============================================
+  // Chart Colors (图表颜色)
+  // ============================================
+  
+  static readonly CHART_1 = '#3B82F6';
+  static readonly CHART_2 = '#10B981';
+  static readonly CHART_3 = '#F59E0B';
+  static readonly CHART_4 = '#EF4444';
+  static readonly CHART_5 = '#8B5CF6';
+  static readonly CHART_6 = '#EC4899';
 }
 
 /**

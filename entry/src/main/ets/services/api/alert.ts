@@ -19,6 +19,7 @@ import {
   ResolveAlertParams
 } from '../../models/alert';
 import { get, post } from '../../utils/request';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Alert Service
@@ -27,14 +28,12 @@ import { get, post } from '../../utils/request';
  * @class
  */
 export class AlertService {
-  private static BASE_URL = '/api/v1/alerts';
-
   static async getAlerts(params: AlertQueryParams): Promise<ApiResponse<PageResponse<AlertRecord>>> {
-    return get<PageResponse<AlertRecord>>(this.BASE_URL, params);
+    return get<PageResponse<AlertRecord>>(ApiEndpoints.ALERTS, params);
   }
 
   static async getAlertDetail(alertId: number): Promise<ApiResponse<AlertRecord>> {
-    return get<AlertRecord>(`${this.BASE_URL}/${alertId}`);
+    return get<AlertRecord>(ApiEndpoints.alertDetail(alertId));
   }
 
   /**
@@ -45,23 +44,23 @@ export class AlertService {
    * @returns 确认结果响应
    */
   static async acknowledgeAlert(params: AcknowledgeAlertParams): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${params.alertId}/acknowledge`, params);
+    return post<void>(ApiEndpoints.alertAcknowledge(params.alertId), params);
   }
 
   static async resolveAlert(params: ResolveAlertParams): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${params.alertId}/resolve`, params);
+    return post<void>(ApiEndpoints.alertResolve(params.alertId), params);
   }
 
   static async dismissAlert(alertId: number): Promise<ApiResponse<void>> {
-    return post<void>(`${this.BASE_URL}/${alertId}/dismiss`);
+    return post<void>(ApiEndpoints.alertDismiss(alertId));
   }
 
   static async getActiveCount(): Promise<ApiResponse<{ count: number }>> {
-    return get<{ count: number }>(`${this.BASE_URL}/active-count`);
+    return get<{ count: number }>(ApiEndpoints.ALERTS_ACTIVE_COUNT);
   }
 
   static async getStatistics(): Promise<ApiResponse<AlertStatistics>> {
-    return get<AlertStatistics>(`${this.BASE_URL}/statistics`);
+    return get<AlertStatistics>(ApiEndpoints.ALERTS_STATISTICS);
   }
 
   static async getActiveAlerts(

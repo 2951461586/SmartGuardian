@@ -59,7 +59,6 @@ export class RouteUrls {
   // Common
   static readonly LOGIN = 'pages/LoginPage';
   static readonly MAIN = 'pages/MainPage';
-  static readonly INDEX = 'pages/Index';
 
   // Parent pages
   static readonly PARENT_HOME = 'pages/parent/ParentHomePage';

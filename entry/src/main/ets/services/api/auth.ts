@@ -13,6 +13,7 @@
 import { get, post, put } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
 import { LoginRequest, LoginResponse, UserInfo, Student, StudentCreateRequest, GuardianRelation, CreateGuardianRequest } from '../../models/user';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Auth API Service
@@ -53,7 +54,7 @@ export class AuthService {
    * ```
    */
   static async login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-    return post<LoginResponse>('/api/v1/auth/login', data, { needAuth: false });
+    return post<LoginResponse>(ApiEndpoints.AUTH_LOGIN, data, { needAuth: false });
   }
 
   /**
@@ -70,7 +71,7 @@ export class AuthService {
    * ```
    */
   static async logout(): Promise<ApiResponse<null>> {
-    return post<null>('/api/v1/auth/logout');
+    return post<null>(ApiEndpoints.AUTH_LOGOUT);
   }
 
   /**
@@ -89,7 +90,7 @@ export class AuthService {
    * ```
    */
   static async getCurrentUser(): Promise<ApiResponse<UserInfo>> {
-    return get<UserInfo>('/api/v1/auth/me');
+    return get<UserInfo>(ApiEndpoints.AUTH_ME);
   }
 }
 
@@ -141,7 +142,7 @@ export class StudentService {
     grade?: number;
     classId?: number;
   }): Promise<ApiResponse<PageResponse<Student>>> {
-    return get<PageResponse<Student>>('/api/v1/students', params);
+    return get<PageResponse<Student>>(ApiEndpoints.STUDENTS, params);
   }
 
   /**
@@ -161,7 +162,7 @@ export class StudentService {
    * ```
    */
   static async getStudentDetail(studentId: number): Promise<ApiResponse<Student>> {
-    return get<Student>(`/api/v1/students/${studentId}`);
+    return get<Student>(ApiEndpoints.studentDetail(studentId));
   }
 
   /**
@@ -186,7 +187,7 @@ export class StudentService {
    * ```
    */
   static async createStudent(data: StudentCreateRequest): Promise<ApiResponse<Student>> {
-    return post<Student>('/api/v1/students', data);
+    return post<Student>(ApiEndpoints.STUDENTS, data);
   }
 
   /**
@@ -205,7 +206,7 @@ export class StudentService {
    * ```
    */
   static async updateStudent(studentId: number, data: Partial<StudentCreateRequest>): Promise<ApiResponse<Student>> {
-    return put<Student>(`/api/v1/students/${studentId}`, data);
+    return put<Student>(ApiEndpoints.studentDetail(studentId), data);
   }
 
   /**
@@ -231,7 +232,7 @@ export class StudentService {
    * ```
    */
   static async bindGuardian(studentId: number, data: CreateGuardianRequest): Promise<ApiResponse<GuardianRelation>> {
-    return post<GuardianRelation>(`/api/v1/students/${studentId}/guardians`, data);
+    return post<GuardianRelation>(ApiEndpoints.bindGuardian(studentId), data);
   }
 
   /**
@@ -251,6 +252,6 @@ export class StudentService {
    * ```
    */
   static async getGuardians(studentId: number): Promise<ApiResponse<GuardianRelation[]>> {
-    return get<GuardianRelation[]>(`/api/v1/students/${studentId}/guardians`);
+    return get<GuardianRelation[]>(ApiEndpoints.bindGuardian(studentId));
   }
 }

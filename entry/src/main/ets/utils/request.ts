@@ -8,6 +8,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { http } from '@kit.NetworkKit';
 import { ApiConfig } from '../config/api.config';
 import { MockService } from '../services/mock/mockService';
+import { ApiResponseHelper, ApiCode } from '../models/common';
 
 const TAG = 'SmartGuardian/Request';
 const DOMAIN = 0x0001;
@@ -80,7 +81,7 @@ function handleUnauthorized(): void {
 export async function httpRequest<T = object>(
   options: RequestOptions
 ): Promise<HttpResponse<T>> {
-  if (ApiConfig.USE_MOCK_DATA) {
+  if (ApiConfig.isMockEnabled()) {
     return MockService.handleMockRequest<T>(options);
   }
 
@@ -89,7 +90,11 @@ export async function httpRequest<T = object>(
   const data = options.data;
   const headers = options.headers ?? {};
   const needAuth = options.needAuth ?? true;
-  const fullUrl = url.startsWith('http') ? url : `${ApiConfig.BASE_URL}${url}`;
+  const baseUrl = ApiConfig.getBaseUrl();
+  if (!url.startsWith('http') && baseUrl.length === 0) {
+    throw new Error('ApiConfig.TEST_BASE_URL is not configured');
+  }
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -151,15 +156,16 @@ export async function httpRequest<T = object>(
       hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
     }
 
-    if (result.code === 401) {
-      hilog.error(DOMAIN, TAG, `Unauthorized: ${result.message}`);
+    // 使用统一的响应码判断
+    if (ApiResponseHelper.isAuthError(result.code)) {
+      hilog.error(DOMAIN, TAG, `Auth Error: ${result.code} - ${result.message}`);
       handleUnauthorized();
       throw new Error(result.message || '登录已失效');
     }
 
-    if (result.code !== 0 && result.code !== 200) {
+    if (!ApiResponseHelper.isSuccess(result.code)) {
       hilog.error(DOMAIN, TAG, `Business Error: ${result.code} - ${result.message}`);
-      throw new Error(result.message || 'Business error');
+      throw new Error(result.message || '业务处理失败');
     }
 
     return result;

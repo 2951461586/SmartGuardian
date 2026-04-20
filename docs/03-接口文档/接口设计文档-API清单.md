@@ -89,13 +89,13 @@
 - `GET /api/v1/cards/abnormal-alert`：异常提醒卡片摘要
 
 ### 2.13 Alerts
-- `GET /api/alerts`：查询告警记录列表
-- `GET /api/alerts/{alertId}`：查询告警详情
-- `POST /api/alerts/{alertId}/acknowledge`：确认告警
-- `POST /api/alerts/{alertId}/resolve`：解决告警
-- `POST /api/alerts/{alertId}/dismiss`：忽略告警
-- `GET /api/alerts/active-count`：获取活跃告警数量
-- `GET /api/alerts/statistics`：获取告警统计信息
+- `GET /api/v1/alerts`：查询告警记录列表
+- `GET /api/v1/alerts/{alertId}`：查询告警详情
+- `POST /api/v1/alerts/{alertId}/acknowledge`：确认告警
+- `POST /api/v1/alerts/{alertId}/resolve`：解决告警
+- `POST /api/v1/alerts/{alertId}/dismiss`：忽略告警
+- `GET /api/v1/alerts/active-count`：获取活跃告警数量
+- `GET /api/v1/alerts/statistics`：获取告警统计信息
 
 ### 2.14 Refunds
 - `POST /api/v1/refunds`：创建退款申请

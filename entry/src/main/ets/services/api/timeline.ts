@@ -9,6 +9,7 @@
 import { get } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
 import { TimelineItem, TimelineQueryParams } from '../../models/timeline';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Timeline API Service
@@ -26,6 +27,6 @@ export class TimelineService {
    * @returns 时间线数据响应（支持分页或数组形式）
    */
   static async getStudentTimeline(studentId: number, params?: TimelineQueryParams): Promise<ApiResponse<PageResponse<TimelineItem> | TimelineItem[]>> {
-    return get<PageResponse<TimelineItem> | TimelineItem[]>(`/api/v1/timeline/students/${studentId}`, params);
+    return get<PageResponse<TimelineItem> | TimelineItem[]>(ApiEndpoints.studentTimeline(studentId), params);
   }
 }

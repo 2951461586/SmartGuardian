@@ -12,6 +12,7 @@
 import { post } from '../../utils/request';
 import { ApiResponse } from '../../models/common';
 import { PaymentCreateRequest, PaymentOrder, PaymentCallbackRequest } from '../../models/payment';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Payments API Service
@@ -28,7 +29,7 @@ export class PaymentService {
    * @returns 支付订单响应（订单号、支付参数等）
    */
   static async createPayment(data: PaymentCreateRequest): Promise<ApiResponse<PaymentOrder>> {
-    return post<PaymentOrder>('/api/v1/payments', data);
+    return post<PaymentOrder>(ApiEndpoints.PAYMENTS, data);
   }
 
   /**
@@ -40,6 +41,6 @@ export class PaymentService {
    * @note 此接口不需要认证，由支付平台调用
    */
   static async callback(data: PaymentCallbackRequest): Promise<ApiResponse<null>> {
-    return post<null>('/api/v1/payments/callback', data, { needAuth: false });
+    return post<null>(ApiEndpoints.PAYMENTS_CALLBACK, data, { needAuth: false });
   }
 }

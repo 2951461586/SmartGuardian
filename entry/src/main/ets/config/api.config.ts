@@ -4,38 +4,57 @@
  */
 
 /**
+ * API environment identifiers
+ */
+export class ApiEnvironment {
+  static readonly DEV_MOCK: string = 'DEV_MOCK';
+  static readonly TEST_REAL: string = 'TEST_REAL';
+}
+
+/**
  * API environment configuration
  */
 export class ApiConfig {
   /**
-   * Enable mock data mode
-   * Set to true when backend API is not ready
-   * 
-   * @status PENDING - Mock system is implemented but not yet integrated into request.ts
-   * @usage To enable mock:
-   *   1. Set USE_MOCK_DATA = true
-   *   2. Add mock interceptor in request.ts (see example below)
-   *   3. Import MockService in request interceptor
-   * 
-   * @example Mock integration in request.ts
-   * ```typescript
-   * import { ApiConfig } from '../config/api.config';
-   * import { MockService } from '../services/mock/mockService';
-   * 
-   * async function httpRequest<T>(options: RequestOptions): Promise<HttpResponse<T>> {
-   *   if (ApiConfig.USE_MOCK_DATA) {
-   *     return MockService.handleMockRequest(options);
-   *   }
-   *   // ... real API call
-   * }
-   * ```
+   * 当前环境。
+   * DEV_MOCK: 本地开发/界面联调，全部走 Mock。
+   * TEST_REAL: 测试环境联调，全部走真实后端。
    */
-  static readonly USE_MOCK_DATA: boolean = false;  // ⚠️ Changed to false - backend API is ready
+  static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
+
+  /**
+   * 测试环境后端地址。
+   *
+   * @description 请替换为实际联调地址，例如 http://192.168.1.100:8080
+   */
+  static readonly TEST_BASE_URL: string = '';
+
+  /**
+   * Enable mock data mode
+   */
+  static isMockEnabled(): boolean {
+    return ApiConfig.CURRENT_ENV === ApiEnvironment.DEV_MOCK;
+  }
 
   /**
    * API base URL
    */
-  static readonly BASE_URL: string = 'https://api.smartguardian.local';
+  static getBaseUrl(): string {
+    if (ApiConfig.CURRENT_ENV === ApiEnvironment.TEST_REAL) {
+      return ApiConfig.TEST_BASE_URL;
+    }
+    return '';
+  }
+
+  /**
+   * 兼容旧版 ApiWrapper 的 Mock 开关字段
+   */
+  static readonly USE_MOCK_DATA: boolean = ApiConfig.isMockEnabled();
+
+  /**
+   * 兼容旧版 ApiWrapper 的基础地址字段
+   */
+  static readonly BASE_URL: string = ApiConfig.getBaseUrl();
 
   /**
    * Request timeout in milliseconds
@@ -75,26 +94,26 @@ export class ApiConfig {
  */
 export class MockSwitch {
   // Auth & User
-  static readonly AUTH_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly STUDENT_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly AUTH_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly STUDENT_SERVICE: boolean = ApiConfig.isMockEnabled();
 
   // Service & Order
-  static readonly SERVICE_PRODUCT_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly ORDER_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly SESSION_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly SERVICE_PRODUCT_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly ORDER_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly SESSION_SERVICE: boolean = ApiConfig.isMockEnabled();
 
   // Attendance & Homework
-  static readonly ATTENDANCE_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly HOMEWORK_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly ATTENDANCE_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly HOMEWORK_SERVICE: boolean = ApiConfig.isMockEnabled();
 
   // Communication
-  static readonly MESSAGE_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly TIMELINE_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly MESSAGE_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly TIMELINE_SERVICE: boolean = ApiConfig.isMockEnabled();
 
   // Payment & Report
-  static readonly PAYMENT_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
-  static readonly REPORT_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly PAYMENT_SERVICE: boolean = ApiConfig.isMockEnabled();
+  static readonly REPORT_SERVICE: boolean = ApiConfig.isMockEnabled();
 
   // Card
-  static readonly CARD_SERVICE: boolean = ApiConfig.USE_MOCK_DATA;
+  static readonly CARD_SERVICE: boolean = ApiConfig.isMockEnabled();
 }

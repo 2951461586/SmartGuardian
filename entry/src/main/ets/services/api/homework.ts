@@ -20,6 +20,7 @@ import {
   HomeworkFeedbackCreateRequest, 
   HomeworkConfirmRequest 
 } from '../../models/homework';
+import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
  * Homework API Service
@@ -43,7 +44,7 @@ export class HomeworkService {
     taskDate?: string;
     sessionId?: number;
   }): Promise<ApiResponse<PageResponse<HomeworkTask>>> {
-    return get<PageResponse<HomeworkTask>>('/api/v1/homework/tasks', params);
+    return get<PageResponse<HomeworkTask>>(ApiEndpoints.HOMEWORK_TASKS, params);
   }
 
   /**
@@ -54,7 +55,7 @@ export class HomeworkService {
    * @returns 作业任务响应
    */
   static async getTaskDetail(taskId: number): Promise<ApiResponse<HomeworkTask>> {
-    return get<HomeworkTask>(`/api/v1/homework/tasks/${taskId}`);
+    return get<HomeworkTask>(ApiEndpoints.homeworkTaskDetail(taskId));
   }
 
   /**
@@ -65,7 +66,7 @@ export class HomeworkService {
    * @returns 创建成功的任务响应
    */
   static async createTask(data: HomeworkTaskCreateRequest): Promise<ApiResponse<HomeworkTask>> {
-    return post<HomeworkTask>('/api/v1/homework/tasks', data);
+    return post<HomeworkTask>(ApiEndpoints.HOMEWORK_TASKS, data);
   }
 
   /**
@@ -77,7 +78,7 @@ export class HomeworkService {
    * @returns 更新后的任务响应
    */
   static async updateTaskStatus(taskId: number, status: HomeworkTaskStatus): Promise<ApiResponse<HomeworkTask>> {
-    return post<HomeworkTask>(`/api/v1/homework/tasks/${taskId}/status`, { status });
+    return post<HomeworkTask>(ApiEndpoints.homeworkTaskStatus(taskId), { status });
   }
 
   /**
@@ -88,7 +89,7 @@ export class HomeworkService {
    * @returns 反馈响应
    */
   static async submitFeedback(data: HomeworkFeedbackCreateRequest): Promise<ApiResponse<HomeworkFeedback>> {
-    return post<HomeworkFeedback>('/api/v1/homework/feedback', data);
+    return post<HomeworkFeedback>(ApiEndpoints.HOMEWORK_FEEDBACK, data);
   }
 
   /**
@@ -99,7 +100,7 @@ export class HomeworkService {
    * @returns 反馈数组响应
    */
   static async getFeedbacks(taskId: number): Promise<ApiResponse<HomeworkFeedback[]>> {
-    return get<HomeworkFeedback[]>(`/api/v1/homework/tasks/${taskId}/feedbacks`);
+    return get<HomeworkFeedback[]>(ApiEndpoints.homeworkTaskFeedbacks(taskId));
   }
 
   /**
@@ -111,6 +112,6 @@ export class HomeworkService {
    * @returns 确认后的反馈响应
    */
   static async confirmFeedback(feedbackId: number, data: HomeworkConfirmRequest): Promise<ApiResponse<HomeworkFeedback>> {
-    return post<HomeworkFeedback>(`/api/v1/homework/feedback/${feedbackId}/confirm`, data);
+    return post<HomeworkFeedback>(ApiEndpoints.homeworkFeedbackConfirm(feedbackId), data);
   }
 }

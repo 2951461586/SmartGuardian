@@ -18,6 +18,13 @@ export interface TodayStatusCard {
   homeworkCount?: number;
   completedHomework?: number;
   messages?: number;
+  // Convenience properties for UI display
+  sessionName?: string;
+  sessionTime?: string;
+  status?: 'NOT_SIGNED' | 'SIGNED_IN' | 'IN_PROGRESS' | 'SIGNED_OUT';
+  latestDynamic?: string;
+  homeworkProgress?: number;
+  teacherFeedback?: string;
 }
 
 /**

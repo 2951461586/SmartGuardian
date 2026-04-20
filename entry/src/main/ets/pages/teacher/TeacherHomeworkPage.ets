@@ -9,6 +9,8 @@ import { SessionService } from '../../services/api/service';
 import { SessionSchedule } from '../../models/service';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 import { PageResponse } from '../../models/common';
+// Common Components
+import { HomeworkCard, HomeworkCardMode } from '../../components/common';
 
 @Component
 export struct TeacherHomeworkPage {
@@ -247,56 +249,14 @@ export struct TeacherHomeworkPage {
 
   @Builder
   buildHomeworkItem(task: HomeworkTask) {
-    Column() {
-      Row() {
-        Text(task.studentName ? task.studentName : $r('app.string.homework_feedback_student'))
-          .fontSize($r('app.float.text_primary_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-
-        this.buildStatusBadge(task.status)
+    HomeworkCard({
+      homework: task,
+      mode: HomeworkCardMode.DETAIL,
+      showFeedbackButton: this.currentTab === 0,
+      onSubmitFeedback: () => {
+        this.openFeedbackDialog(task);
       }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ bottom: $r('app.float.card_content_margin') })
-
-      Text(task.content ? task.content : '')
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-      Row() {
-        Text(task.taskDate)
-          .fontSize($r('app.float.text_tiny_size'))
-          .fontColor($r('app.color.text_tertiary'))
-
-        if (this.currentTab === 0) {
-          Button($r('app.string.homework_submit_feedback'))
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.primary'))
-            .borderRadius($r('app.float.button_radius'))
-            .padding({
-              left: $r('app.float.homework_feedback_button_padding_horizontal'),
-              right: $r('app.float.homework_feedback_button_padding_horizontal'),
-              top: $r('app.float.homework_feedback_button_padding_vertical'),
-              bottom: $r('app.float.homework_feedback_button_padding_vertical')
-            })
-            .onClick(() => {
-              this.openFeedbackDialog(task);
-            })
-        }
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ top: $r('app.float.card_content_margin') })
-    }
-    .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor($r('app.color.card_background'))
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ bottom: $r('app.float.card_margin') })
+    })
   }
 
   @Builder

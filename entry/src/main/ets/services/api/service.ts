@@ -14,6 +14,10 @@ import { get, post, put } from '../../utils/request';
 import { ApiResponse } from '../../models/common';
 import { ServiceProduct, ServiceProductCreateRequest, Order, OrderCreateRequest, OrderAuditRequest, OrderRefundRequest, SessionSchedule, AutoScheduleRequest, SessionWithStudents } from '../../models/service';
 
+// Re-export types for convenience
+export { SessionSchedule, SessionWithStudents, ServiceProduct, Order };
+import { ApiEndpoints, API_BASE } from '../../constants/ApiEndpoints';
+
 /**
  * Service Product API Service
  * 
@@ -34,7 +38,7 @@ export class ServiceProductService {
     status?: string;
     serviceType?: string;
   }): Promise<ApiResponse<ServiceProduct[]>> {
-    return get<ServiceProduct[]>('/api/v1/service-products', params);
+    return get<ServiceProduct[]>(ApiEndpoints.SERVICE_PRODUCTS, params);
   }
 
   /**
@@ -45,7 +49,7 @@ export class ServiceProductService {
    * @returns 服务产品详情响应
    */
   static async getProductDetail(serviceId: number): Promise<ApiResponse<ServiceProduct>> {
-    return get<ServiceProduct>(`/api/v1/service-products/${serviceId}`);
+    return get<ServiceProduct>(ApiEndpoints.serviceProductDetail(serviceId));
   }
 
   /**
@@ -56,7 +60,7 @@ export class ServiceProductService {
    * @returns 创建成功的服务产品响应
    */
   static async createProduct(data: ServiceProductCreateRequest): Promise<ApiResponse<ServiceProduct>> {
-    return post<ServiceProduct>('/api/v1/service-products', data);
+    return post<ServiceProduct>(ApiEndpoints.SERVICE_PRODUCTS, data);
   }
 
   /**
@@ -68,7 +72,7 @@ export class ServiceProductService {
    * @returns 更新成功的服务产品响应
    */
   static async updateProduct(serviceId: number, data: Partial<ServiceProductCreateRequest>): Promise<ApiResponse<ServiceProduct>> {
-    return put<ServiceProduct>(`/api/v1/service-products/${serviceId}`, data);
+    return put<ServiceProduct>(ApiEndpoints.serviceProductDetail(serviceId), data);
   }
 }
 
@@ -93,7 +97,7 @@ export class OrderService {
     payStatus?: string;
     studentId?: number;
   }): Promise<ApiResponse<Order[]>> {
-    return get<Order[]>('/api/v1/orders', params);
+    return get<Order[]>(ApiEndpoints.ORDERS, params);
   }
 
   /**
@@ -104,7 +108,7 @@ export class OrderService {
    * @returns 订单详情响应
    */
   static async getOrderDetail(orderId: number): Promise<ApiResponse<Order>> {
-    return get<Order>(`/api/v1/orders/${orderId}`);
+    return get<Order>(ApiEndpoints.orderDetail(orderId));
   }
 
   /**
@@ -115,7 +119,7 @@ export class OrderService {
    * @returns 创建成功的订单响应
    */
   static async createOrder(data: OrderCreateRequest): Promise<ApiResponse<Order>> {
-    return post<Order>('/api/v1/orders', data);
+    return post<Order>(ApiEndpoints.ORDERS, data);
   }
 
   /**
@@ -127,7 +131,7 @@ export class OrderService {
    * @returns 审核后的订单响应
    */
   static async auditOrder(orderId: number, data: OrderAuditRequest): Promise<ApiResponse<Order>> {
-    return post<Order>(`/api/v1/orders/${orderId}/audit`, data);
+    return post<Order>(ApiEndpoints.orderAudit(orderId), data);
   }
 
   /**
@@ -139,7 +143,7 @@ export class OrderService {
    * @returns 退款后的订单响应
    */
   static async refundOrder(orderId: number, data: OrderRefundRequest): Promise<ApiResponse<Order>> {
-    return post<Order>(`/api/v1/orders/${orderId}/refund`, data);
+    return post<Order>(ApiEndpoints.orderRefund(orderId), data);
   }
 }
 
@@ -165,7 +169,7 @@ export class SessionService {
     teacherUserId?: number;
     status?: string;
   }): Promise<ApiResponse<SessionSchedule[]>> {
-    return get<SessionSchedule[]>('/api/v1/sessions', params);
+    return get<SessionSchedule[]>(ApiEndpoints.SESSIONS, params);
   }
 
   /**
@@ -176,7 +180,7 @@ export class SessionService {
    * @returns 包含学生信息的班次详情响应
    */
   static async getSessionDetail(sessionId: number): Promise<ApiResponse<SessionWithStudents>> {
-    return get<SessionWithStudents>(`/api/v1/sessions/${sessionId}`);
+    return get<SessionWithStudents>(ApiEndpoints.sessionDetail(sessionId));
   }
 
   /**
@@ -187,7 +191,7 @@ export class SessionService {
    * @returns 创建成功的班次响应
    */
   static async createSession(data: Partial<SessionSchedule>): Promise<ApiResponse<SessionSchedule>> {
-    return post<SessionSchedule>('/api/v1/sessions', data);
+    return post<SessionSchedule>(ApiEndpoints.SESSIONS, data);
   }
 
   /**
@@ -199,7 +203,7 @@ export class SessionService {
    * @returns 更新成功的班次响应
    */
   static async updateSession(sessionId: number, data: Partial<SessionSchedule>): Promise<ApiResponse<SessionSchedule>> {
-    return post<SessionSchedule>(`/api/v1/sessions/${sessionId}`, data);
+    return post<SessionSchedule>(ApiEndpoints.sessionDetail(sessionId), data);
   }
 
   /**
@@ -214,7 +218,7 @@ export class SessionService {
     serviceProductId?: number;
   }): Promise<ApiResponse<SessionSchedule[]>> {
     const today = new Date().toISOString().split('T')[0];
-    return get<SessionSchedule[]>('/api/v1/sessions', { sessionDate: today, ...params });
+    return get<SessionSchedule[]>(ApiEndpoints.SESSIONS, { sessionDate: today, ...params });
   }
 
   /**
@@ -225,7 +229,7 @@ export class SessionService {
    * @returns 生成的班次数组响应
    */
   static async autoSchedule(data: AutoScheduleRequest): Promise<ApiResponse<SessionSchedule[]>> {
-    return post<SessionSchedule[]>('/api/v1/sessions/generate', data);
+    return post<SessionSchedule[]>(`${API_BASE}/sessions/generate`, data);
   }
 
   /**

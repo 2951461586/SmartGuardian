@@ -3,7 +3,7 @@
  * Enhanced message center with filtering
  * 
  * @optimized Using MessageStore for state management
- * @migrated 2026-04-18 - P1 Migration
+ * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
 import router from '@ohos.router';
@@ -11,23 +11,33 @@ import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
+import { ErrorMessages } from '../../constants/ErrorMessages';
+import { MessageQueryParams } from '../../models/common';
+// Common Components
+import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, TabItem, HeaderTheme, MessageListItem } from '../../components/common';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
+@Entry
 @Component
 export struct ParentMessagesPage {
-  // ✅ 使用 Store 管理消息数据（缓存优先）
+  // 使用 Store 管理消息数据（缓存优先）
   @StorageLink('message_list') messages: MessageRecord[] = [];
   @StorageLink('unread_count') unreadCount: number = 0;
   
   // 本地 UI 状态
   @State isLoading: boolean = false;
+  @State currentTab: number = 0;
   @State selectedTab: MessageTab = 'ALL';
   @State statistics: MessageStatistics | null = null;
   
   // 缓存时间戳
   private lastLoadTime: number = 0;
   private readonly CACHE_DURATION: number = 2 * 60 * 1000; // 2分钟缓存
+
+  // Tab配置
+  private tabs: string[] = ['全部', '系统', '考勤', '作业', '订单'];
+  private tabTypes: MessageTab[] = ['ALL', 'SYSTEM', 'ATTENDANCE', 'HOMEWORK', 'ORDER'];
 
   aboutToAppear() {
     this.loadMessagesWithCache();
@@ -36,22 +46,17 @@ export struct ParentMessagesPage {
 
   /**
    * 带缓存的消息加载策略
-   * 1. 优先使用缓存数据（Store）
-   * 2. 判断缓存是否过期
-   * 3. 过期则后台刷新
    */
   async loadMessagesWithCache() {
-    // 优先显示缓存数据
     const cachedMessages = MessageStore.getMessageList();
     const cachedUnread = MessageStore.getUnreadCount();
     
     if (cachedMessages.length > 0) {
       this.messages = cachedMessages;
       this.unreadCount = cachedUnread;
-      LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items, unread: ${cachedUnread}`);
+      LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items`);
     }
     
-    // 判断是否需要刷新
     const now = Date.now();
     const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
     
@@ -63,25 +68,32 @@ export struct ParentMessagesPage {
   async loadMessages() {
     this.isLoading = true;
     try {
-      const resp = await MessageService.getMessages({ pageNum: 1, pageSize: 50 });
+      // 使用统一的查询参数类型
+      const params: MessageQueryParams = {
+        pageNum: 1,
+        pageSize: 50
+      };
+
+      // 根据Tab设置消息类型过滤
+      if (this.selectedTab !== 'ALL') {
+        params.msgType = this.selectedTab;
+      }
+
+      const resp = await MessageService.getMessages(params);
       if (resp.code === 0 && resp.data) {
         const messageList = resp.data.list || [];
         
-        // 更新 Store 缓存
         MessageStore.setMessageList(messageList);
         
-        // 计算未读数量并更新 Store
-        const unread = messageList.filter(m => !m.readStatus).length;
+        const unread = messageList.filter((m: MessageRecord) => !m.readStatus).length;
         MessageStore.setUnreadCount(unread);
         
-        // 同步到本地状态
         this.messages = messageList;
         this.unreadCount = unread;
         this.lastLoadTime = Date.now();
         
-        LogUtil.info('ParentMessagesPage', `Loaded and cached ${messageList.length} messages, unread: ${unread}`);
+        LogUtil.info('ParentMessagesPage', `Loaded ${messageList.length} messages, unread: ${unread}`);
       } else {
-        // 使用 Mock 数据作为降级
         this.messages = this.getMockMessages();
         MessageStore.setMessageList(this.messages);
       }
@@ -110,14 +122,9 @@ export struct ParentMessagesPage {
   async markAsRead(messageId: number) {
     try {
       await MessageService.markAsRead(messageId);
-      
-      // 更新 Store
       MessageStore.markMessageAsRead(messageId);
-      
-      // 同步本地状态
       this.loadMessagesWithCache();
       this.loadStatistics();
-      
       LogUtil.info('ParentMessagesPage', `Marked message ${messageId} as read`);
     } catch (error) {
       LogUtil.error('ParentMessagesPage', `Mark as read failed: ${JSON.stringify(error)}`);
@@ -127,55 +134,37 @@ export struct ParentMessagesPage {
   async markAllAsRead() {
     try {
       await MessageService.markAllAsRead();
-      
-      // 清空 Store 未读数
       const messages = MessageStore.getMessageList();
-      messages.forEach(m => m.readStatus = true);
+      messages.forEach((m: MessageRecord) => m.readStatus = true);
       MessageStore.setMessageList(messages);
       MessageStore.setUnreadCount(0);
-      
-      // 同步本地状态
       this.loadMessagesWithCache();
       this.loadStatistics();
-      
       LogUtil.info('ParentMessagesPage', 'Marked all messages as read');
     } catch (error) {
       LogUtil.error('ParentMessagesPage', `Mark all as read failed: ${JSON.stringify(error)}`);
     }
   }
 
-  build() {
-    Column() {
-      this.buildHeader()
-      this.buildTabBar()
-      
-      if (this.isLoading) {
-        this.buildLoading()
-      } else {
-        this.buildMessageList()
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  /**
+   * 处理Tab切换
+   */
+  private handleTabChange(index: number): void {
+    this.currentTab = index;
+    this.selectedTab = this.tabTypes[index];
+    this.loadMessages();
   }
 
-  @Builder
-  buildHeader() {
-    Row() {
-      Image($r('app.media.ic_arrow_left'))
-        .width(24)
-        .height(24)
-        .onClick(() => router.back())
-
-      Text('消息中心')
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .layoutWeight(1)
-        .textAlign(TextAlign.Center)
-
-      Row() {
+  build() {
+    Column() {
+      // 使用通用PageHeader（带返回和操作按钮）
+      PageHeader({
+        title: '消息中心',
+        showBack: true,
+        onBackClick: () => router.back(),
+        theme: HeaderTheme.PRIMARY
+      }) {
+        // 右侧操作按钮
         if (this.unreadCount > 0) {
           Button('全部已读')
             .fontSize(12)
@@ -185,167 +174,59 @@ export struct ParentMessagesPage {
             .onClick(() => this.markAllAsRead())
         }
       }
-      .width(80)
+
+      // 使用通用TabBar
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: $currentTab,
+        onTabChange: (index: number) => this.handleTabChange(index)
+      })
+
+      // 内容区域
+      this.buildContent()
     }
     .width('100%')
-    .padding($r('app.float.page_padding'))
-    .backgroundColor($r('app.color.primary'))
-    .padding({ top: Number($r('app.float.status_bar_height')) + 10 })
+    .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
-  buildTabBar() {
-    Row() {
-      this.buildTabItem('ALL', '全部')
-      this.buildTabItem('SYSTEM', '系统')
-      this.buildTabItem('ATTENDANCE', '考勤')
-      this.buildTabItem('HOMEWORK', '作业')
-      this.buildTabItem('ORDER', '订单')
+  buildContent() {
+    if (this.isLoading) {
+      LoadingState({ 
+        loadingSize: LoadingSize.LARGE,
+        fullscreen: false 
+      })
+    } else if (this.messages.length === 0) {
+      EmptyState({ 
+        type: EmptyType.NO_MESSAGE,
+        actionText: '刷新',
+        onAction: () => { this.loadMessages(); }
+      })
+    } else {
+      this.buildMessageList()
     }
-    .width('100%')
-    .height(50)
-    .backgroundColor(Color.White)
-  }
-
-  @Builder
-  buildTabItem(tab: MessageTab, label: string) {
-    Column() {
-      Text(label)
-        .fontSize($r('app.float.text_primary_size'))
-        .fontWeight(this.selectedTab === tab ? FontWeight.Bold : FontWeight.Normal)
-        .fontColor(this.selectedTab === tab ? $r('app.color.primary') : $r('app.color.text_secondary'))
-
-      if (this.selectedTab === tab) {
-        Divider()
-          .width(40)
-          .height(3)
-          .color($r('app.color.primary'))
-          .margin({ top: 8 })
-      }
-    }
-    .height(50)
-    .justifyContent(FlexAlign.Center)
-    .layoutWeight(1)
-    .onClick(() => {
-      this.selectedTab = tab;
-      this.loadMessages();
-    })
-  }
-
-  @Builder
-  buildLoading() {
-    Column() {
-      LoadingProgress()
-        .width(50)
-        .height(50)
-        .color($r('app.color.primary'))
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
   }
 
   @Builder
   buildMessageList() {
-    if (this.messages.length === 0) {
+    Scroll() {
       Column() {
-        Text('暂无消息')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
-    } else {
-      Scroll() {
-        Column() {
-          ForEach(this.messages, (message: MessageRecord) => {
-            this.buildMessageItem(message)
+        ForEach(this.messages, (message: MessageRecord) => {
+          MessageListItem({
+            message: message,
+            onMarkRead: () => {
+              this.markAsRead(message.id);
+            }
           })
-        }
-        .width('100%')
-        .padding($r('app.float.page_padding'))
+        })
       }
       .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-    }
-  }
-
-  @Builder
-  buildMessageItem(message: MessageRecord) {
-    Row() {
-      Column() {
-        Image(this.getMsgTypeIcon(message.msgType))
-          .width(24)
-          .height(24)
-      }
-      .width(40)
-      .height(40)
-      .backgroundColor(this.getMsgTypeBgColor(message.msgType))
-      .borderRadius(20)
-      .justifyContent(FlexAlign.Center)
-
-      Column() {
-        Row() {
-          Text(this.getMsgTypeText(message.msgType))
-            .fontSize($r('app.float.text_primary_size'))
-            .fontWeight(FontWeight.Medium)
-
-          if (!message.readStatus) {
-            Row().width(8).height(8).backgroundColor('#FF5722').borderRadius(4)
-          }
-        }
-
-        Text(message.title || message.content)
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
-      }
-      .layoutWeight(1)
-      .margin({ left: 12 })
-      .alignItems(HorizontalAlign.Start)
+      .padding($r('app.float.page_padding'))
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(message.readStatus ? Color.White : '#F8F9FA')
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ bottom: 12 })
-    .onClick(() => {
-      if (!message.readStatus) {
-        this.markAsRead(message.id);
-      }
-    })
-  }
-
-  getMsgTypeIcon(msgType: string): Resource {
-    const icons: Record<string, Resource> = {
-      'SYSTEM': $r('app.media.ic_system'),
-      'ATTENDANCE': $r('app.media.ic_attendance'),
-      'HOMEWORK': $r('app.media.ic_homework'),
-      'ORDER': $r('app.media.ic_order')
-    };
-    return icons[msgType] || $r('app.media.ic_message');
-  }
-
-  getMsgTypeText(msgType: string): string {
-    const texts: Record<string, string> = {
-      'SYSTEM': '系统通知',
-      'ATTENDANCE': '考勤通知',
-      'HOMEWORK': '作业通知',
-      'ORDER': '订单通知'
-    };
-    return texts[msgType] || '通知';
-  }
-
-  getMsgTypeBgColor(msgType: string): string {
-    const colors: Record<string, string> = {
-      'SYSTEM': '#E3F2FD',
-      'ATTENDANCE': '#E8F5E9',
-      'HOMEWORK': '#FFF3E0',
-      'ORDER': '#F3E5F5'
-    };
-    return colors[msgType] || '#F5F5F5';
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
   }
 
   getMockMessages(): MessageRecord[] {
