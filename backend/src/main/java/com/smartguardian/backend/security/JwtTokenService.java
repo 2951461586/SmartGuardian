@@ -15,10 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtTokenService {
 
+  private static final int MIN_SECRET_LENGTH = 32;
+
   private final AppSecurityProperties securityProperties;
+  private final SecretKey secretKey;
 
   public JwtTokenService(AppSecurityProperties securityProperties) {
     this.securityProperties = securityProperties;
+    this.secretKey = createSecretKey(securityProperties.getJwtSecret());
   }
 
   public String createToken(CurrentUser currentUser) {
@@ -30,12 +34,12 @@ public class JwtTokenService {
       .claim("roleType", currentUser.roleType())
       .issuedAt(Date.from(now))
       .expiration(Date.from(expiry))
-      .signWith(secretKey())
+      .signWith(secretKey)
       .compact();
   }
 
   public CurrentUser parseToken(String token) {
-    Claims claims = Jwts.parser().verifyWith(secretKey()).build().parseSignedClaims(token).getPayload();
+    Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     return new CurrentUser(
       claims.get("userId", Long.class),
       claims.getSubject(),
@@ -43,11 +47,16 @@ public class JwtTokenService {
     );
   }
 
-  private SecretKey secretKey() {
-    String raw = securityProperties.getJwtSecret();
+  private SecretKey createSecretKey(String raw) {
+    if (raw == null || raw.isBlank() || "${JWT_SECRET}".equals(raw)) {
+      throw new IllegalStateException("JWT secret configuration is invalid");
+    }
     byte[] keyBytes = raw.matches("^[A-Za-z0-9+/=]+$") && raw.length() >= 43
       ? tryDecodeBase64(raw)
       : raw.getBytes(StandardCharsets.UTF_8);
+    if (keyBytes.length < MIN_SECRET_LENGTH) {
+      throw new IllegalStateException("JWT secret configuration is invalid");
+    }
     return Keys.hmacShaKeyFor(keyBytes);
   }
 
