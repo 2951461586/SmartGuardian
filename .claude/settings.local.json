@@ -26,7 +26,8 @@
       "Bash(gh search:*)",
       "Bash(java:*)",
       "Bash(mvn:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(curl:*)"
     ]
   }
 }
