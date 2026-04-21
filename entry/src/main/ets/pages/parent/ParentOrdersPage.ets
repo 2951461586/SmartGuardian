@@ -6,7 +6,6 @@
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
-import router from '@ohos.router';
 import { OrderService } from '../../services/api/service';
 import { Order } from '../../models/service';
 import { OrderStore } from '../../stores/orderStore';
@@ -105,7 +104,7 @@ export struct ParentOrdersPage {
   async handlePayOrder(order: Order) {
     this.payingOrderId = order.id;
     try {
-      router.pushUrl({
+      this.getUIContext().getRouter().pushUrl({
         url: 'pages/parent/ParentPaymentPage',
         params: {
           orderId: order.id,
@@ -122,13 +121,17 @@ export struct ParentOrdersPage {
 
   openOrderDetail(order: Order) {
     OrderStore.setCurrentOrder(order);
-    router.pushUrl({
-      url: 'pages/parent/ParentOrderDetailPage',
-      params: {
-        orderId: order.id,
-        orderNo: order.orderNo
-      }
-    });
+    try {
+      this.getUIContext().getRouter().pushUrl({
+        url: 'pages/parent/ParentOrderDetailPage',
+        params: {
+          orderId: order.id,
+          orderNo: order.orderNo
+        }
+      });
+    } catch (error) {
+      LogUtil.error('ParentOrdersPage', `Open order detail failed: ${String(error)}`);
+    }
   }
 
   build() {

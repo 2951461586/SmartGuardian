@@ -6,7 +6,6 @@
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
-import router from '@ohos.router';
 import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
@@ -173,15 +172,19 @@ export struct ParentMessagesPage {
     if (!message.readStatus) {
       this.markAsRead(message.id);
     }
-    
+
     // 跳转到消息详情页
-    router.pushUrl({
-      url: 'pages/parent/ParentMessageDetailPage',
-      params: {
-        messageId: message.id,
-        message: message
-      }
-    });
+    try {
+      this.getUIContext().getRouter().pushUrl({
+        url: 'pages/parent/ParentMessageDetailPage',
+        params: {
+          messageId: message.id,
+          message: message
+        }
+      });
+    } catch (error) {
+      LogUtil.error('ParentMessagesPage', `Open message detail failed: ${String(error)}`);
+    }
   }
 
   build() {
@@ -190,7 +193,7 @@ export struct ParentMessagesPage {
       PageHeader({
         title: '消息中心',
         showBack: true,
-        onBackClick: () => router.back(),
+        onBackClick: () => this.getUIContext().getRouter().back(),
         theme: HeaderTheme.PRIMARY
       }) {
         // 右侧操作按钮

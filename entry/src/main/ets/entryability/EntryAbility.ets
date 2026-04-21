@@ -8,6 +8,8 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { AppInitializationService } from '../services/AppInitializationService';
 import { LogUtil } from '../utils/LogUtil';
+import { ErrorHandlerUtil } from '../utils/ErrorHandlerUtil';
+import { setRequestUIContext } from '../utils/request';
 
 const DOMAIN = 0x0000;
 
@@ -54,6 +56,15 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     LogUtil.info('EntryAbility onWindowStageCreate');
+
+    try {
+      const mainWindow: window.Window = windowStage.getMainWindowSync();
+      const uiContext = mainWindow.getUIContext();
+      ErrorHandlerUtil.setUIContext(uiContext);
+      setRequestUIContext(uiContext);
+    } catch (error) {
+      LogUtil.error('Failed to initialize ErrorHandler UIContext:', String(error));
+    }
 
     // 统一入口到 Index，由 Index 负责登录态分流
     windowStage.loadContent('pages/Index', (err) => {

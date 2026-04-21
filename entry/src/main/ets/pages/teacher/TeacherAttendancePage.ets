@@ -3,7 +3,6 @@
  * Manage student attendance
  */
 
-import router from '@ohos.router';
 import { AttendanceRecord } from '../../models/attendance';
 import { AttendanceService } from '../../services/api/attendance';
 import { SessionSchedule, SessionService } from '../../services/api/service';
@@ -88,7 +87,7 @@ export struct TeacherAttendancePage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('考勤管理')
           .fontSize(18)
@@ -220,7 +219,7 @@ export struct TeacherAttendancePage {
           .height(28)
           .padding({ left: 12, right: 12 })
           .onClick(() => {
-            router.pushUrl({ 
+            this.getUIContext().getRouter().pushUrl({ 
               url: 'pages/teacher/TeacherScanPage',
               params: { studentId: record.studentId, sessionId: record.sessionId }
             });

@@ -3,7 +3,6 @@
  * Create order with student, service, and date selection
  */
 
-import router from '@ohos.router';
 import { Student } from '../../models/user';
 import { OrderService } from '../../services/api/service';
 import { UserStore } from '../../stores/userStore';
@@ -37,7 +36,7 @@ struct ParentOrderCreatePage {
   @State endDateValue: Date = new Date();
 
   aboutToAppear() {
-    const params = router.getParams() as RouterParams;
+    const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params) {
       this.serviceId = params.serviceId || 0;
       this.serviceName = params.serviceName || '';
@@ -157,7 +156,7 @@ struct ParentOrderCreatePage {
       });
 
       if (resp.code === 0 && resp.data) {
-        router.replaceUrl({
+        this.getUIContext().getRouter().replaceUrl({
           url: 'pages/parent/ParentOrderDetailPage',
           params: {
             orderId: resp.data.id,
@@ -220,7 +219,7 @@ struct ParentOrderCreatePage {
       Image($r('app.media.ic_arrow_left'))
         .width(24)
         .height(24)
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('创建订单')
         .fontSize($r('app.float.page_title_size'))

@@ -3,7 +3,6 @@
  * Payment method selection and payment processing
  */
 
-import router from '@ohos.router';
 import { PaymentCreateRequest, PaymentOrder, PaymentCallbackRequest } from '../../models/payment';
 import { PaymentService } from '../../services/api/payments';
 import { Order } from '../../models/service';
@@ -27,7 +26,7 @@ struct ParentPaymentPage {
   private timer: number = -1;
 
   aboutToAppear() {
-    const params = router.getParams() as RouterParams;
+    const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params) {
       this.orderId = params.orderId || 0;
       this.amount = params.amount || 0;
@@ -97,12 +96,16 @@ struct ParentPaymentPage {
       this.syncLocalOrderStatus();
     }
 
-    router.replaceUrl({
-      url: 'pages/parent/ParentOrderDetailPage',
-      params: {
-        orderId: this.orderId
-      }
-    });
+    try {
+      this.getUIContext().getRouter().replaceUrl({
+        url: 'pages/parent/ParentOrderDetailPage',
+        params: {
+          orderId: this.orderId
+        }
+      });
+    } catch (error) {
+      console.error('ParentPaymentPage navigate to order detail failed:', String(error));
+    }
   }
 
   syncLocalOrderStatus(): void {
@@ -174,7 +177,7 @@ struct ParentPaymentPage {
       Image($r('app.media.ic_arrow_left'))
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('支付订单')
         .fontSize($r('app.float.page_title_size'))

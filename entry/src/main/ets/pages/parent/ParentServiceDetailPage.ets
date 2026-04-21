@@ -3,7 +3,6 @@
  * Service product detail view with booking functionality
  */
 
-import router from '@ohos.router';
 import { ServiceProduct } from '../../models/service';
 import { ServiceProductService } from '../../services/api/service';
 import { UserStore } from '../../stores/userStore';
@@ -21,7 +20,7 @@ struct ParentServiceDetailPage {
   @State selectedTab: number = 0;
 
   aboutToAppear() {
-    const params = router.getParams() as RouterParams;
+    const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params && params.serviceId) {
       this.serviceId = params.serviceId;
       this.loadServiceDetail();
@@ -46,15 +45,19 @@ struct ParentServiceDetailPage {
     if (!this.serviceDetail) {
       return;
     }
-    
-    router.pushUrl({
-      url: 'pages/parent/ParentOrderCreatePage',
-      params: {
-        serviceId: this.serviceDetail.id,
-        serviceName: this.serviceDetail.serviceName,
-        price: this.serviceDetail.price
-      }
-    });
+
+    try {
+      this.getUIContext().getRouter().pushUrl({
+        url: 'pages/parent/ParentOrderCreatePage',
+        params: {
+          serviceId: this.serviceDetail.id,
+          serviceName: this.serviceDetail.serviceName,
+          price: this.serviceDetail.price
+        }
+      });
+    } catch (error) {
+      console.error('ParentServiceDetailPage book navigation failed:', String(error));
+    }
   }
 
   build() {
@@ -100,7 +103,7 @@ struct ParentServiceDetailPage {
       Image($r('app.media.ic_arrow_left'))
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('服务详情')
         .fontSize($r('app.float.page_title_size'))

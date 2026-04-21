@@ -26,6 +26,9 @@
           "abilities": ["EntryAbility"],
           "when": "inuse"
         }
+      },
+      {
+        "name": "ohos.permission.INTERNET"
       }
     ],
     "description": "$string:module_desc",

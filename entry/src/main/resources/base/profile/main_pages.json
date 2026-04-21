@@ -15,11 +15,20 @@
     "pages/parent/ParentLeavePage",
     "pages/parent/ParentAlertsPage",
     "pages/parent/ParentRefundPage",
+    "pages/parent/ParentMessageDetailPage",
+    "pages/parent/ParentProfileEditPage",
+    "pages/parent/ParentChildrenPage",
+    "pages/parent/ParentSettingsPage",
+    "pages/parent/ParentHelpPage",
+    "pages/parent/ParentAboutPage",
     "pages/teacher/TeacherSchedulePage",
     "pages/teacher/TeacherScanPage",
     "pages/teacher/TeacherMessagesPage",
+    "pages/teacher/TeacherStudentDetailPage",
     "pages/admin/AdminStudentsPage",
     "pages/admin/AdminMessagesPage",
+    "pages/admin/AdminStudentEditPage",
+    "pages/admin/AdminStudentDetailPage",
     "pages/common/QRCodeScanPage"
   ]
 }

@@ -3,7 +3,6 @@
  * 关于我们页面
  */
 
-import router from '@ohos.router';
 
 @Entry
 @Component
@@ -18,7 +17,7 @@ struct ParentAboutPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('关于我们')
           .fontSize($r('app.float.page_title_size'))
@@ -35,7 +34,7 @@ struct ParentAboutPage {
 
       Column() {
         // Logo and name
-        Image($r('app.media.app_icon'))
+        Image($r('app.media.ic_logo'))
           .width(100)
           .height(100)
           .margin({ top: 60 })

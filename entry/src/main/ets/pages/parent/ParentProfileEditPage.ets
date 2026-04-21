@@ -3,7 +3,6 @@
  * 个人信息编辑页面
  */
 
-import router from '@ohos.router';
 import { UserStore } from '../../stores/userStore';
 import { AuthService } from '../../services/api/auth';
 
@@ -45,7 +44,7 @@ struct ParentProfileEditPage {
         userInfo.avatar = this.avatar;
         UserStore.setUserInfo(userInfo);
       }
-      router.back();
+      this.getUIContext().getRouter().back();
     } catch (error) {
       console.error('Save profile failed:', error);
     } finally {
@@ -61,7 +60,7 @@ struct ParentProfileEditPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('编辑资料')
           .fontSize($r('app.float.page_title_size'))

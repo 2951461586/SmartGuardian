@@ -3,7 +3,6 @@
  * View notifications and messages
  */
 
-import router from '@ohos.router';
 import { MessageRecord } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
@@ -46,22 +45,23 @@ export struct TeacherMessagesPage {
   async markAsRead(messageId: number) {
     try {
       await MessageService.markAsRead(messageId);
-      const index = this.messages.findIndex((m: MessageRecord) => m.id === messageId);
-      if (index > -1) {
-        // Update message read status by creating new array
-        const msg = this.messages[index];
+      this.messages = this.messages.map((message: MessageRecord) => {
+        if (message.id !== messageId) {
+          return message;
+        }
+
         const updatedMessage: MessageRecord = {
-          id: msg.id,
-          userId: msg.userId,
-          title: msg.title,
-          content: msg.content,
-          msgType: msg.msgType,
+          id: message.id,
+          userId: message.userId,
+          title: message.title,
+          content: message.content,
+          msgType: message.msgType,
           readStatus: true,
-          createdAt: msg.createdAt,
-          updatedAt: msg.updatedAt
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt
         };
-        this.messages[index] = updatedMessage;
-      }
+        return updatedMessage;
+      });
     } catch (error) {
       console.error('Failed to mark as read:', error);
     }
@@ -78,7 +78,7 @@ export struct TeacherMessagesPage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('消息通知')
           .fontSize(18)

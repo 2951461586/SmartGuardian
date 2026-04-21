@@ -4,7 +4,6 @@
  * Features: Privacy agreement, password encryption, secure transmission
  */
 
-import { router } from '@kit.ArkUI';
 import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
 import { UserRole } from '../models/common';
@@ -95,7 +94,7 @@ struct LoginPage {
         LogUtil.info('LoginPage', `Login successful for role: ${resp.data.userInfo.roleType}`);
         
         // Navigate to main page
-        router.replaceUrl({ url: 'pages/MainPage' });
+        this.getUIContext().getRouter().replaceUrl({ url: 'pages/MainPage' });
       } else {
         this.errorMessage = resp.message || '登录失败，请检查账号密码';
         LogUtil.warn('LoginPage', `Login failed: ${resp.message}`);

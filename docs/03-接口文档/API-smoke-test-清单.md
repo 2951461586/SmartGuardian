@@ -225,10 +225,37 @@
 
 ---
 
-## 5. 建议执行顺序
+## 5. 当前结论（2026-04-21）
+
+### 5.1 本轮 Mock 验证结果
+
+- 当前 `entry/src/main/ets/config/api.config.ts` 仍默认使用 `DEV_MOCK`，`TEST_BASE_URL` 为空，当前轮次仅能完成 Mock 联通验证。
+- `entry/src/main/ets/services/mock/mockService.ts` 已覆盖 Auth、Students、Service Products、Orders、Sessions、Attendance/Leave、Homework、Messages、Timeline、Cards、Alerts、Payments、Refunds、Reports 等主模块，主干接口已具备 `code=0` 响应能力。
+- 家长端主链路依赖的首页卡片、服务详情、下单、订单详情、支付、消息、作业、时间线等接口，均可在 Mock 层命中。
+- 教师端主链路依赖的今日班次、考勤列表、扫码签到、作业反馈、消息入口等接口，均已有 Mock 支撑。
+- 管理端主链路依赖的学生管理、订单审核、报表查看、消息入口等接口，均已有 Mock 支撑。
+
+### 5.2 本轮发现的代码/文档差异
+
+1. `docs/03-接口文档/接口设计文档-API清单.md` 仍是交付版精简清单，未完整反映当前代码中已使用的扩展接口，例如：
+   - `POST /api/v1/auth/refresh`
+   - `DELETE /api/v1/students/{id}`
+   - `GET /api/v1/sessions/today`
+   - `GET/POST /api/v1/attendance/leave`、`POST /api/v1/attendance/leave/{id}/cancel`
+   - `GET /api/v1/attendance/statistics`
+   - `POST /api/v1/messages/batch-read`、`POST /api/v1/messages/read-all`
+   - `DELETE /api/v1/messages/{messageId}`
+   - `GET /api/v1/payments/{paymentNo}`、`POST /api/v1/payments/{paymentNo}/refund`
+   - `GET /api/v1/reports/attendance/daily`、`/attendance/students`、`/finance/daily`、`/finance/products`
+2. `entry/src/main/ets/services/api/attendance.ts` 目前仅暴露签到、签退、异常考勤与请假提交；Mock 已支持请假列表、取消请假、统计接口，但旧服务层未完全暴露，后续建议统一到单一 API 服务出口。
+3. `entry/src/main/ets/services/api/service.ts` 中 `getTodaySessions()` 实际仍调用 `/api/v1/sessions` + `sessionDate=today`，而常量层与 Mock 已提供 `/api/v1/sessions/today`；当前可用，但存在路径语义不统一问题。
+4. `docs/08-优化改造/功能收口清单-SmartGuardian.md` 中“核心功能 100% 完成”的表述应视为 Mock 阶段完成，不应等同于真实后端联调完成。
+
+## 6. 建议执行顺序
 
 1. 先在 `DEV_MOCK` 下逐模块过一遍页面主流程
 2. 若出现接口错误，优先看是否仍落入 `Mock route not found`
-3. Mock 验证通过后，再配置 `TEST_REAL` 和 `TEST_BASE_URL`
-4. 按本清单最少覆盖：Auth、Students、Attendance、Messages、Refunds、Reports
-5. 最后做一次 `entry` 模块构建验证
+3. 补齐接口清单文档与当前代码实际调用之间的差异
+4. Mock 验证通过后，再配置 `TEST_REAL` 和 `TEST_BASE_URL`
+5. 按本清单最少覆盖：Auth、Students、Attendance、Messages、Refunds、Reports
+6. 最后做一次 `entry` 模块构建验证

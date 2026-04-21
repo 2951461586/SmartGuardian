@@ -3,7 +3,6 @@
  * 显示消息详情
  */
 
-import router from '@ohos.router';
 import { MessageRecord } from '../../models/message';
 import { DateUtils } from '../../utils/dateUtils';
 
@@ -13,7 +12,7 @@ struct ParentMessageDetailPage {
   @State message: MessageRecord | null = null;
 
   aboutToAppear() {
-    const params = router.getParams() as Record<string, Object>;
+    const params = this.getUIContext().getRouter().getParams() as Record<string, Object>;
     if (params && params['message']) {
       this.message = params['message'] as MessageRecord;
     }
@@ -27,7 +26,7 @@ struct ParentMessageDetailPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('消息详情')
           .fontSize($r('app.float.page_title_size'))

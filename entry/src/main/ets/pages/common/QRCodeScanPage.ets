@@ -3,7 +3,6 @@
  * Scan QR code for sign in/sign out
  */
 
-import { router } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import { scanCore, scanBarcode } from '@kit.ScanKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
@@ -12,6 +11,7 @@ import { PermissionUtil } from '../../utils/PermissionUtil';
 import { LogUtil } from '../../utils/LogUtil';
 import { AttendanceService } from '../../services/api/attendance';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { ErrorMessages } from '../../constants/ErrorMessages';
 
 class ScanData {
   type: string = '';
@@ -29,14 +29,13 @@ struct QRCodeScanPage {
   @State showPermissionDialog: boolean = false;
   @State errorMessage: string = '';
 
-  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
-
   async aboutToAppear(): Promise<void> {
     await this.checkAndRequestPermission();
   }
 
   async checkAndRequestPermission(): Promise<void> {
-    const hasPermission: boolean = await PermissionUtil.checkCameraPermission(this.context);
+    const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    const hasPermission: boolean = await PermissionUtil.checkCameraPermission(context);
 
     if (hasPermission) {
       this.hasCameraPermission = true;
@@ -47,7 +46,8 @@ struct QRCodeScanPage {
   }
 
   async requestPermission(): Promise<void> {
-    const granted: boolean = await PermissionUtil.requestCameraPermission(this.context);
+    const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    const granted: boolean = await PermissionUtil.requestCameraPermission(context);
 
     if (granted) {
       this.hasCameraPermission = true;
@@ -76,7 +76,7 @@ struct QRCodeScanPage {
         enableAlbum: true
       };
 
-      const hostContext: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const hostContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
       const result: scanBarcode.ScanResult = await scanBarcode.startScanForResult(hostContext, options);
       this.isScanning = false;
 
@@ -116,7 +116,7 @@ struct QRCodeScanPage {
       if (scanData.type === 'ATTENDANCE' && scanData.studentId > 0 && scanData.sessionId > 0) {
         await this.handleAttendance(scanData);
       } else if (scanData.type === 'STUDENT' && scanData.studentId > 0) {
-        router.pushUrl({
+        this.getUIContext().getRouter().pushUrl({
           url: 'pages/teacher/TeacherStudentDetailPage',
           params: { studentId: scanData.studentId }
         });
@@ -144,7 +144,7 @@ struct QRCodeScanPage {
         if (resp.code === 0) {
           ErrorHandlerUtil.showSuccessToast($r('app.string.attendance_sign_out_success').toString());
           LogUtil.info('QRCodeScanPage', 'Sign out successful');
-          router.back();
+          this.getUIContext().getRouter().back();
         } else {
           this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_out_failed').toString();
           ErrorHandlerUtil.showErrorToast(this.errorMessage);
@@ -160,7 +160,7 @@ struct QRCodeScanPage {
         if (resp.code === 0) {
           ErrorHandlerUtil.showSuccessToast($r('app.string.attendance_sign_in_success').toString());
           LogUtil.info('QRCodeScanPage', 'Sign in successful');
-          router.back();
+          this.getUIContext().getRouter().back();
         } else {
           this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_in_failed').toString();
           ErrorHandlerUtil.showErrorToast(this.errorMessage);
@@ -209,7 +209,7 @@ struct QRCodeScanPage {
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
         .fillColor($r('app.color.scan_text_light'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text($r('app.string.scan_sign_in_title'))
         .fontSize($r('app.float.page_title_size'))

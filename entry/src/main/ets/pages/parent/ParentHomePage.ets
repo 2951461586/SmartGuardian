@@ -5,7 +5,6 @@
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
-import { router } from '@kit.ArkUI';
 import { UserStore } from '../../stores/userStore';
 import { StudentStore } from '../../stores/studentStore';
 import { CardService } from '../../services/api/card';
@@ -70,7 +69,7 @@ export struct ParentHomePage {
         greeting: '查看孩子今天的托管情况',
         theme: HeaderTheme.PRIMARY,
         onRightIconClick: () => {
-          router.pushUrl({ url: 'pages/parent/ParentMessagesPage' });
+          AppStorage.setOrCreate('main_current_index', 2);
         }
       })
 
@@ -115,7 +114,7 @@ export struct ParentHomePage {
       showArrow: true,
       clickable: true,
       onCardClick: () => {
-        router.pushUrl({ url: 'pages/parent/ParentAttendancePage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
       },
       content: this.buildTodayStatusCardContent
     })
@@ -181,7 +180,7 @@ export struct ParentHomePage {
         bgColor: '#E3F2FD',
         iconColor: '#2196F3',
         onButtonClick: () => {
-          router.pushUrl({ url: 'pages/parent/ParentLeavePage' });
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentLeavePage' });
         }
       })
 
@@ -191,7 +190,7 @@ export struct ParentHomePage {
         bgColor: '#E8F5E9',
         iconColor: '#4CAF50',
         onButtonClick: () => {
-          router.pushUrl({ url: 'pages/parent/ParentQRCodePage' });
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentQRCodePage' });
         }
       })
 
@@ -201,7 +200,7 @@ export struct ParentHomePage {
         bgColor: '#FFF3E0',
         iconColor: '#FF9800',
         onButtonClick: () => {
-          router.pushUrl({ url: 'pages/parent/ParentMessagesPage' });
+          AppStorage.setOrCreate('main_current_index', 2);
         }
       })
 
@@ -211,7 +210,7 @@ export struct ParentHomePage {
         bgColor: '#F3E5F5',
         iconColor: '#9C27B0',
         onButtonClick: () => {
-          router.pushUrl({ url: 'pages/parent/ParentSessionsPage' });
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentSessionsPage' });
         }
       })
     }
@@ -226,7 +225,7 @@ export struct ParentHomePage {
       title: '最近作业',
       actionText: '查看全部',
       onAction: () => {
-        router.pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
       },
       content: this.buildRecentHomeworkContent
     })

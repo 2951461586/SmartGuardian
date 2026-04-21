@@ -3,7 +3,6 @@
  * Alert and warning center for parents
  */
 
-import router from '@ohos.router';
 import { AlertRecord, AlertStatistics } from '../../models/alert';
 import { AlertService } from '../../services/api/alert';
 
@@ -108,7 +107,7 @@ struct ParentAlertsPage {
       Image($r('app.media.ic_arrow_left'))
         .width(24)
         .height(24)
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('异常预警')
         .fontSize($r('app.float.page_title_size'))

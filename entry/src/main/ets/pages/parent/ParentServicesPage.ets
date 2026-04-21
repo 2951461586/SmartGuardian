@@ -3,7 +3,6 @@
  * 家长浏览托管服务产品并发起预约
  */
 
-import { router } from '@kit.ArkUI';
 import { ServiceProductService } from '../../services/api/service';
 import { ServiceProduct } from '../../models/service';
 
@@ -234,7 +233,7 @@ export struct ParentServicesPage {
           .borderRadius($r('app.float.button_radius'))
           .layoutWeight(1)
           .onClick(() => {
-            router.pushUrl({
+            this.getUIContext().getRouter().pushUrl({
               url: 'pages/parent/ParentOrderCreatePage',
               params: { serviceId: service.id }
             });
@@ -248,7 +247,7 @@ export struct ParentServicesPage {
           .margin({ left: 12 })
           .layoutWeight(1)
           .onClick(() => {
-            router.pushUrl({
+            this.getUIContext().getRouter().pushUrl({
               url: 'pages/parent/ParentServiceDetailPage',
               params: { serviceId: service.id }
             });

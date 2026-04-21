@@ -3,7 +3,6 @@
  * Send and manage system messages
  */
 
-import router from '@ohos.router';
 import { MessageRecord } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
@@ -50,7 +49,7 @@ export struct AdminMessagesPage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('消息管理')
           .fontSize(18)

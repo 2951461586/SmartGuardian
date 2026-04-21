@@ -3,7 +3,7 @@
  * Centralized error handling for the application
  */
 
-import { promptAction } from '@kit.ArkUI';
+import { UIContext } from '@kit.ArkUI';
 import { LogUtil } from './LogUtil';
 
 export interface AppError {
@@ -17,6 +17,11 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
+interface ToastOptions {
+  message: string;
+  duration: number;
+}
+
 export enum ErrorType {
   NETWORK_ERROR = 'NETWORK_ERROR',
   AUTH_ERROR = 'AUTH_ERROR',
@@ -27,6 +32,7 @@ export enum ErrorType {
 
 export class ErrorHandlerUtil {
   private static readonly TAG: string = 'ErrorHandler';
+  private static uiContext: UIContext | null = null;
 
   /**
    * Handle API response error
@@ -81,15 +87,41 @@ export class ErrorHandlerUtil {
     };
   }
 
+  static setUIContext(uiContext: UIContext): void {
+    ErrorHandlerUtil.uiContext = uiContext;
+  }
+
+  static replaceUrl(url: string): void {
+    try {
+      const uiContext = ErrorHandlerUtil.uiContext;
+      if (!uiContext) {
+        LogUtil.error(ErrorHandlerUtil.TAG, `Replace url skipped: ${url}`);
+        return;
+      }
+
+      uiContext.getRouter().replaceUrl({ url: url });
+    } catch (error) {
+      LogUtil.error(ErrorHandlerUtil.TAG, `Replace url failed: ${JSON.stringify(error)}`);
+    }
+  }
+
   /**
    * Show error toast
    */
   static showErrorToast(message: string, duration: number = 2000): void {
     try {
-      promptAction.showToast({
+      const uiContext = ErrorHandlerUtil.uiContext;
+      const toastOptions: ToastOptions = {
         message: message,
         duration: duration
-      });
+      };
+
+      if (uiContext) {
+        uiContext.getPromptAction().showToast(toastOptions);
+        return;
+      }
+
+      LogUtil.error(ErrorHandlerUtil.TAG, `Show toast skipped: ${message}`);
     } catch (error) {
       LogUtil.error(ErrorHandlerUtil.TAG, `Show toast failed: ${JSON.stringify(error)}`);
     }
@@ -100,10 +132,18 @@ export class ErrorHandlerUtil {
    */
   static showSuccessToast(message: string): void {
     try {
-      promptAction.showToast({
+      const uiContext = ErrorHandlerUtil.uiContext;
+      const toastOptions: ToastOptions = {
         message: message,
         duration: 1500
-      });
+      };
+
+      if (uiContext) {
+        uiContext.getPromptAction().showToast(toastOptions);
+        return;
+      }
+
+      LogUtil.error(ErrorHandlerUtil.TAG, `Show toast skipped: ${message}`);
     } catch (error) {
       LogUtil.error(ErrorHandlerUtil.TAG, `Show toast failed: ${JSON.stringify(error)}`);
     }

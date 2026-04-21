@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(E:/hm-demo/SmartGuardian/Entry/hvigorw assembleHap:*)",
+      "Bash(/d/IDE/DevEco Studio/tools/ohpm/bin/ohpm:*)",
+      "Bash(/d/IDE/DevEco Studio/tools/node/node.exe:*)",
+      "Bash(/d/IDE/DevEco Studio/tools/hvigor/bin/hvigorw.bat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(./hvigorw assembleHap --analyze=strict)",
+      "Bash(command -v hvigor)",
+      "Bash(command -v hvigorw)",
+      "Bash(command -v hpm)",
+      "Bash(hvigorw assembleHap --analyze=strict)",
+      "Bash(command -v node)",
+      "Bash(NODE_HOME=\"/d/IDE/DevEco Studio/tools/node\" hvigorw assembleHap --analyze=strict)",
+      "Bash(\"/d/IDE/DevEco Studio/tools/node/node\" \"/d/IDE/DevEco Studio/tools/hvigor/bin/hvigorw.js\" assembleHap --analyze=strict)",
+      "Bash(/d/IDE/DevEco Studio/tools/node/node:*)",
+      "WebSearch",
+      "Bash(./hvigorw assembleHap:*)",
+      "Bash(hvigorw assembleHap:*)",
+      "Bash(env:*)",
+      "Bash(python:*)",
+      "Bash(sshpass:*)",
+      "Bash(gh search:*)",
+      "Bash(java:*)",
+      "Bash(mvn:*)",
+      "Bash(git:*)"
+    ]
+  }
+}

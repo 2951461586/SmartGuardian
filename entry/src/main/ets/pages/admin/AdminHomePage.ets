@@ -1,13 +1,23 @@
 /**
  * SmartGuardian - Admin Home Page
- * Admin's main dashboard
+ * Admin dashboard with unified common components
  */
 
-import router from '@ohos.router';
 import { UserStore } from '../../stores/userStore';
-import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
-import { LoadingState, LoadingSize, Card } from '../../components/common';
+import {
+  GreetingHeader,
+  HeaderTheme,
+  LoadingState,
+  LoadingSize,
+  Card,
+  ActionButton,
+  StatCard,
+  EmptyState,
+  EmptyType
+} from '../../components/common';
+import { ErrorMessages } from '../../constants/ErrorMessages';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 
 interface DashboardStats {
   totalStudents: number;
@@ -16,16 +26,29 @@ interface DashboardStats {
   pendingOrders: number;
 }
 
+interface ActivityItem {
+  title: string;
+  content: string;
+  time: string;
+}
+
 @Component
 export struct AdminHomePage {
   @State userName: string = '';
   @State isLoading: boolean = true;
+  @State errorMessage: string = '';
   @State stats: DashboardStats = {
     totalStudents: 0,
     activeStudents: 0,
     todayAttendance: 0,
     pendingOrders: 0
   };
+
+  private readonly recentActivities: ActivityItem[] = [
+    { title: '新学生注册', content: '张三 已完成注册', time: '10分钟前' },
+    { title: '订单支付', content: '订单 #1234 支付成功', time: '30分钟前' },
+    { title: '请假申请', content: '李四 申请请假', time: '1小时前' }
+  ];
 
   aboutToAppear() {
     const userInfo = UserStore.getUserInfo();
@@ -37,17 +60,25 @@ export struct AdminHomePage {
 
   async loadDashboard() {
     this.isLoading = true;
+    this.errorMessage = '';
     try {
       const studentsResp = await StudentService.getStudents({ pageNum: 1, pageSize: 1 });
-      if (studentsResp.code === 0 && studentsResp.data) {
-        this.stats.totalStudents = studentsResp.data.total;
-      }
-      
-      this.stats.activeStudents = Math.floor(this.stats.totalStudents * 0.9);
-      this.stats.todayAttendance = Math.floor(this.stats.totalStudents * 0.85);
-      this.stats.pendingOrders = 5;
+      const totalStudents = studentsResp.code === 0 && studentsResp.data ? studentsResp.data.total : 0;
+
+      this.stats = {
+        totalStudents,
+        activeStudents: Math.floor(totalStudents * 0.9),
+        todayAttendance: Math.floor(totalStudents * 0.85),
+        pendingOrders: 5
+      };
     } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      this.stats = {
+        totalStudents: 0,
+        activeStudents: 0,
+        todayAttendance: 0,
+        pendingOrders: 0
+      };
+      this.errorMessage = ErrorMessages.DATA_LOAD_FAILED;
     } finally {
       this.isLoading = false;
     }
@@ -55,186 +86,204 @@ export struct AdminHomePage {
 
   build() {
     Column() {
-      Row() {
-        Column() {
-          Text(`管理员: ${this.userName}`)
-            .fontSize(20)
-            .fontColor(Color.White)
-            .fontWeight(FontWeight.Bold)
-          
-          Text('系统管理控制台')
-            .fontSize(14)
-            .fontColor('#CCFFFFFF')
-            .margin({ top: 4 })
+      GreetingHeader({
+        userName: this.userName,
+        greeting: '查看机构运营数据与待办事项',
+        theme: HeaderTheme.PRIMARY,
+        onRightIconClick: () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
         }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Badge({
-          count: this.stats.pendingOrders,
-          position: BadgePosition.RightTop,
-          style: { badgeSize: 16, badgeColor: '#FF4D4F' }
-        }) {
-          Button({ type: ButtonType.Circle }) {
-            Text('🔔')
-              .fontSize(20)
-          }
-          .width(40)
-          .height(40)
-          .backgroundColor('#1AFFFFFF')
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/admin/AdminMessagesPage' });
-          })
-        }
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 20, bottom: 20 })
-      .linearGradient({
-        angle: 135,
-        colors: [['#722ED1', 0], ['#531DAB', 1]]
       })
 
       if (this.isLoading) {
-        Column() {
-          LoadingState({ loadingSize: LoadingSize.LARGE })
-        }
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
+        LoadingState({ loadingSize: LoadingSize.DEFAULT })
       } else {
-        Row() {
-          this.QuickAction('学生管理', '👥', '#722ED1', () => {
-            router.pushUrl({ url: 'pages/admin/AdminStudentsPage' });
-          })
-          
-          this.QuickAction('消息推送', '📢', '#1890FF', () => {
-            router.pushUrl({ url: 'pages/admin/AdminMessagesPage' });
-          })
-          
-          this.QuickAction('数据统计', '📊', '#52C41A', () => {
-          })
-          
-          this.QuickAction('系统设置', '⚙️', '#FA8C16', () => {
-          })
-        }
-        .width('100%')
-        .padding(16)
-        .justifyContent(FlexAlign.SpaceEvenly)
-        .backgroundColor(Color.White)
-
-        Divider().color('#E5E5E5')
-
-        Column() {
-          Row() {
-            this.StatCard('学生总数', this.stats.totalStudents, '#722ED1')
-            this.StatCard('活跃学生', this.stats.activeStudents, '#52C41A')
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.SpaceEvenly)
-
-          Row() {
-            this.StatCard('今日出勤', this.stats.todayAttendance, '#1890FF')
-            this.StatCard('待处理订单', this.stats.pendingOrders, '#FA8C16')
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.SpaceEvenly)
-          .margin({ top: 8 })
-        }
-        .width('100%')
-        .padding(16)
-
-        Card({
-          title: '最近活动',
-          actionText: '查看全部',
-          onAction: () => {
-          },
-          content: () => {
-            this.ActivitiesContent()
-          }
-        })
+        this.buildContent()
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F5F5')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
-  QuickAction(title: string, icon: string, color: string, action: () => void) {
-    Column() {
-      Text(icon)
-        .fontSize(28)
-      
-      Text(title)
-        .fontSize(12)
-        .fontColor('#666666')
-        .margin({ top: 4 })
-    }
-    .width(70)
-    .padding(12)
-    .backgroundColor(Color.White)
-    .borderRadius(8)
-    .shadow({
-      radius: 4,
-      color: '#1A000000',
-      offsetX: 0,
-      offsetY: 2
-    })
-    .onClick(action)
-  }
-
-  @Builder
-  StatCard(title: string, value: number, color: string) {
-    Column() {
-      Text(String(value))
-        .fontSize(28)
-        .fontColor(color)
-        .fontWeight(FontWeight.Bold)
-      
-      Text(title)
-        .fontSize(12)
-        .fontColor('#999999')
-        .margin({ top: 4 })
-    }
-    .width('45%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(8)
-  }
-
-  @Builder
-  ActivitiesContent() {
-    Column() {
-      this.ActivityItem('新学生注册', '张三 已完成注册', '10分钟前')
-      Divider().color('#E5E5E5')
-      this.ActivityItem('订单支付', '订单 #1234 支付成功', '30分钟前')
-      Divider().color('#E5E5E5')
-      this.ActivityItem('请假申请', '李四 申请请假', '1小时前')
-    }
-    .width('100%')
-  }
-
-  @Builder
-  ActivityItem(title: string, content: string, time: string) {
-    Row() {
+  buildContent() {
+    Scroll() {
       Column() {
-        Text(title)
-          .fontSize(14)
-          .fontColor('#333333')
-          .fontWeight(FontWeight.Medium)
-        
-        Text(content)
-          .fontSize(12)
-          .fontColor('#999999')
-          .margin({ top: 2 })
+        this.buildQuickActions()
+        this.buildStatsSection()
+        this.buildActivityCard()
       }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-
-      Text(time)
-        .fontSize(12)
-        .fontColor('#CCCCCC')
+      .width('100%')
+      .padding($r('app.float.page_padding'))
     }
     .width('100%')
-    .padding({ top: 12, bottom: 12 })
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  buildQuickActions() {
+    Row() {
+      ActionButton({
+        label: '学生管理',
+        icon: $r('app.media.ic_user'),
+        bgColor: '#F3E5F5',
+        iconColor: '#8E24AA',
+        onButtonClick: () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
+        }
+      })
+
+      ActionButton({
+        label: '消息管理',
+        icon: $r('app.media.ic_message'),
+        bgColor: '#E3F2FD',
+        iconColor: '#2196F3',
+        onButtonClick: () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
+        }
+      })
+
+      ActionButton({
+        label: '订单审核',
+        icon: $r('app.media.ic_order'),
+        bgColor: '#FFF3E0',
+        iconColor: '#FB8C00',
+        onButtonClick: () => {
+          AppStorage.setOrCreate('main_current_index', 1);
+        }
+      })
+
+      ActionButton({
+        label: '数据统计',
+        icon: $r('app.media.ic_report'),
+        bgColor: '#E8F5E9',
+        iconColor: '#43A047',
+        onButtonClick: () => {
+          AppStorage.setOrCreate('main_current_index', 2);
+        }
+      })
+    }
+    .width('100%')
+    .justifyContent(FlexAlign.SpaceBetween)
+    .margin({ bottom: $r('app.float.card_margin') })
+  }
+
+  @Builder
+  buildStatsSection() {
+    Card({
+      title: '运营概览',
+      subtitle: this.errorMessage ? this.errorMessage : '今日关键指标一览',
+      content: this.buildStatsContent
+    })
+  }
+
+  @Builder
+  buildStatsContent() {
+    Column() {
+      Row() {
+        StatCard({
+          value: this.stats.totalStudents,
+          label: '学生总数',
+          icon: $r('app.media.ic_user'),
+          iconColor: '#8E24AA'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.stats.activeStudents,
+          label: '活跃学生',
+          icon: $r('app.media.ic_home'),
+          iconColor: '#43A047'
+        })
+        .layoutWeight(1)
+      }
+      .width('100%')
+
+      Row() {
+        StatCard({
+          value: this.stats.todayAttendance,
+          label: '今日出勤',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#2196F3'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.stats.pendingOrders,
+          label: '待处理订单',
+          icon: $r('app.media.ic_order'),
+          iconColor: '#FB8C00'
+        })
+        .layoutWeight(1)
+      }
+      .width('100%')
+      .margin({ top: 12 })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  buildActivityCard() {
+    Card({
+      title: '最近活动',
+      actionText: '查看报表',
+      onAction: () => {
+        AppStorage.setOrCreate('main_current_index', 2);
+      },
+      content: this.buildActivityContent
+    })
+  }
+
+  @Builder
+  buildActivityContent() {
+    if (this.recentActivities.length > 0) {
+      Column() {
+        ForEach(this.recentActivities, (item: ActivityItem, index: number) => {
+          Row() {
+            Column() {
+              Text(item.title)
+                .fontSize($r('app.float.text_primary_size'))
+                .fontWeight(FontWeight.Medium)
+                .fontColor($r('app.color.text_primary'))
+
+              Text(item.content)
+                .fontSize($r('app.float.text_secondary_size'))
+                .fontColor($r('app.color.text_secondary'))
+                .margin({ top: 4 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
+
+            Text(item.time)
+              .fontSize($r('app.float.text_tiny_size'))
+              .fontColor($r('app.color.text_tertiary'))
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Top)
+
+          if (index < this.recentActivities.length - 1) {
+            Divider()
+              .margin({ top: 10, bottom: 10 })
+          }
+        })
+      }
+      .width('100%')
+    } else {
+      EmptyState({
+        type: EmptyType.DEFAULT,
+        customTitle: '暂无最近活动',
+        customDescription: '后续将展示学生、订单和消息的动态记录'
+      })
+    }
+  }
+
+  private showFeatureInDevelopment(): void {
+    ErrorHandlerUtil.showErrorToast(ErrorMessages.FEATURE_IN_DEVELOPMENT);
   }
 }

@@ -3,7 +3,6 @@
  * Display QR code for student pickup
  */
 
-import router from '@ohos.router';
 import { UserStore } from '../../stores/userStore';
 import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
@@ -94,7 +93,7 @@ export struct ParentQRCodePage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('接送码')
           .fontSize(18)

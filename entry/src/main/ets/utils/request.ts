@@ -3,12 +3,10 @@
  * HTTP request wrapper with authentication and error handling
  */
 
-import { router } from '@kit.ArkUI';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { http } from '@kit.NetworkKit';
 import { ApiConfig } from '../config/api.config';
 import { MockService } from '../services/mock/mockService';
-import { ApiResponseHelper, ApiCode } from '../models/common';
 
 const TAG = 'SmartGuardian/Request';
 const DOMAIN = 0x0001;
@@ -39,7 +37,20 @@ const TOKEN_KEY = 'smart_guardian_token';
 const USER_INFO_KEY = 'user_info';
 const IS_LOGGED_IN_KEY = 'is_logged_in';
 
+interface RouterLike {
+  replaceUrl(options: { url: string }): void;
+}
+
+interface RequestUIContext {
+  getRouter(): RouterLike;
+}
+
 let isRedirectingToLogin: boolean = false;
+let requestUIContext: RequestUIContext | null = null;
+
+export function setRequestUIContext(uiContext: RequestUIContext): void {
+  requestUIContext = uiContext;
+}
 
 export function getToken(): string | null {
   return AppStorage.get<string>(TOKEN_KEY) ?? null;
@@ -68,7 +79,11 @@ function handleUnauthorized(): void {
 
   isRedirectingToLogin = true;
   try {
-    router.replaceUrl({ url: 'pages/LoginPage' });
+    if (requestUIContext) {
+      requestUIContext.getRouter().replaceUrl({ url: 'pages/LoginPage' });
+    } else {
+      hilog.error(DOMAIN, TAG, 'Redirect to login skipped: UIContext not ready');
+    }
   } catch (error) {
     hilog.error(DOMAIN, TAG, `Redirect to login failed: ${error}`);
   }
@@ -101,7 +116,10 @@ export async function httpRequest<T = object>(
     ...headers
   };
 
-  if (needAuth) {
+  const isRelativeUrl = !url.startsWith('http');
+  const isTrustedAbsoluteUrl = !isRelativeUrl && baseUrl.length > 0 && url.startsWith(baseUrl);
+
+  if (needAuth && (isRelativeUrl || isTrustedAbsoluteUrl)) {
     const token = getToken();
     if (token) {
       requestHeaders['Authorization'] = `Bearer ${token}`;
@@ -121,8 +139,7 @@ export async function httpRequest<T = object>(
       requestMethod = http.RequestMethod.DELETE;
       break;
     case HttpMethod.PATCH:
-      requestMethod = http.RequestMethod.PUT;
-      break;
+      throw new Error('PATCH method is not supported by current NetworkKit RequestMethod');
     default:
       requestMethod = http.RequestMethod.GET;
   }
@@ -157,13 +174,13 @@ export async function httpRequest<T = object>(
     }
 
     // 使用统一的响应码判断
-    if (ApiResponseHelper.isAuthError(result.code)) {
+    if (result.code === 401 || result.code === 403) {
       hilog.error(DOMAIN, TAG, `Auth Error: ${result.code} - ${result.message}`);
       handleUnauthorized();
       throw new Error(result.message || '登录已失效');
     }
 
-    if (!ApiResponseHelper.isSuccess(result.code)) {
+    if (result.code !== 0 && result.code !== 200) {
       hilog.error(DOMAIN, TAG, `Business Error: ${result.code} - ${result.message}`);
       throw new Error(result.message || '业务处理失败');
     }

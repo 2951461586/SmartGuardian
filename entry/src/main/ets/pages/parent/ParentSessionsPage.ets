@@ -3,7 +3,6 @@
  * View student's class sessions
  */
 
-import router from '@ohos.router';
 import { SessionSchedule } from '../../models/service';
 import { SessionService } from '../../services/api/service';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
@@ -48,7 +47,7 @@ export struct ParentSessionsPage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('班次安排')
           .fontSize(18)

@@ -3,7 +3,6 @@
  * Refund application and management
  */
 
-import router from '@ohos.router';
 import { RefundRecord, CreateRefundParams, RefundReasonType } from '../../models/refund';
 import { RefundService } from '../../services/api/refund';
 
@@ -30,7 +29,7 @@ struct ParentRefundPage {
   @State refundRecords: RefundRecord[] = [];
 
   aboutToAppear() {
-    const params = router.getParams() as RouterParams;
+    const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params) {
       this.orderId = params.orderId || 0;
       this.orderNo = params.orderNo || '';
@@ -89,7 +88,7 @@ struct ParentRefundPage {
 
       const resp = await RefundService.createRefund(params);
       if (resp.code === 0) {
-        router.back();
+        this.getUIContext().getRouter().back();
       }
     } catch (error) {
       console.error('Failed to submit refund:', error);
@@ -132,7 +131,7 @@ struct ParentRefundPage {
       Image($r('app.media.ic_arrow_left'))
         .width(24)
         .height(24)
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('申请退费')
         .fontSize($r('app.float.page_title_size'))

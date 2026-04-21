@@ -3,7 +3,6 @@
  * 帮助与反馈页面
  */
 
-import router from '@ohos.router';
 
 @Entry
 @Component
@@ -19,7 +18,7 @@ struct ParentHelpPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('帮助与反馈')
           .fontSize($r('app.float.page_title_size'))

@@ -3,7 +3,6 @@
  * View student activity timeline including attendance, homework, messages
  */
 
-import router from '@ohos.router';
 import { Student } from '../../models/user';
 import { TimelineItem } from '../../models/timeline';
 import { TimelineService } from '../../services/api/timeline';
@@ -158,7 +157,7 @@ struct ParentTimelinePage {
       Image($r('app.media.ic_arrow_left'))
         .width(24)
         .height(24)
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('学生动态')
         .fontSize($r('app.float.page_title_size'))

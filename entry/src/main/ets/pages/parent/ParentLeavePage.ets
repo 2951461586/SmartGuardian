@@ -3,7 +3,6 @@
  * 家长提交请假申请
  */
 
-import { router } from '@kit.ArkUI';
 import { AttendanceService } from '../../services/api/attendance';
 import { LeaveRequest } from '../../models/attendance';
 import { DateUtils } from '../../utils/dateUtils';
@@ -61,7 +60,7 @@ struct ParentLeavePage {
 
       const resp = await AttendanceService.submitLeave(request);
       if (resp.code === 0) {
-        router.back();
+        this.getUIContext().getRouter().back();
       }
     } catch (error) {
       console.error('Submit leave failed:', error);
@@ -143,7 +142,7 @@ struct ParentLeavePage {
         .height(24)
         .fillColor($r('app.color.text_primary'))
         .onClick(() => {
-          router.back();
+          this.getUIContext().getRouter().back();
         })
 
       Text('请假申请')

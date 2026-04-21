@@ -3,7 +3,6 @@
  * 孩子管理页面
  */
 
-import router from '@ohos.router';
 import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
@@ -40,7 +39,7 @@ struct ParentChildrenPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('我的孩子')
           .fontSize($r('app.float.page_title_size'))

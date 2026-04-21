@@ -3,7 +3,6 @@
  * View order details, payment status, and perform actions
  */
 
-import router from '@ohos.router';
 import { Order } from '../../models/service';
 import { OrderService as OrderAPIService } from '../../services/api/service';
 import { OrderStore } from '../../stores/orderStore';
@@ -21,7 +20,7 @@ struct ParentOrderDetailPage {
   @State isLoading: boolean = true;
 
   aboutToAppear() {
-    const params = router.getParams() as RouterParams;
+    const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params && params.orderId) {
       this.orderId = params.orderId;
     }
@@ -86,13 +85,17 @@ struct ParentOrderDetailPage {
     if (!this.orderDetail) {
       return;
     }
-    router.pushUrl({
-      url: 'pages/parent/ParentPaymentPage',
-      params: {
-        orderId: this.orderDetail.id,
-        amount: this.getPayAmount()
-      }
-    });
+    try {
+      this.getUIContext().getRouter().pushUrl({
+        url: 'pages/parent/ParentPaymentPage',
+        params: {
+          orderId: this.orderDetail.id,
+          amount: this.getPayAmount()
+        }
+      });
+    } catch (error) {
+      console.error('ParentOrderDetailPage navigate to payment failed:', String(error));
+    }
   }
 
   handleCancel() {
@@ -160,7 +163,7 @@ struct ParentOrderDetailPage {
       Image($r('app.media.ic_arrow_left'))
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('订单详情')
         .fontSize($r('app.float.page_title_size'))

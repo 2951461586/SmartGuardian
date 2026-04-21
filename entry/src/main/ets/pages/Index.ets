@@ -2,7 +2,6 @@
  * SmartGuardian - App Entry
  */
 
-import { router } from '@kit.ArkUI';
 import { UserStore } from '../stores/userStore';
 import { getToken } from '../utils/request';
 
@@ -20,7 +19,14 @@ struct Index {
     const token = getToken();
     const isLoggedIn = UserStore.isLoggedIn();
     const target = token && isLoggedIn ? 'pages/MainPage' : 'pages/LoginPage';
-    router.replaceUrl({ url: target });
+
+    try {
+      this.getUIContext().getRouter().replaceUrl({ url: target });
+    } catch (error) {
+      this.isRedirecting = false;
+      this.message = '页面跳转失败';
+      console.error('Index redirect failed:', String(error));
+    }
   }
 
   build() {

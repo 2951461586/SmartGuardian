@@ -8,6 +8,7 @@ import { wantAgent, WantAgent } from '@kit.AbilityKit';
 import { LogUtil } from './LogUtil';
 
 const TAG = 'NotificationUtil';
+const APP_BUNDLE_NAME = 'com.liziai.smartguardian';
 
 /**
  * Notification channel types
@@ -46,7 +47,7 @@ export class NotificationUtil {
     const wantAgentInfo: wantAgent.WantAgentInfo = {
       wants: [
         {
-          bundleName: 'com.smartguardian.app',
+          bundleName: APP_BUNDLE_NAME,
           abilityName: abilityName
         }
       ],
@@ -55,9 +56,15 @@ export class NotificationUtil {
       wantAgentFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
     };
 
-    const agent = await wantAgent.getWantAgent(wantAgentInfo);
-    NotificationUtil.wantAgentCache.set(cacheKey, agent);
-    return agent;
+    try {
+      const agent = await wantAgent.getWantAgent(wantAgentInfo);
+      NotificationUtil.wantAgentCache.set(cacheKey, agent);
+      return agent;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Create want agent failed';
+      LogUtil.error(TAG, `Create want agent failed for ${abilityName}: ${message}`);
+      throw new Error(message);
+    }
   }
 
   /**

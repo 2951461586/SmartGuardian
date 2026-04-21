@@ -3,7 +3,6 @@
  * View student's homework tasks
  */
 
-import router from '@ohos.router';
 import { HomeworkTask, HomeworkTaskStatus } from '../../models/homework';
 import { HomeworkService } from '../../services/api/homework';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
@@ -75,7 +74,7 @@ export struct ParentHomeworkPage {
         .width(36)
         .height(36)
         .backgroundColor('#1AFFFFFF')
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
         Text('作业列表')
           .fontSize(18)

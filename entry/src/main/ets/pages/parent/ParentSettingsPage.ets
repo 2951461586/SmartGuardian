@@ -3,7 +3,6 @@
  * 账户设置页面
  */
 
-import router from '@ohos.router';
 import { UserStore } from '../../stores/userStore';
 
 @Entry
@@ -21,7 +20,7 @@ struct ParentSettingsPage {
           .width(24)
           .height(24)
           .fillColor($r('app.color.text_primary'))
-          .onClick(() => router.back())
+          .onClick(() => this.getUIContext().getRouter().back())
 
         Text('账户设置')
           .fontSize($r('app.float.page_title_size'))

@@ -3,7 +3,6 @@
  * Teachers can scan student QR code for quick sign-in/sign-out
  */
 
-import { router } from '@kit.ArkUI';
 import { scanCore, scanBarcode } from '@kit.ScanKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError } from '@kit.BasicServicesKit';
@@ -37,10 +36,8 @@ struct TeacherScanPage {
   @State currentSessionId: number = 0;
   @State scanType: 'SIGN_IN' | 'SIGN_OUT' = 'SIGN_IN';
 
-  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
-
   aboutToAppear(): void {
-    const rawParams: Object | undefined = router.getParams();
+    const rawParams: Object | undefined = this.getUIContext().getRouter().getParams();
     if (rawParams) {
       const params: RouterParams = rawParams as RouterParams;
       this.currentSessionId = params.sessionId;
@@ -56,7 +53,8 @@ struct TeacherScanPage {
       this.showResult = false;
       this.scanResult = '';
 
-      const hasPermission: boolean = await PermissionUtil.requestCameraPermission(this.context);
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const hasPermission: boolean = await PermissionUtil.requestCameraPermission(context);
       if (!hasPermission) {
         this.isScanning = false;
         this.errorMessage = $r('app.string.teacher_scan_camera_required').toString();
@@ -70,7 +68,7 @@ struct TeacherScanPage {
         enableAlbum: true
       };
 
-      const hostContext: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const hostContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
       const result: scanBarcode.ScanResult = await scanBarcode.startScanForResult(hostContext, options);
       hilog.info(0x0001, '[TeacherScanPage]', `Succeeded in getting scanResult, result is ${JSON.stringify(result)}`);
 
@@ -216,7 +214,7 @@ struct TeacherScanPage {
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
         .fillColor($r('app.color.scan_text_light'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text(this.scanType === 'SIGN_IN' ? $r('app.string.scan_sign_in_title') : $r('app.string.scan_sign_out_title'))
         .fontSize($r('app.float.page_title_size'))
@@ -324,7 +322,7 @@ struct TeacherScanPage {
             .borderRadius($r('app.float.scan_button_radius_xlarge'))
             .layoutWeight(1)
             .margin({ left: $r('app.float.card_margin') })
-            .onClick(() => router.back())
+            .onClick(() => this.getUIContext().getRouter().back())
         }
         .width('100%')
         .margin({ top: $r('app.float.scan_error_top_margin') })

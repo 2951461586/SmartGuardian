@@ -1,0 +1,261 @@
+CREATE TABLE IF NOT EXISTS user (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  account_no VARCHAR(64) NOT NULL UNIQUE,
+  username VARCHAR(64) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  real_name VARCHAR(64) NOT NULL,
+  mobile VARCHAR(32) NOT NULL UNIQUE,
+  role_type VARCHAR(32) NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'ENABLED',
+  last_login_time TIMESTAMP NULL,
+  remark VARCHAR(255) NULL,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS student (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_no VARCHAR(64) NOT NULL UNIQUE,
+  name VARCHAR(64) NOT NULL,
+  gender VARCHAR(8) NULL,
+  birthday DATE NULL,
+  school_id BIGINT NULL,
+  class_id BIGINT NULL,
+  grade VARCHAR(16) NULL,
+  guardian_user_id BIGINT NULL,
+  health_notes VARCHAR(500) NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS guardian_relation (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  relation_type VARCHAR(32) NOT NULL,
+  is_primary TINYINT NOT NULL DEFAULT 0,
+  pickup_auth_level VARCHAR(32) NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uk_guardian_student_user UNIQUE (student_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS service_product (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  service_name VARCHAR(128) NOT NULL,
+  service_type VARCHAR(32) NOT NULL,
+  org_id BIGINT NOT NULL,
+  school_scope VARCHAR(255) NULL,
+  grade_scope VARCHAR(255) NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  capacity INT NOT NULL DEFAULT 0,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  refund_rule VARCHAR(500) NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'ENABLED',
+  sort_no INT NOT NULL DEFAULT 0,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS order_info (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  order_no VARCHAR(64) NOT NULL UNIQUE,
+  student_id BIGINT NOT NULL,
+  guardian_user_id BIGINT NOT NULL,
+  service_product_id BIGINT NOT NULL,
+  order_status VARCHAR(32) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  paid_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  pay_status VARCHAR(32) NOT NULL DEFAULT 'UNPAID',
+  audit_status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+  start_date DATE NULL,
+  end_date DATE NULL,
+  remark VARCHAR(255) NULL,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS session_schedule (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  org_id BIGINT NOT NULL,
+  service_product_id BIGINT NOT NULL,
+  teacher_user_id BIGINT NOT NULL,
+  classroom_id BIGINT NULL,
+  session_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  capacity INT NOT NULL DEFAULT 0,
+  current_count INT NOT NULL DEFAULT 0,
+  status VARCHAR(16) NOT NULL DEFAULT 'PLANNED',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS attendance_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_id BIGINT NOT NULL,
+  order_id BIGINT NOT NULL,
+  attendance_date DATE NOT NULL,
+  session_id BIGINT NOT NULL,
+  sign_in_time TIMESTAMP NULL,
+  sign_in_type VARCHAR(32) NULL,
+  sign_in_location VARCHAR(255) NULL,
+  sign_out_time TIMESTAMP NULL,
+  sign_out_type VARCHAR(32) NULL,
+  sign_out_guardian_id BIGINT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'INIT',
+  abnormal_flag TINYINT NOT NULL DEFAULT 0,
+  abnormal_type VARCHAR(64) NULL,
+  operator_user_id BIGINT NULL,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uk_attendance_student_date_session UNIQUE (student_id, attendance_date, session_id)
+);
+
+CREATE TABLE IF NOT EXISTS message_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  sender_user_id BIGINT NOT NULL,
+  receiver_user_id BIGINT NOT NULL,
+  conversation_id BIGINT NULL,
+  msg_type VARCHAR(32) NOT NULL,
+  content CLOB NULL,
+  biz_type VARCHAR(32) NULL,
+  read_status VARCHAR(16) NOT NULL DEFAULT 'UNREAD',
+  sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS homework_task (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_id BIGINT NOT NULL,
+  subject VARCHAR(32) NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  content CLOB NULL,
+  source_type VARCHAR(32) NOT NULL,
+  task_date DATE NOT NULL,
+  due_time TIMESTAMP NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS homework_feedback (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  homework_task_id BIGINT NOT NULL,
+  student_id BIGINT NOT NULL,
+  teacher_user_id BIGINT NOT NULL,
+  progress_rate INT NOT NULL DEFAULT 0,
+  feedback_text VARCHAR(1000) NULL,
+  performance_tags VARCHAR(255) NULL,
+  attachment_urls CLOB NULL,
+  parent_confirm_status VARCHAR(16) NOT NULL DEFAULT 'UNCONFIRMED',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS student_timeline (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_id BIGINT NOT NULL,
+  biz_date DATE NOT NULL,
+  event_type VARCHAR(32) NOT NULL,
+  event_title VARCHAR(128) NOT NULL,
+  event_detail VARCHAR(1000) NULL,
+  related_biz_id BIGINT NULL,
+  visibility_scope VARCHAR(32) NOT NULL DEFAULT 'PARENT',
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payment_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  order_id BIGINT NOT NULL,
+  payment_no VARCHAR(64) NOT NULL UNIQUE,
+  pay_channel VARCHAR(32) NOT NULL,
+  pay_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  pay_status VARCHAR(16) NOT NULL DEFAULT 'INIT',
+  refund_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  refund_status VARCHAR(16) NOT NULL DEFAULT 'NONE',
+  transaction_time TIMESTAMP NULL,
+  callback_time TIMESTAMP NULL,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  created_by BIGINT NULL,
+  updated_by BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS refund_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  refund_no VARCHAR(64) NOT NULL UNIQUE,
+  order_id BIGINT NOT NULL,
+  student_id BIGINT NOT NULL,
+  service_product_id BIGINT NOT NULL,
+  refund_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  reason VARCHAR(255) NOT NULL,
+  reason_type VARCHAR(32) NOT NULL,
+  description VARCHAR(500) NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_by BIGINT NULL,
+  reviewed_at TIMESTAMP NULL,
+  review_remark VARCHAR(255) NULL,
+  processed_at TIMESTAMP NULL,
+  completed_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alert_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  student_id BIGINT NOT NULL,
+  alert_type VARCHAR(32) NOT NULL,
+  severity VARCHAR(16) NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  description VARCHAR(500) NOT NULL,
+  suggested_action VARCHAR(255) NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+  acknowledged_by BIGINT NULL,
+  acknowledged_at TIMESTAMP NULL,
+  resolved_by BIGINT NULL,
+  resolved_at TIMESTAMP NULL,
+  resolution VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

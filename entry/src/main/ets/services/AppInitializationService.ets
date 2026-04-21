@@ -5,6 +5,11 @@
 
 import { common } from '@kit.AbilityKit';
 import { LogUtil } from '../utils/LogUtil';
+import { OptimizationConfig, OptimizationManager } from '../utils/performance/OptimizationManager';
+import { DistributedDataManager } from './distributed/DistributedDataManager';
+import { DistributedAbilityManager } from './distributed/DistributedAbilityManager';
+import { AttendanceSyncService } from './distributed/AttendanceSyncService';
+import { NotificationUtil } from '../utils/NotificationUtil';
 
 const TAG = 'AppInitializationService';
 
@@ -89,19 +94,14 @@ export class AppInitializationService {
    */
   private async initializePerformanceOptimization(): Promise<void> {
     try {
-      const OptimizationModule = await import('../utils/performance/OptimizationManager');
-      const OptimizationManager = OptimizationModule.OptimizationManager;
-      const OptimizationConfig = OptimizationModule.OptimizationConfig;
-      
       const optimizationManager = OptimizationManager.getInstance();
-      
       const config = new OptimizationConfig();
       config.enableMemoryOptimization = true;
       config.enableImageCache = true;
       config.enablePerformanceMonitor = true;
       config.memoryWarningThreshold = 100;
       config.gcInterval = 60000;
-      
+
       await optimizationManager.initialize(this.context!, config);
 
       this.status.performanceOptimization = true;
@@ -117,7 +117,6 @@ export class AppInitializationService {
    */
   private async initializeDistributedData(): Promise<void> {
     try {
-      const DistributedDataManager = (await import('./distributed/DistributedDataManager')).DistributedDataManager;
       const manager = new DistributedDataManager(this.context!);
       const success = await manager.initialize();
 
@@ -134,7 +133,6 @@ export class AppInitializationService {
    */
   private async initializeDistributedAbility(): Promise<void> {
     try {
-      const DistributedAbilityManager = (await import('./distributed/DistributedAbilityManager')).DistributedAbilityManager;
       const manager = new DistributedAbilityManager(this.context!);
       const success = await manager.initialize();
 
@@ -151,7 +149,6 @@ export class AppInitializationService {
    */
   private async initializeAttendanceSync(): Promise<void> {
     try {
-      const AttendanceSyncService = (await import('./distributed/AttendanceSyncService')).AttendanceSyncService;
       const service = new AttendanceSyncService(this.context!);
       const success = await service.start();
 
@@ -168,7 +165,6 @@ export class AppInitializationService {
    */
   private async initializeNotification(): Promise<void> {
     try {
-      const NotificationUtil = (await import('../utils/NotificationUtil')).NotificationUtil;
       await NotificationUtil.initChannels();
 
       this.status.notification = true;

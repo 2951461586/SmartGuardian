@@ -3,7 +3,6 @@
  * Main shell with bottom navigation for different roles
  */
 
-import { router } from '@kit.ArkUI';
 import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
 import { UserRole } from '../models/common';
@@ -24,7 +23,8 @@ import { AdminReportsPage } from './admin/AdminReportsPage';
 @Entry
 @Component
 struct MainPage {
-  @State currentIndex: number = 0;
+  @StorageLink('main_current_index') currentIndex: number = 0;
+  @StorageLink('main_auth_locked') authLocked: boolean = false;
   @State currentRole: UserRole = UserRole.PARENT;
   @State isInitializing: boolean = true;
 
@@ -36,8 +36,9 @@ struct MainPage {
     const token = getToken();
     if (!token || !UserStore.isLoggedIn()) {
       UserStore.clearUserInfo();
+      this.authLocked = true;
       this.isInitializing = false;
-      router.replaceUrl({ url: 'pages/LoginPage' });
+      this.navigateToLogin();
       return;
     }
 
@@ -48,12 +49,14 @@ struct MainPage {
         this.currentRole = resp.data.roleType;
       } else {
         UserStore.clearUserInfo();
-        router.replaceUrl({ url: 'pages/LoginPage' });
+        this.authLocked = true;
+        this.navigateToLogin();
         return;
       }
     } catch (error) {
       UserStore.clearUserInfo();
-      router.replaceUrl({ url: 'pages/LoginPage' });
+      this.authLocked = true;
+      this.navigateToLogin();
       return;
     }
 
@@ -61,8 +64,34 @@ struct MainPage {
     if (userInfo) {
       this.currentRole = userInfo.roleType;
     }
-    this.ensureValidCurrentIndex();
+    this.authLocked = false;
+    this.syncStoredNavigationScope();
     this.isInitializing = false;
+  }
+
+  private navigateToLogin(): void {
+    try {
+      this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+    } catch (error) {
+      this.authLocked = true;
+      this.isInitializing = false;
+      this.currentIndex = 0;
+      console.error('MainPage navigate to login failed:', String(error));
+    }
+  }
+
+  private syncStoredNavigationScope(): void {
+    const userInfo = UserStore.getUserInfo();
+    const currentScope = `${this.currentRole}:${userInfo?.id ?? 0}`;
+    const storedScope = AppStorage.get<string>('main_navigation_scope') ?? '';
+
+    if (storedScope !== currentScope) {
+      this.currentIndex = 0;
+      AppStorage.setOrCreate('main_navigation_scope', currentScope);
+      return;
+    }
+
+    this.ensureValidCurrentIndex();
   }
 
   getNavItemWidth(): string {
@@ -86,6 +115,21 @@ struct MainPage {
         .width('100%')
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
+      } else if (this.authLocked) {
+        Column({ space: 12 }) {
+          Text('登录状态已失效')
+            .fontSize(18)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.text_primary'))
+
+          Text('请重新登录以继续使用')
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary'))
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
       } else {
         this.buildContent()
         this.buildBottomNav()

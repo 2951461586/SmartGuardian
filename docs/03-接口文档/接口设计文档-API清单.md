@@ -30,12 +30,15 @@
 - `POST /api/v1/auth/login`：用户登录
 - `GET /api/v1/auth/me`：获取当前用户信息
 - `POST /api/v1/auth/logout`：退出登录
+- `POST /api/v1/auth/refresh`：刷新 Token
 
 ### 2.2 Students
 - `GET /api/v1/students`：查询学生列表
 - `POST /api/v1/students`：新增学生档案
 - `GET /api/v1/students/{studentId}`：查询学生详情
 - `PUT /api/v1/students/{studentId}`：更新学生档案
+- `DELETE /api/v1/students/{studentId}`：删除学生档案（V2 兼容）
+- `GET /api/v1/students/{studentId}/guardians`：查询监护关系
 - `POST /api/v1/students/{studentId}/guardians`：绑定监护关系
 
 ### 2.3 ServiceProducts
@@ -47,19 +50,28 @@
 ### 2.4 Orders
 - `GET /api/v1/orders`：查询订单列表
 - `POST /api/v1/orders`：创建订单
+- `GET /api/v1/orders/{orderId}`：查询订单详情
 - `POST /api/v1/orders/{orderId}/audit`：审核订单
 - `POST /api/v1/orders/{orderId}/refund`：订单退费
 
 ### 2.5 Sessions
 - `GET /api/v1/sessions`：查询班次列表
+- `GET /api/v1/sessions/today`：查询今日班次
+- `POST /api/v1/sessions`：创建班次
 - `POST /api/v1/sessions/generate`：智能排课
 - `GET /api/v1/sessions/{sessionId}`：查询班次详情
+- `POST /api/v1/sessions/{sessionId}`：更新班次
+- `GET /api/v1/sessions/{sessionId}/students`：查询班次学生名单
 
 ### 2.6 Attendance
 - `GET /api/v1/attendance`：查询考勤列表
 - `POST /api/v1/attendance/sign-in`：签到
 - `POST /api/v1/attendance/sign-out`：签退
 - `GET /api/v1/attendance/abnormal-events`：查询异常考勤事件
+- `POST /api/v1/attendance/leave`：提交请假
+- `GET /api/v1/attendance/leave`：查询请假列表
+- `POST /api/v1/attendance/leave/{id}/cancel`：取消请假
+- `GET /api/v1/attendance/statistics`：查询考勤统计
 
 ### 2.7 Homework
 - `GET /api/v1/homework/tasks`：查询作业任务
@@ -70,7 +82,14 @@
 ### 2.8 Messages
 - `GET /api/v1/messages`：查询消息列表
 - `POST /api/v1/messages`：发送消息
+- `GET /api/v1/messages/{messageId}`：查询消息详情
 - `POST /api/v1/messages/{messageId}/read`：消息已读
+- `POST /api/v1/messages/batch-read`：批量标记已读
+- `POST /api/v1/messages/read-all`：全部标记已读
+- `POST /api/v1/messages/{messageId}/delete`：删除消息（旧接口）
+- `DELETE /api/v1/messages/{messageId}`：删除消息（V2 兼容）
+- `GET /api/v1/messages/unread-count`：获取未读消息数
+- `GET /api/v1/messages/statistics`：获取消息统计
 
 ### 2.9 Timeline
 - `GET /api/v1/timeline/students/{studentId}`：查询学生动态时间线
@@ -78,15 +97,22 @@
 ### 2.10 Payments
 - `POST /api/v1/payments`：创建支付单
 - `POST /api/v1/payments/callback`：支付回调
+- `GET /api/v1/payments/{paymentNo}`：查询支付详情
+- `POST /api/v1/payments/{paymentNo}/refund`：支付退款
 
 ### 2.11 Reports
 - `GET /api/v1/reports/attendance`：考勤报表
 - `GET /api/v1/reports/finance`：财务收支看板
 - `GET /api/v1/reports/performance`：教师绩效统计
+- `GET /api/v1/reports/attendance/daily`：每日考勤统计
+- `GET /api/v1/reports/attendance/students`：学生考勤汇总
+- `GET /api/v1/reports/finance/daily`：每日营收统计
+- `GET /api/v1/reports/finance/products`：服务产品营收统计
 
 ### 2.12 Cards
 - `GET /api/v1/cards/today-status`：今日托管卡片摘要
 - `GET /api/v1/cards/abnormal-alert`：异常提醒卡片摘要
+- `GET /api/v1/cards/alerts`：异常提醒卡片摘要（文档兼容别名）
 
 ### 2.13 Alerts
 - `GET /api/v1/alerts`：查询告警记录列表

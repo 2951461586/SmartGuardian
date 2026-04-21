@@ -7,12 +7,13 @@
  * @migrated 2026-04-18 - P0 Migration
  */
 
-import { router } from '@kit.ArkUI';
 import { StudentService } from '../../services/api/auth';
 import { Student, GuardianRelation } from '../../models/user';
 import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
+import { ErrorMessages } from '../../constants/ErrorMessages';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 
 interface StudentWithGuardian extends Student {
   guardianName?: string;
@@ -152,7 +153,7 @@ export struct AdminStudentsPage {
         .width(24)
         .height(24)
         .fillColor($r('app.color.text_primary'))
-        .onClick(() => router.back())
+        .onClick(() => this.getUIContext().getRouter().back())
 
       Text('学生档案管理')
         .fontSize($r('app.float.page_title_size'))
@@ -166,7 +167,7 @@ export struct AdminStudentsPage {
         .height(24)
         .fillColor($r('app.color.primary'))
         .onClick(() => {
-          router.pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
         })
     }
     .width('100%')
@@ -352,7 +353,7 @@ export struct AdminStudentsPage {
           .fillColor($r('app.color.text_tertiary'))
       }
       .onClick(() => {
-        router.pushUrl({
+        this.getUIContext().getRouter().pushUrl({
           url: 'pages/admin/AdminStudentDetailPage',
           params: { studentId: student.id }
         });

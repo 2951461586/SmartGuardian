@@ -5,7 +5,6 @@
 
 import { UserStore } from '../../stores/userStore';
 import { AuthService } from '../../services/api/auth';
-import { router } from '@kit.ArkUI';
 
 @Component
 export struct ParentProfilePage {
@@ -29,7 +28,15 @@ export struct ParentProfilePage {
       // Continue with local logout
     }
     UserStore.clearUserInfo();
-    router.replaceUrl({ url: 'pages/LoginPage' });
+    this.userName = '';
+    this.mobile = '';
+    this.avatar = '';
+    AppStorage.setOrCreate('main_auth_locked', true);
+    try {
+      this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+    } catch (error) {
+      console.error('ParentProfilePage logout redirect failed:', String(error));
+    }
   }
 
   build() {
@@ -106,7 +113,7 @@ export struct ParentProfilePage {
     .margin({ top: $r('app.float.card_margin') })
     .onClick(() => {
       // 跳转到个人信息编辑页
-      router.pushUrl({ url: 'pages/parent/ParentProfileEditPage' });
+      this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentProfileEditPage' });
     })
   }
 
@@ -115,22 +122,22 @@ export struct ParentProfilePage {
     Column() {
       this.buildMenuItem('我的孩子', $r('app.media.ic_child'), () => {
         // 跳转到孩子管理页
-        router.pushUrl({ url: 'pages/parent/ParentChildrenPage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentChildrenPage' });
       })
       
       this.buildMenuItem('账户设置', $r('app.media.ic_settings'), () => {
         // 跳转到账户设置页
-        router.pushUrl({ url: 'pages/parent/ParentSettingsPage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentSettingsPage' });
       })
       
       this.buildMenuItem('帮助与反馈', $r('app.media.ic_help'), () => {
         // 跳转到帮助与反馈页
-        router.pushUrl({ url: 'pages/parent/ParentHelpPage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHelpPage' });
       })
       
       this.buildMenuItem('关于我们', $r('app.media.ic_about'), () => {
         // 跳转到关于我们页
-        router.pushUrl({ url: 'pages/parent/ParentAboutPage' });
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentAboutPage' });
       })
 
       Divider()
