@@ -58,8 +58,8 @@ struct ParentTimelinePage {
         this.timelineEvents = [];
         this.isLoading = false;
       })
-      .catch((error) => {
-        console.error('Load students failed:', String(error));
+      .catch(() => {
+        console.error('Load students failed');
         this.students = [];
         this.timelineEvents = [];
         this.isLoading = false;
@@ -104,8 +104,9 @@ struct ParentTimelinePage {
   }
 
   convertToTimelineEvents(items: TimelineItem[]): TimelineEvent[] {
-    return items.map((item: TimelineItem) => {
-      return {
+    const events: TimelineEvent[] = [];
+    items.forEach((item: TimelineItem) => {
+      const event: TimelineEvent = {
         id: item.id,
         studentId: item.studentId,
         eventType: item.timelineType || 'MESSAGE',
@@ -114,7 +115,9 @@ struct ParentTimelinePage {
         content: item.content,
         icon: this.getEventIcon(item.timelineType || 'MESSAGE')
       };
+      events.push(event);
     });
+    return events;
   }
 
   getEventIcon(eventType: string): Resource | undefined {

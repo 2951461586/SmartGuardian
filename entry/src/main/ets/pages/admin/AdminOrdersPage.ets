@@ -12,7 +12,21 @@ import { LogUtil } from '../../utils/LogUtil';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { OrderQueryParams } from '../../models/common';
 // Common Components
-import { SimplePageHeader, TabBar, EmptyState, LoadingState, ErrorBanner, EmptyType, LoadingSize, OrderListItem, OrderItemMode } from '../../components/common';
+import {
+  Card,
+  EmptyState,
+  EmptyType,
+  ErrorBanner,
+  HeaderTheme,
+  LoadingSize,
+  LoadingState,
+  OrderItemMode,
+  OrderListItem,
+  PageHeader,
+  SectionHeader,
+  StatCard,
+  TabBar
+} from '../../components/common';
 import { OrderBadge } from '../../components/StatusBadge';
 import { StatusMappingHelper } from '../../constants/StatusMapping';
 
@@ -136,30 +150,34 @@ export struct AdminOrdersPage {
 
   build() {
     Column() {
-      // 使用通用PageHeader
-      SimplePageHeader({ title: '订单管理' })
-
-      // 使用通用TabBar
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: () => {
-          this.loadOrders();
-        }
+      PageHeader({
+        title: '订单管理',
+        subtitle: '统一审核家长端订单、查看状态和处理异常申请。',
+        theme: HeaderTheme.PRIMARY
       })
 
-      // 错误提示
-      if (this.errorMessage) {
-        ErrorBanner({
-          message: this.errorMessage,
-          onDismiss: () => {
-            this.errorMessage = '';
-          }
-        })
-      }
+      Scroll() {
+        Column() {
+          this.buildOverviewPanel()
+          this.buildTabSection()
 
-      // 内容区域
-      this.buildContent()
+          if (this.errorMessage) {
+            ErrorBanner({
+              message: this.errorMessage,
+              onDismiss: () => {
+                this.errorMessage = '';
+              }
+            })
+          }
+
+          this.buildContent()
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
@@ -168,6 +186,60 @@ export struct AdminOrdersPage {
       height: 360,
       backgroundColor: Color.White,
       dragBar: true
+    })
+  }
+
+  @Builder
+  buildOverviewPanel() {
+    Row() {
+      StatCard({
+        value: this.getVisibleOrderCount(),
+        label: '当前列表',
+        icon: $r('app.media.ic_order'),
+        iconColor: '#1F5EFF'
+      })
+      .layoutWeight(1)
+
+      StatCard({
+        value: this.getPendingAuditCount(),
+        label: '待审核',
+        icon: $r('app.media.ic_warning'),
+        iconColor: '#D97706'
+      })
+      .layoutWeight(1)
+      .margin({ left: 12, right: 12 })
+
+      StatCard({
+        value: this.getApprovedCount(),
+        label: '已审核',
+        icon: $r('app.media.ic_success'),
+        iconColor: '#15803D'
+      })
+      .layoutWeight(1)
+    }
+    .width('100%')
+    .alignItems(VerticalAlign.Top)
+    .margin({ bottom: 12 })
+  }
+
+  @Builder
+  buildTabSection() {
+    Card({
+      title: '审核筛选',
+      subtitle: '在待审核、已审核和全部订单之间快速切换。',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
+  }
+
+  @Builder
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: () => {
+        this.loadOrders();
+      }
     })
   }
 
@@ -191,30 +263,37 @@ export struct AdminOrdersPage {
 
   @Builder
   buildOrderList() {
-    Scroll() {
-      Column() {
-        ForEach(this.orders, (order: Order) => {
-          OrderListItem({
-            order: order,
-            mode: OrderItemMode.DETAIL,
-            onItemClick: () => {},
-            onApprove: () => {
-              this.selectedOrder = order;
-              this.auditRemark = '审核通过';
-              this.handleAudit('APPROVED');
-            },
-            onReject: () => {
-              this.openRejectDialog(order);
-            }
+    Column() {
+      SectionHeader({
+        title: '订单列表',
+        subtitle: `当前共 ${this.orders.length} 条订单记录`
+      })
+
+      Scroll() {
+        Column() {
+          ForEach(this.orders, (order: Order) => {
+            OrderListItem({
+              order: order,
+              mode: OrderItemMode.DETAIL,
+              onItemClick: () => {},
+              onApprove: () => {
+                this.selectedOrder = order;
+                this.auditRemark = '审核通过';
+                this.handleAudit('APPROVED');
+              },
+              onReject: () => {
+                this.openRejectDialog(order);
+              }
+            })
           })
-        })
+        }
+        .width('100%')
       }
       .width('100%')
-      .padding($r('app.float.page_padding'))
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
   }
 
   @Builder
@@ -286,5 +365,17 @@ export struct AdminOrdersPage {
     }
     .width('100%')
     .padding(20)
+  }
+
+  private getVisibleOrderCount(): number {
+    return this.orders.length;
+  }
+
+  private getPendingAuditCount(): number {
+    return this.orders.filter((order: Order) => order.orderStatus === 'PENDING').length;
+  }
+
+  private getApprovedCount(): number {
+    return this.orders.filter((order: Order) => order.orderStatus === 'APPROVED').length;
   }
 }

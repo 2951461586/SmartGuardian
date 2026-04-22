@@ -10,7 +10,20 @@ import { SessionSchedule } from '../../models/service';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 import { PageResponse } from '../../models/common';
 // Common Components
-import { HomeworkCard, HomeworkCardMode } from '../../components/common';
+import {
+  Card,
+  EmptyState,
+  EmptyType,
+  HeaderTheme,
+  HomeworkCard,
+  HomeworkCardMode,
+  LoadingSize,
+  LoadingState,
+  PageHeader,
+  SectionHeader,
+  StatCard,
+  TabBar
+} from '../../components/common';
 
 @Component
 export struct TeacherHomeworkPage {
@@ -142,9 +155,24 @@ export struct TeacherHomeworkPage {
   build() {
     Stack() {
       Column() {
-        this.buildHeader()
-        this.buildTabBar()
-        this.buildHomeworkList()
+        PageHeader({
+          title: '作业管理',
+          subtitle: '按任务状态查看布置、完成和家校确认进度。',
+          theme: HeaderTheme.PRIMARY
+        })
+
+        Scroll() {
+          Column() {
+            this.buildOverviewPanel()
+            this.buildTabSection()
+            this.buildHomeworkList()
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
       }
       .width('100%')
       .height('100%')
@@ -159,91 +187,91 @@ export struct TeacherHomeworkPage {
   }
 
   @Builder
-  buildHeader() {
+  buildOverviewPanel() {
     Row() {
-      Text($r('app.string.homework_title'))
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .textAlign(TextAlign.Center)
-        .fontColor(Color.White)
+      StatCard({
+        value: this.sessions.length,
+        label: '今日班次',
+        icon: $r('app.media.ic_calendar'),
+        iconColor: '#1F5EFF'
+      })
+      .layoutWeight(1)
+
+      StatCard({
+        value: this.homeworkList.length,
+        label: '当前任务',
+        icon: $r('app.media.ic_homework'),
+        iconColor: '#D97706'
+      })
+      .layoutWeight(1)
+      .margin({ left: 12, right: 12 })
+
+      StatCard({
+        value: this.getCurrentTabLabel(),
+        label: '处理阶段',
+        icon: $r('app.media.ic_attendance'),
+        iconColor: '#15803D'
+      })
+      .layoutWeight(1)
     }
     .width('100%')
-    .justifyContent(FlexAlign.Center)
-    .padding({
-      top: Number($r('app.float.status_bar_height')) + Number($r('app.float.homework_header_top_extra')),
-      bottom: $r('app.float.homework_header_bottom_padding')
-    })
-    .backgroundColor($r('app.color.primary'))
+    .alignItems(VerticalAlign.Top)
+    .margin({ bottom: 12 })
   }
 
   @Builder
-  buildTabBar() {
-    Row() {
-      ForEach(this.tabs, (tab: string, index: number) => {
-        Column() {
-          Text(tab)
-            .fontSize($r('app.float.text_primary_size'))
-            .fontColor(this.currentTab === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
+  buildTabSection() {
+    Card({
+      title: '任务状态',
+      subtitle: '在待完成、已完成和已确认之间切换查看。',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
+  }
 
-          if (this.currentTab === index) {
-            Row()
-              .width($r('app.float.homework_tab_indicator_width'))
-              .height($r('app.float.homework_tab_indicator_height'))
-              .backgroundColor($r('app.color.primary'))
-              .borderRadius($r('app.float.homework_tab_indicator_radius'))
-          }
-        }
-        .width('33%')
-        .height($r('app.float.homework_tab_height'))
-        .justifyContent(FlexAlign.Center)
-        .onClick(() => {
-          this.currentTab = index;
-          this.loadHomeworkByTab();
-        })
-      })
-    }
-    .width('100%')
-    .backgroundColor($r('app.color.homework_tab_background'))
+  @Builder
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: () => {
+        this.loadHomeworkByTab();
+      }
+    })
   }
 
   @Builder
   buildHomeworkList() {
     if (this.isLoading) {
-      Column() {
-        LoadingProgress()
-          .color($r('app.color.primary'))
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      LoadingState({
+        loadingSize: LoadingSize.LARGE,
+        fullscreen: false
+      })
     } else if (this.homeworkList.length === 0) {
-      Column() {
-        Image($r('app.media.ic_empty'))
-          .width($r('app.float.homework_empty_icon_size'))
-          .height($r('app.float.homework_empty_icon_size'))
-          .objectFit(ImageFit.Contain)
-
-        Text($r('app.string.homework_empty'))
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: $r('app.float.card_margin') })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      EmptyState({
+        type: EmptyType.NO_HOMEWORK,
+        customTitle: '暂无作业任务',
+        customDescription: '当前状态下还没有可展示的作业记录。',
+        actionText: '重新加载',
+        onAction: () => {
+          this.loadHomeworkByTab();
+        }
+      })
     } else {
-      Scroll() {
+      Column() {
+        SectionHeader({
+          title: '作业清单',
+          subtitle: `当前查看：${this.getCurrentTabLabel()}`
+        })
+
         Column() {
           ForEach(this.homeworkList, (task: HomeworkTask) => {
             this.buildHomeworkItem(task)
           })
         }
         .width('100%')
-        .padding($r('app.float.page_padding'))
       }
       .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
     }
   }
 
@@ -406,5 +434,18 @@ export struct TeacherHomeworkPage {
       return $r('app.color.status_confirmed_bg');
     }
     return $r('app.color.page_background');
+  }
+
+  private getCurrentTabLabel(): string {
+    if (this.currentTab === 0) {
+      return '待完成';
+    }
+    if (this.currentTab === 1) {
+      return '已完成';
+    }
+    if (this.currentTab === 2) {
+      return '已确认';
+    }
+    return '全部';
   }
 }

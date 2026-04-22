@@ -7,14 +7,18 @@ import { MessageDetail, MessageRecord } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
 
+interface MessageDetailRouteParams {
+  messageId?: number | string;
+}
+
 @Entry
 @Component
 struct ParentMessageDetailPage {
   @State message: MessageRecord | MessageDetail | null = null;
 
   async aboutToAppear() {
-    const params = this.getUIContext().getRouter().getParams() as Record<string, Object>;
-    const messageId = Number(params?.['messageId'] ?? 0);
+    const params = this.getUIContext().getRouter().getParams() as MessageDetailRouteParams;
+    const messageId = Number(params.messageId ?? 0);
     const currentMessage = MessageStore.getCurrentMessage();
     const cachedMessage = MessageStore.findMessageById(messageId);
     const targetMessage = currentMessage?.id === messageId ? currentMessage : cachedMessage;

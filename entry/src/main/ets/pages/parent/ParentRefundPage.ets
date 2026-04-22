@@ -1,9 +1,10 @@
 /**
  * SmartGuardian - Parent Refund Page
- * Refund application and management
+ * Refund application and refund record management
  */
 
-import { RefundRecord, CreateRefundParams, RefundReasonType } from '../../models/refund';
+import { Card, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
+import { CreateRefundParams, RefundReasonType, RefundRecord } from '../../models/refund';
 import { RefundService } from '../../services/api/refund';
 
 interface RouterParams {
@@ -22,7 +23,7 @@ struct ParentRefundPage {
   @State orderAmount: number = 0;
   @State refundAmount: number = 0;
   @State deduction: number = 0;
-  @State selectedReasonType: string = 'PERSONAL_REASON';
+  @State selectedReasonType: string = RefundReasonType.PERSONAL_REASON;
   @State reason: string = '';
   @State description: string = '';
   @State isSubmitting: boolean = false;
@@ -47,12 +48,11 @@ struct ParentRefundPage {
         this.refundAmount = resp.data.refundAmount;
         this.deduction = resp.data.deduction;
       } else {
-        // Mock calculation
         this.refundAmount = this.orderAmount * 0.9;
         this.deduction = this.orderAmount * 0.1;
       }
     } catch (error) {
-      console.error('Failed to calculate refund:', error);
+      console.error('Failed to calculate refund:', String(error));
       this.refundAmount = this.orderAmount * 0.9;
       this.deduction = this.orderAmount * 0.1;
     }
@@ -67,7 +67,8 @@ struct ParentRefundPage {
         this.refundRecords = [];
       }
     } catch (error) {
-      console.error('Failed to load refund records:', error);
+      console.error('Failed to load refund records:', String(error));
+      this.refundRecords = [];
     }
   }
 
@@ -82,8 +83,8 @@ struct ParentRefundPage {
         orderId: this.orderId,
         refundAmount: this.refundAmount,
         reasonType: this.selectedReasonType,
-        reason: this.reason,
-        description: this.description
+        reason: this.reason.trim(),
+        description: this.description.trim()
       };
 
       const resp = await RefundService.createRefund(params);
@@ -91,34 +92,85 @@ struct ParentRefundPage {
         this.getUIContext().getRouter().back();
       }
     } catch (error) {
-      console.error('Failed to submit refund:', error);
+      console.error('Failed to submit refund:', String(error));
     } finally {
       this.isSubmitting = false;
     }
   }
 
+  private getOrderInfoItems(): InfoItem[] {
+    return [
+      { label: '订单编号', value: this.orderNo || '--' },
+      { label: '服务名称', value: this.serviceName || '--' },
+      { label: '订单金额', value: `¥${this.orderAmount.toFixed(2)}` },
+      { label: '退款方式', value: '原路退回' }
+    ];
+  }
+
+  private getRefundLabel(type: string): string {
+    switch (type) {
+      case RefundReasonType.STUDENT_TRANSFER:
+        return '学生转学';
+      case RefundReasonType.SERVICE_QUALITY:
+        return '服务质量问题';
+      case RefundReasonType.SCHEDULE_CHANGE:
+        return '时间安排变更';
+      case RefundReasonType.PERSONAL_REASON:
+        return '个人原因';
+      case RefundReasonType.OTHER:
+        return '其他原因';
+      default:
+        return '其他原因';
+    }
+  }
+
+  private getStatusText(status: string): string {
+    switch (status) {
+      case 'PENDING':
+        return '待审核';
+      case 'APPROVED':
+        return '已批准';
+      case 'REJECTED':
+        return '已拒绝';
+      case 'PROCESSING':
+        return '退款中';
+      case 'COMPLETED':
+        return '已完成';
+      case 'CANCELLED':
+        return '已取消';
+      default:
+        return '未知状态';
+    }
+  }
+
   build() {
     Column() {
-      this.buildHeader()
+      PageHeader({
+        title: '申请退款',
+        subtitle: '填写退款原因并查看可退金额与历史记录。',
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        theme: HeaderTheme.PRIMARY
+      })
 
       Scroll() {
         Column() {
           this.buildOrderInfo()
           this.buildAmountInfo()
           this.buildRefundForm()
-          
+
           if (this.refundRecords.length > 0) {
             this.buildRefundHistory()
           }
         }
         .width('100%')
-        .padding($r('app.float.page_padding'))
+        .padding({ left: 16, right: 16, top: 16, bottom: 120 })
       }
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
 
-      this.buildSubmitButton()
+      this.buildSubmitBar()
     }
     .width('100%')
     .height('100%')
@@ -126,111 +178,47 @@ struct ParentRefundPage {
   }
 
   @Builder
-  buildHeader() {
-    Row() {
-      Image($r('app.media.ic_arrow_left'))
-        .width(24)
-        .height(24)
-        .onClick(() => this.getUIContext().getRouter().back())
+  private buildOrderInfo() {
+    Column() {
+      SectionHeader({
+        title: '订单概览',
+        subtitle: '核对当前订单信息后再提交退款。'
+      })
 
-      Text('申请退费')
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .layoutWeight(1)
-        .textAlign(TextAlign.Center)
-
-      Blank().width(24)
+      InfoCard({
+        items: this.getOrderInfoItems(),
+        columns: 2
+      })
     }
     .width('100%')
-    .padding($r('app.float.page_padding'))
-    .backgroundColor($r('app.color.primary'))
-    .padding({ top: Number($r('app.float.status_bar_height')) + 10 })
   }
 
   @Builder
-  buildOrderInfo() {
+  private buildAmountInfo() {
     Column() {
-      Text('订单信息')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .margin({ bottom: 12 })
+      SectionHeader({
+        title: '退款测算',
+        subtitle: '系统会根据规则自动计算可退金额。'
+      })
 
-      Row() {
-        Text('订单编号')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(this.orderNo)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_primary'))
-      }
-      .width('100%')
-      .margin({ top: 8 })
-
-      Row() {
-        Text('服务名称')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(this.serviceName)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_primary'))
-      }
-      .width('100%')
-      .margin({ top: 8 })
-
-      Row() {
-        Text('订单金额')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(`¥${this.orderAmount.toFixed(2)}`)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor('#FF5722')
-          .fontWeight(FontWeight.Bold)
-      }
-      .width('100%')
-      .margin({ top: 8 })
+      Card({
+        title: '金额说明',
+        subtitle: '当前默认按 10% 扣减手续费进行测算。',
+        content: this.buildAmountInfoContent
+      })
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
   }
 
   @Builder
-  buildAmountInfo() {
+  private buildAmountInfoContent() {
     Column() {
-      Text('退费金额')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .margin({ bottom: 12 })
+      this.buildAmountRow('订单金额', `¥${this.orderAmount.toFixed(2)}`, false)
+      this.buildAmountRow('手续费', `-¥${this.deduction.toFixed(2)}`, true)
 
-      Row() {
-        Text('订单金额')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(`¥${this.orderAmount.toFixed(2)}`)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_primary'))
-      }
-      .width('100%')
-
-      Row() {
-        Text('手续费')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-
-        Text(`-¥${this.deduction.toFixed(2)}`)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor('#FF5722')
-      }
-      .width('100%')
-      .margin({ top: 8 })
-
-      Divider().color('#E0E0E0').margin({ top: 12, bottom: 12 })
+      Divider()
+        .color('#E0E8F2')
+        .margin({ top: 12, bottom: 12 })
 
       Row() {
         Text('可退金额')
@@ -238,50 +226,54 @@ struct ParentRefundPage {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
+        Blank()
+
         Text(`¥${this.refundAmount.toFixed(2)}`)
-          .fontSize(20)
-          .fontColor('#FF5722')
+          .fontSize(24)
           .fontWeight(FontWeight.Bold)
+          .fontColor('#E5484D')
       }
       .width('100%')
 
-      Row() {
-        Image($r('app.media.ic_info'))
-          .width(16)
-          .height(16)
-
-        Text('退费将收取10%手续费')
-          .fontSize(12)
-          .fontColor('#999999')
-          .margin({ left: 4 })
-      }
-      .width('100%')
-      .margin({ top: 8 })
+      Text('提交申请后需等待机构审核，审核通过后将按原路退回。')
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+        .lineHeight(18)
+        .margin({ top: 10 })
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
   }
 
   @Builder
-  buildRefundForm() {
+  private buildRefundForm() {
     Column() {
-      Text('退费信息')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .margin({ bottom: 12 })
+      SectionHeader({
+        title: '退款表单',
+        subtitle: '请尽量描述清楚原因，方便机构快速审核。'
+      })
 
-      Text('退费原因类型')
-        .fontSize($r('app.float.text_secondary_size'))
+      Card({
+        title: '退款原因',
+        subtitle: '选择类型并填写详细说明。',
+        content: this.buildRefundFormContent
+      })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildRefundFormContent() {
+    Column() {
+      Text('原因类型')
+        .width('100%')
+        .fontSize(13)
+        .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 8 })
 
       Column() {
-        ForEach(['STUDENT_TRANSFER', 'SERVICE_QUALITY', 'SCHEDULE_CHANGE', 'PERSONAL_REASON', 'OTHER'], (type: string) => {
+        ForEach(this.getReasonTypes(), (type: string) => {
           Row() {
-            Radio({ value: type, group: 'reasonType' })
+            Radio({ value: type, group: 'refundReasonType' })
               .checked(this.selectedReasonType === type)
               .onChange((isChecked: boolean) => {
                 if (isChecked) {
@@ -289,132 +281,179 @@ struct ParentRefundPage {
                 }
               })
 
-            Text(this.getReasonTypeText(type))
+            Text(this.getRefundLabel(type))
               .fontSize($r('app.float.text_primary_size'))
               .fontColor($r('app.color.text_primary'))
-              .margin({ left: 8 })
+              .margin({ left: 10 })
           }
           .width('100%')
-          .padding({ top: 8, bottom: 8 })
+          .padding({ top: 10, bottom: 10 })
         })
       }
       .width('100%')
+      .margin({ top: 10 })
 
-      Text('退费原因')
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 16 })
-
-      TextArea({ placeholder: '请输入退费原因', text: $$this.reason })
+      Text('退款原因')
         .width('100%')
-        .height(80)
-        .backgroundColor('#F8F8F8')
-        .borderRadius(8)
-        .margin({ top: 8 })
-
-      Text('补充说明（选填）')
-        .fontSize($r('app.float.text_secondary_size'))
+        .fontSize(13)
+        .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 16 })
+        .margin({ top: 12 })
 
-      TextArea({ placeholder: '请输入补充说明', text: $$this.description })
+      TextArea({
+        text: this.reason,
+        placeholder: '请说明退款原因'
+      })
         .width('100%')
-        .height(60)
-        .backgroundColor('#F8F8F8')
-        .borderRadius(8)
+        .height(96)
+        .fontSize(15)
+        .backgroundColor('#F7FAFD')
+        .borderRadius(16)
         .margin({ top: 8 })
+        .padding(12)
+        .onChange((value: string) => {
+          this.reason = value;
+        })
+
+      Text('补充说明')
+        .width('100%')
+        .fontSize(13)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 12 })
+
+      TextArea({
+        text: this.description,
+        placeholder: '选填，可补充服务问题、时间安排等信息'
+      })
+        .width('100%')
+        .height(88)
+        .fontSize(15)
+        .backgroundColor('#F7FAFD')
+        .borderRadius(16)
+        .margin({ top: 8 })
+        .padding(12)
+        .onChange((value: string) => {
+          this.description = value;
+        })
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
     .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
-  buildRefundHistory() {
+  private buildRefundHistory() {
     Column() {
-      Text('退款记录')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .margin({ bottom: 12 })
+      SectionHeader({
+        title: '退款记录',
+        subtitle: '查看当前订单的历史退款申请。'
+      })
 
-      ForEach(this.refundRecords, (record: RefundRecord) => {
-        Row() {
-          Column() {
-            Text(this.getStatusText(record.status))
-              .fontSize($r('app.float.text_primary_size'))
-              .fontWeight(FontWeight.Medium)
-
-            Text(`¥${record.refundAmount.toFixed(2)}`)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 4 })
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-
-          Text(record.appliedAt.substring(0, 10))
-            .fontSize(12)
-            .fontColor('#999999')
-        }
-        .width('100%')
-        .padding({ top: 8, bottom: 8 })
+      Card({
+        title: '历史记录',
+        content: this.buildRefundHistoryContent
       })
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
-  buildSubmitButton() {
+  private buildRefundHistoryContent() {
     Column() {
-      Button('提交退费申请')
+      ForEach(this.refundRecords, (record: RefundRecord) => {
+        Column() {
+          Row() {
+            Text(this.getStatusText(record.status))
+              .fontSize($r('app.float.text_primary_size'))
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+
+            Blank()
+
+            Text(record.appliedAt.substring(0, 10))
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary'))
+          }
+          .width('100%')
+
+          Text(`退款金额：¥${record.refundAmount.toFixed(2)}`)
+            .fontSize(13)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 6 })
+
+          Text(`原因：${record.reason}`)
+            .fontSize(13)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 4 })
+        }
         .width('100%')
-        .height(44)
+        .padding({ top: 12, bottom: 12 })
+
+        Divider()
+          .color('#E0E8F2')
+      })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildAmountRow(label: string, value: string, highlight: boolean) {
+    Row() {
+      Text(label)
+        .fontSize($r('app.float.text_primary_size'))
+        .fontColor($r('app.color.text_secondary'))
+
+      Blank()
+
+      Text(value)
+        .fontSize($r('app.float.text_primary_size'))
+        .fontColor(highlight ? '#D97706' : $r('app.color.text_primary'))
+    }
+    .width('100%')
+    .margin({ top: 8, bottom: 8 })
+  }
+
+  @Builder
+  private buildSubmitBar() {
+    Column() {
+      Button(this.isSubmitting ? '提交中...' : '提交退款申请')
+        .width('100%')
+        .height(46)
         .fontSize(16)
+        .fontWeight(FontWeight.Medium)
         .fontColor(Color.White)
         .backgroundColor($r('app.color.primary'))
-        .borderRadius(22)
+        .borderRadius(18)
         .enabled(this.reason.trim().length > 0 && !this.isSubmitting)
-        .onClick(() => this.submitRefund())
+        .opacity(this.reason.trim().length > 0 && !this.isSubmitting ? 1 : 0.6)
+        .onClick(() => {
+          this.submitRefund();
+        })
 
-      Text('提交后需等待机构审核，审核通过后将在3-5个工作日内退款')
+      Text('审核通过后，预计 1-5 个工作日内完成退款。')
         .fontSize(12)
-        .fontColor('#999999')
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
         .textAlign(TextAlign.Center)
     }
     .width('100%')
-    .padding(16)
+    .padding({ left: 16, right: 16, top: 12, bottom: 18 })
     .backgroundColor(Color.White)
+    .shadow({
+      radius: 10,
+      color: '#10172F14',
+      offsetX: 0,
+      offsetY: -4
+    })
   }
 
-  getReasonTypeText(type: string): string {
-    const texts: Record<string, string> = {
-      'STUDENT_TRANSFER': '学生转学',
-      'SERVICE_QUALITY': '服务质量问题',
-      'SCHEDULE_CHANGE': '时间变动',
-      'PERSONAL_REASON': '个人原因',
-      'OTHER': '其他'
-    };
-    return texts[type] || '其他';
-  }
-
-  getStatusText(status: string): string {
-    const texts: Record<string, string> = {
-      'PENDING': '待审核',
-      'APPROVED': '已批准',
-      'REJECTED': '已拒绝',
-      'PROCESSING': '退款中',
-      'COMPLETED': '已完成',
-      'CANCELLED': '已取消'
-    };
-    return texts[status] || '未知';
+  private getReasonTypes(): string[] {
+    return [
+      RefundReasonType.STUDENT_TRANSFER,
+      RefundReasonType.SERVICE_QUALITY,
+      RefundReasonType.SCHEDULE_CHANGE,
+      RefundReasonType.PERSONAL_REASON,
+      RefundReasonType.OTHER
+    ];
   }
 }

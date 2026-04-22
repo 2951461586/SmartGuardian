@@ -57,6 +57,9 @@ export {
   InfoItem
 } from './Card';
 
+// Section Header
+export { SectionHeader } from './SectionHeader';
+
 // Action Button
 export { ActionButton } from './ActionButton';
 

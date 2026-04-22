@@ -59,7 +59,7 @@ export class ApiConfig {
   }
 
   static getEnvironmentLabel(): string {
-    return ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL ? 'REAL' : 'MOCK';
+    return ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL ? '真实环境' : '模拟演示';
   }
 
   /**

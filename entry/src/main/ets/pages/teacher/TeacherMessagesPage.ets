@@ -72,7 +72,7 @@ export struct TeacherMessagesPage {
     Column() {
       Row() {
         Button({ type: ButtonType.Circle }) {
-          Text('Back')
+          Text('返')
             .fontSize(20)
             .fontColor(Color.White)
         }

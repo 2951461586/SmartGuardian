@@ -6,7 +6,7 @@
 import { AttendanceRecord } from '../../models/attendance';
 import { AttendanceService } from '../../services/api/attendance';
 import { SessionSchedule, SessionService } from '../../services/api/service';
-import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, TabBar } from '../../components/common';
+import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, TabBar, Card, SectionHeader, StatCard } from '../../components/common';
 import { AttendanceBadge } from '../../components/StatusBadge';
 import { formatDate, formatTime } from '../../utils/date';
 import { LogUtil } from '../../utils/LogUtil';
@@ -167,80 +167,84 @@ export struct TeacherAttendancePage {
   @Builder
   buildOverviewPanel() {
     Row() {
-      this.buildOverviewMetric('今日班次', `${this.sessions.length}`, '#4F7CFF', '#EAF2FF')
-      Blank().width(10)
-      this.buildOverviewMetric('已签到', `${this.getSignedCount()}`, '#2F9B52', '#EAF7EC')
-      Blank().width(10)
-      this.buildOverviewMetric('未签到', `${this.getUnsignedCount()}`, '#F2994A', '#FFF4E8')
+      StatCard({
+        value: `${this.sessions.length}`,
+        label: '今日班次',
+        icon: $r('app.media.ic_calendar'),
+        iconColor: '#4F7CFF'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getSignedCount()}`,
+        label: '已签到',
+        icon: $r('app.media.ic_attendance'),
+        iconColor: '#2F9B52'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getUnsignedCount()}`,
+        label: '未签到',
+        icon: $r('app.media.ic_warning'),
+        iconColor: '#F2994A'
+      })
+      .layoutWeight(1)
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12 })
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 6 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  buildSessionSelector() {
+    Card({
+      title: '班次选择',
+      subtitle: '切换不同托管班次，查看对应考勤记录',
+      customPadding: 12,
+      content: this.buildSessionSelectorContent
+    })
+    .margin({ left: 16, right: 16, top: 14 })
   }
 
   @Builder
-  buildSessionSelector() {
+  buildSessionSelectorContent() {
     Column() {
       if (this.sessions.length === 0) {
         Blank()
       } else {
-        Row() {
-          Text('班次选择')
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-        }
-        .width('100%')
-        .margin({ bottom: 10 })
-
-        Row() {
-          TabBar({
-            tabs: this.sessions.map((session: SessionSchedule) => session.serviceProductName ?? '班次'),
-            currentIndex: $currentSessionIndex,
-            onTabChange: (index: number) => this.handleSessionChange(index)
-          })
-        }
+        TabBar({
+          tabs: this.sessions.map((session: SessionSchedule) => session.serviceProductName ?? '班次'),
+          currentIndex: $currentSessionIndex,
+          onTabChange: (index: number) => this.handleSessionChange(index)
+        })
       }
     }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 6 })
   }
 
   @Builder
   buildTabSection() {
-    Column() {
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: (index: number) => {
-          this.currentTab = index;
-        }
-      })
-    }
-    .width('100%')
-    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-    .backgroundColor(Color.White)
-    .borderRadius(18)
+    Card({
+      title: '考勤状态',
+      subtitle: '在全部、已签到、未签到之间快速切换',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  }
+
+  @Builder
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: (index: number) => {
+        this.currentTab = index;
+      }
+    })
   }
 
   @Builder
@@ -269,6 +273,11 @@ export struct TeacherAttendancePage {
   buildAttendanceList() {
     Scroll() {
       Column() {
+        SectionHeader({
+          title: '考勤列表',
+          subtitle: `当前查看：${this.getCurrentTabLabel()}`
+        })
+
         ForEach(this.getFilteredAttendance(), (record: AttendanceRecord) => {
           this.buildAttendanceItem(record)
         })

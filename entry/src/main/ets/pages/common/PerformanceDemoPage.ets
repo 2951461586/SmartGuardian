@@ -258,7 +258,7 @@ struct PerformanceDemoPage {
 
         // 操作按钮
         Column() {
-          Button('GC')
+          Button('回收')
             .fontSize(12)
             .height(28)
             .width(60)

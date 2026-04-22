@@ -1,9 +1,9 @@
 /**
  * SmartGuardian - Admin Student Edit Page
- * Student create/edit placeholder page
+ * Student create/edit form placeholder with unified shell
  */
 
-import { PageHeader, HeaderTheme, Card, EmptyState, EmptyType } from '../../components/common';
+import { Card, EmptyState, EmptyType, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
 
 @Entry
 @Component
@@ -12,7 +12,7 @@ struct AdminStudentEditPage {
     Column() {
       PageHeader({
         title: '学生信息维护',
-        subtitle: '新增与编辑能力待接入正式表单',
+        subtitle: '用于新增学生档案、补充资料和维护监护关系。',
         showBack: true,
         onBackClick: () => this.getUIContext().getRouter().back(),
         theme: HeaderTheme.PRIMARY
@@ -20,18 +20,24 @@ struct AdminStudentEditPage {
 
       Scroll() {
         Column() {
-          Card({
-            title: '功能说明',
-            content: this.buildIntro
+          SectionHeader({
+            title: '表单规划',
+            subtitle: '先把页面壳层和信息层级统一，后续再接真实字段。'
+          })
+
+          InfoCard({
+            items: this.getPlanItems(),
+            columns: 2
           })
 
           Card({
-            title: '当前状态',
+            title: '表单能力待接入',
+            subtitle: '建议按基础信息、班级归属、监护人、健康备注四个分区接入。',
             content: this.buildPlaceholder
           })
         }
         .width('100%')
-        .padding($r('app.float.page_padding'))
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
       }
       .width('100%')
       .layoutWeight(1)
@@ -42,21 +48,21 @@ struct AdminStudentEditPage {
     .backgroundColor($r('app.color.page_background'))
   }
 
-  @Builder
-  buildIntro() {
-    Text('此页面已恢复为可访问入口，后续可在此接入学生新增、编辑、监护人维护等表单能力。')
-      .width('100%')
-      .fontSize($r('app.float.text_primary_size'))
-      .fontColor($r('app.color.text_primary'))
-      .lineHeight(24)
+  private getPlanItems(): InfoItem[] {
+    return [
+      { label: '使用角色', value: '管理员' },
+      { label: '页面类型', value: '表单页' },
+      { label: '状态目标', value: '统一设计系统' },
+      { label: '下一步', value: '接入真实字段' }
+    ];
   }
 
   @Builder
-  buildPlaceholder() {
+  private buildPlaceholder() {
     EmptyState({
       type: EmptyType.DEFAULT,
-      customTitle: '表单能力建设中',
-      customDescription: '当前先保证导航链路可达，避免运行时跳转失败'
+      customTitle: '正式表单待接入',
+      customDescription: '后续可在此接入学生新增、编辑、监护人维护和状态更新等表单逻辑。'
     })
   }
 }

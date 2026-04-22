@@ -3,7 +3,6 @@
  * 关于我们页面
  */
 
-
 @Entry
 @Component
 struct ParentAboutPage {
@@ -11,7 +10,6 @@ struct ParentAboutPage {
 
   build() {
     Column() {
-      // Header
       Row() {
         Image($r('app.media.ic_arrow_left'))
           .width(24)
@@ -33,13 +31,12 @@ struct ParentAboutPage {
       .backgroundColor(Color.White)
 
       Column() {
-        // Logo and name
         Image($r('app.media.ic_logo'))
           .width(100)
           .height(100)
           .margin({ top: 60 })
 
-        Text('SmartGuardian')
+        Text('智慧学生托管系统')
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary'))
@@ -50,9 +47,8 @@ struct ParentAboutPage {
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 8 })
 
-        // Description
         Column() {
-          Text('SmartGuardian 是一款专业的托管服务管理应用，致力于为家长提供便捷、高效的托管服务体验。')
+          Text('智慧学生托管系统是一款专业的托管服务管理应用，致力于为家长提供便捷、高效、安心的托管服务体验。')
             .fontSize($r('app.float.text_primary_size'))
             .fontColor($r('app.color.text_primary'))
             .lineHeight(24)
@@ -61,20 +57,18 @@ struct ParentAboutPage {
         }
         .padding(16)
 
-        // Features
         Column() {
           this.buildFeatureItem('实时考勤', '随时掌握孩子签到签退情况')
           this.buildFeatureItem('作业管理', '及时了解作业完成进度')
-          this.buildFeatureItem('安全接送', '二维码验证确保接送安全')
+          this.buildFeatureItem('安全接送', '通过接送码核验保障接送安全')
           this.buildFeatureItem('消息通知', '重要信息实时推送提醒')
         }
         .width('100%')
         .padding(16)
         .margin({ top: 24 })
 
-        // Footer
         Column() {
-          Text('© 2026 SmartGuardian Team')
+          Text('© 2026 智慧学生托管系统团队')
             .fontSize($r('app.float.text_tiny_size'))
             .fontColor($r('app.color.text_tertiary'))
 

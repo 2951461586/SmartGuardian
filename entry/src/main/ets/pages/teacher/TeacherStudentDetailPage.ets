@@ -1,9 +1,13 @@
 /**
  * SmartGuardian - Teacher Student Detail Page
- * Student detail placeholder page for teacher flow
+ * Student overview for teacher flow
  */
 
-import { PageHeader, HeaderTheme, Card, InfoCard, EmptyState, EmptyType } from '../../components/common';
+import { Card, EmptyState, EmptyType, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
+
+interface TeacherStudentDetailParams {
+  studentId?: number | string;
+}
 
 @Entry
 @Component
@@ -11,8 +15,8 @@ struct TeacherStudentDetailPage {
   @State studentId: string = '--';
 
   aboutToAppear() {
-    const params = this.getUIContext().getRouter().getParams() as Record<string, number | string>;
-    const studentId = params?.studentId;
+    const params = this.getUIContext().getRouter().getParams() as TeacherStudentDetailParams;
+    const studentId = params.studentId;
     this.studentId = studentId ? `${studentId}` : '--';
   }
 
@@ -20,7 +24,7 @@ struct TeacherStudentDetailPage {
     Column() {
       PageHeader({
         title: '学生详情',
-        subtitle: '扫码后查看学生信息与状态',
+        subtitle: '教师可在这里查看学生信息、考勤表现和联系入口。',
         showBack: true,
         onBackClick: () => this.getUIContext().getRouter().back(),
         theme: HeaderTheme.PRIMARY
@@ -28,18 +32,24 @@ struct TeacherStudentDetailPage {
 
       Scroll() {
         Column() {
-          Card({
+          SectionHeader({
             title: '扫码结果',
-            content: this.buildBasicInfo
+            subtitle: '先保证教师端跳转稳定，后续再接完整详情。'
+          })
+
+          InfoCard({
+            items: this.getBasicItems(),
+            columns: 2
           })
 
           Card({
-            title: '后续能力',
+            title: '待接入内容',
+            subtitle: '可继续接入考勤状态、作业记录和家长联系方式。',
             content: this.buildPlaceholder
           })
         }
         .width('100%')
-        .padding($r('app.float.page_padding'))
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
       }
       .width('100%')
       .layoutWeight(1)
@@ -50,22 +60,21 @@ struct TeacherStudentDetailPage {
     .backgroundColor($r('app.color.page_background'))
   }
 
-  @Builder
-  buildBasicInfo() {
-    InfoCard({
-      items: [
-        { label: '学生ID', value: this.studentId },
-        { label: '入口来源', value: '教师扫码/学生二维码' }
-      ]
-    })
+  private getBasicItems(): InfoItem[] {
+    return [
+      { label: '学生编号', value: this.studentId },
+      { label: '入口来源', value: '教师端' },
+      { label: '当前状态', value: '待接入详情' },
+      { label: '使用场景', value: '扫码查看' }
+    ];
   }
 
   @Builder
-  buildPlaceholder() {
+  private buildPlaceholder() {
     EmptyState({
       type: EmptyType.DEFAULT,
-      customTitle: '详情信息待接入',
-      customDescription: '后续可展示学生档案、考勤状态和家长联系信息'
+      customTitle: '教师详情能力待补齐',
+      customDescription: '后续可展示学生档案、考勤状态、作业完成情况和家校联系信息。'
     })
   }
 }

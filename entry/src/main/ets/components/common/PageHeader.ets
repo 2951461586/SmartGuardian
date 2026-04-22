@@ -16,7 +16,7 @@ export struct PageHeader {
   @Prop showBack: boolean = false;
   @Prop theme: HeaderTheme = HeaderTheme.PRIMARY;
   onBackClick?: () => void;
-  @Prop rightIcon?: Resource;
+  @Prop rightIcon: ResourceStr = '';
   onRightIconClick?: () => void;
   @BuilderParam rightContent?: () => void;
 
@@ -157,7 +157,7 @@ export struct GreetingHeader {
   @Prop userName: string = '';
   @Prop greeting: string = '';
   @Prop theme: HeaderTheme = HeaderTheme.PRIMARY;
-  @Prop badgeText: string = 'SmartGuardian';
+  @Prop badgeText: string = '智慧托管';
   @Prop metaText: string = '';
   onRightIconClick?: () => void;
   @BuilderParam rightContent?: () => void;
@@ -174,7 +174,7 @@ export struct GreetingHeader {
             .backgroundColor(this.getAccentBgColor())
             .borderRadius(999)
 
-          Text(`Hello, ${this.userName || 'User'}`)
+          Text(`您好，${this.userName || '用户'}`)
             .fontSize(28)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getTextColor())

@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Login Page
- * User login with account and password
+ * Unified login entrance for parent, teacher and admin roles
  */
 
 import { ApiConfig, ApiEnvironment } from '../config/api.config';
@@ -24,7 +24,7 @@ struct LoginPage {
   @State currentEnv: string = ApiConfig.getCurrentEnv();
   @State apiBaseUrl: string = ApiConfig.getConfiguredBaseUrl();
 
-  privacyDialogController: CustomDialogController = new CustomDialogController({
+  private privacyDialogController: CustomDialogController = new CustomDialogController({
     builder: PrivacyDialog({
       onAgree: () => {
         this.isPrivacyChecked = true;
@@ -32,7 +32,7 @@ struct LoginPage {
       },
       onDisagree: () => {
         this.isPrivacyChecked = false;
-        this.errorMessage = "Please accept the privacy agreement before continuing.";
+        this.errorMessage = '请先同意隐私政策后再继续登录。';
       }
     }),
     autoCancel: false,
@@ -54,7 +54,7 @@ struct LoginPage {
     if (this.currentEnv === ApiEnvironment.TEST_REAL) {
       const normalizedUrl = this.apiBaseUrl.trim();
       if (!normalizedUrl) {
-        this.errorMessage = "Please enter the backend base URL for real integration mode.";
+        this.errorMessage = '真实后端模式下请输入服务地址。';
         return false;
       }
       ApiConfig.applyRuntimeConfig(this.currentEnv, normalizedUrl);
@@ -73,8 +73,8 @@ struct LoginPage {
   }
 
   async handleLogin() {
-    if (!this.username || !this.password) {
-      this.errorMessage = "Please enter both username and password.";
+    if (!this.username.trim() || !this.password.trim()) {
+      this.errorMessage = '请输入账号和密码。';
       return;
     }
 
@@ -92,12 +92,11 @@ struct LoginPage {
 
     try {
       const request: LoginRequest = {
-        username: this.username,
+        username: this.username.trim(),
         password: this.password
       };
 
       LogUtil.info('LoginPage', `Attempting login for user: ${CryptoUtil.encryptSimple(this.username)}`);
-
       const resp = await AuthService.login(request);
 
       if (resp.code === 0 && resp.data) {
@@ -106,12 +105,12 @@ struct LoginPage {
         LogUtil.info('LoginPage', `Login successful for role: ${resp.data.userInfo.roleType}`);
         this.getUIContext().getRouter().replaceUrl({ url: 'pages/MainPage' });
       } else {
-        this.errorMessage = resp.message || "Login failed. Please check the account or service status.";
+        this.errorMessage = resp.message || '登录失败，请检查账号密码或服务状态。';
       }
     } catch (error) {
       this.errorMessage = this.currentEnv === ApiEnvironment.TEST_REAL
-        ? "Real-environment request failed. Check the server URL, network, and account."
-        : "Network request failed. Please try again later.";
+        ? '真实后端请求失败，请检查服务地址、网络和账号配置。'
+        : '网络请求失败，请稍后再试。';
       LogUtil.error('LoginPage', `Login error: ${JSON.stringify(error)}`);
     } finally {
       this.isLoading = false;
@@ -122,15 +121,15 @@ struct LoginPage {
     this.errorMessage = message;
     setTimeout(() => {
       this.errorMessage = '';
-    }, 2000);
+    }, 2200);
   }
 
   build() {
     Scroll() {
       Column() {
         this.buildHeroSection()
-        this.buildLoginCard()
-        this.buildEnvironmentCard()
+        this.buildLoginPanel()
+        this.buildEnvironmentPanel()
       }
       .width('100%')
       .padding({ bottom: 28 })
@@ -142,51 +141,47 @@ struct LoginPage {
   }
 
   @Builder
-  buildHeroSection() {
+  private buildHeroSection() {
     Column() {
-      Row() {
-        Text("Education Operations Console")
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#EAF1FF')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#FFFFFF1F')
-          .borderRadius(999)
-      }
-      .width('100%')
+      Text('统一登录入口')
+        .fontSize(12)
+        .fontWeight(FontWeight.Medium)
+        .fontColor('#EAF1FF')
+        .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+        .backgroundColor('#FFFFFF1F')
+        .borderRadius(999)
 
-      Text("SmartGuardian")
+      Text('智慧学生托管系统')
         .fontSize(34)
         .fontWeight(FontWeight.Bold)
         .fontColor(Color.White)
         .width('100%')
         .margin({ top: 18 })
 
-      Text("A unified workspace for parents, teachers, and administrators.")
+      Text('家长端、教师端与管理端共用同一入口，登录后自动进入对应工作台。')
         .fontSize(15)
-        .fontColor('#E8EEFF')
         .lineHeight(22)
+        .fontColor('#E8EEFF')
         .width('100%')
         .margin({ top: 10 })
 
       Row() {
-        this.buildRoleTag("Parent")
-        this.buildRoleTag("Teacher")
-        this.buildRoleTag("Admin")
+        this.buildRoleTag('家长端')
+        this.buildRoleTag('教师端')
+        this.buildRoleTag('管理端')
       }
       .width('100%')
       .margin({ top: 18 })
 
       Row() {
-        this.buildHeroMetric("3", "Role views")
-        Blank().width(10)
-        this.buildHeroMetric(ApiConfig.getEnvironmentLabel(), "Current mode")
+        this.buildHeroMetric('3', '角色视图')
+        this.buildHeroMetric(ApiConfig.getEnvironmentLabel(), '当前环境')
       }
       .width('100%')
       .margin({ top: 22 })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 72, bottom: 30 })
+    .padding({ left: 20, right: 20, top: 72, bottom: 32 })
     .linearGradient({
       angle: 145,
       colors: [['#2C68FF', 0], ['#1749C7', 0.62], ['#0F2359', 1]]
@@ -196,7 +191,7 @@ struct LoginPage {
   }
 
   @Builder
-  buildRoleTag(label: string) {
+  private buildRoleTag(label: string) {
     Text(label)
       .fontSize(12)
       .fontColor(Color.White)
@@ -207,7 +202,7 @@ struct LoginPage {
   }
 
   @Builder
-  buildHeroMetric(value: string, label: string) {
+  private buildHeroMetric(value: string, label: string) {
     Column() {
       Text(value)
         .fontSize(24)
@@ -224,19 +219,20 @@ struct LoginPage {
     .backgroundColor('#FFFFFF14')
     .borderRadius(20)
     .alignItems(HorizontalAlign.Start)
+    .margin({ right: label === '角色视图' ? 10 : 0 })
   }
 
   @Builder
-  buildLoginCard() {
+  private buildLoginPanel() {
     Column() {
       Row() {
         Column() {
-          Text("Sign in")
+          Text('账号登录')
             .fontSize(24)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
 
-          Text("Enter your account credentials to open the matching workspace.")
+          Text('输入账号信息，进入对应角色的业务工作台。')
             .fontSize(14)
             .fontColor($r('app.color.text_secondary'))
             .margin({ top: 8 })
@@ -255,8 +251,8 @@ struct LoginPage {
       .width('100%')
       .alignItems(VerticalAlign.Top)
 
-      this.buildInputRow($r('app.media.ic_user'), "Enter username", this.username, false)
-      this.buildInputRow($r('app.media.ic_lock'), "Enter password", this.password, true)
+      this.buildInputRow($r('app.media.ic_user'), '请输入账号', this.username, false)
+      this.buildInputRow($r('app.media.ic_lock'), '请输入密码', this.password, true)
 
       Row() {
         Checkbox()
@@ -272,12 +268,12 @@ struct LoginPage {
             }
           })
 
-        Text("I have read and agree to")
+        Text('我已阅读并同意')
           .fontSize(12)
           .fontColor($r('app.color.text_secondary'))
           .margin({ left: 8 })
 
-        Text(" Privacy Policy")
+        Text('《隐私政策》')
           .fontSize(12)
           .fontColor($r('app.color.primary'))
           .onClick(() => this.privacyDialogController.open())
@@ -305,7 +301,7 @@ struct LoginPage {
         .margin({ top: 18 })
       }
 
-      Button(this.isLoading ? "Signing in..." : "Open workspace")
+      Button(this.isLoading ? '登录中...' : '进入系统')
         .width('100%')
         .height(52)
         .fontSize(16)
@@ -321,17 +317,17 @@ struct LoginPage {
         })
 
       Row() {
-        Text("Forgot password")
+        Text('忘记密码')
           .fontSize(13)
           .fontColor($r('app.color.text_secondary'))
-          .onClick(() => this.showTempMessage("Connect the password reset flow during real integration."))
+          .onClick(() => this.showTempMessage('当前版本暂未接入密码重置流程。'))
 
         Blank()
 
-        Text("Contact admin")
+        Text('联系管理员')
           .fontSize(13)
           .fontColor($r('app.color.primary'))
-          .onClick(() => this.showTempMessage("Please contact the system administrator for account help."))
+          .onClick(() => this.showTempMessage('如需账号协助，请联系平台管理员。'))
       }
       .width('100%')
       .margin({ top: 18 })
@@ -356,7 +352,7 @@ struct LoginPage {
   }
 
   @Builder
-  buildInputRow(icon: Resource, placeholder: string, value: string, isPassword: boolean) {
+  private buildInputRow(icon: Resource, placeholder: string, value: string, isPassword: boolean) {
     Column() {
       Row() {
         Image(icon)
@@ -404,15 +400,15 @@ struct LoginPage {
   }
 
   @Builder
-  buildEnvironmentCard() {
+  private buildEnvironmentPanel() {
     Column() {
-      Text("Integration settings")
+      Text('联调设置')
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .width('100%')
 
-      Text("Default mode uses mock data. Switch to real mode to connect the Spring Boot backend on port 8080.")
+      Text('默认使用模拟数据；切换到真实后端后，可连接部署在 8080 端口的服务。')
         .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .lineHeight(20)
@@ -420,8 +416,8 @@ struct LoginPage {
         .margin({ top: 8 })
 
       Row() {
-        this.buildEnvChip("Mock demo", ApiEnvironment.DEV_MOCK)
-        this.buildEnvChip("Real backend", ApiEnvironment.TEST_REAL)
+        this.buildEnvChip('模拟演示', ApiEnvironment.DEV_MOCK)
+        this.buildEnvChip('真实后端', ApiEnvironment.TEST_REAL)
       }
       .width('100%')
       .margin({ top: 16 })
@@ -429,7 +425,7 @@ struct LoginPage {
       if (this.currentEnv === ApiEnvironment.TEST_REAL) {
         Column() {
           TextInput({
-            placeholder: "Backend URL, for example http://10.0.2.2:8080",
+            placeholder: '请输入后端服务地址',
             text: this.apiBaseUrl
           })
             .fontSize(15)
@@ -441,7 +437,7 @@ struct LoginPage {
               this.apiBaseUrl = value;
             })
 
-          Button("Save backend URL")
+          Button('保存服务地址')
             .width('100%')
             .height(46)
             .fontSize(15)
@@ -452,7 +448,7 @@ struct LoginPage {
             .margin({ top: 12 })
             .onClick(() => {
               if (this.persistApiConfig()) {
-                this.showTempMessage("Integration settings saved.");
+                this.showTempMessage('联调配置已保存。');
               }
             })
         }
@@ -461,11 +457,11 @@ struct LoginPage {
       }
 
       Column() {
-        Text("Demo account: 13800000000")
+        Text('演示账号：13800000000')
           .fontSize(13)
           .fontColor($r('app.color.text_secondary'))
 
-        Text("Demo password: 123456")
+        Text('演示密码：123456')
           .fontSize(13)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
@@ -498,7 +494,7 @@ struct LoginPage {
   }
 
   @Builder
-  buildEnvChip(label: string, env: string) {
+  private buildEnvChip(label: string, env: string) {
     Text(label)
       .fontSize(13)
       .fontWeight(this.currentEnv === env ? FontWeight.Medium : FontWeight.Regular)

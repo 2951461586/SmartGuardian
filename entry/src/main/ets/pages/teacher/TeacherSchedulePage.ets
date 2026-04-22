@@ -17,7 +17,7 @@ interface ScheduleItem {
   endTime: string;
   location: string;
   studentCount: number;
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: string;
 }
 
 @Entry
@@ -79,8 +79,15 @@ export struct TeacherSchedulePage {
       endTime: session.endTime,
       location: session.location ?? 'unset',
       studentCount: session.currentCount ?? 0,
-      status: (session.status ?? 'SCHEDULED') as ScheduleItem['status']
+      status: this.normalizeStatus(session.status)
     };
+  }
+
+  private normalizeStatus(status?: string): string {
+    if (status === 'IN_PROGRESS' || status === 'COMPLETED' || status === 'CANCELLED') {
+      return status;
+    }
+    return 'SCHEDULED';
   }
 
   private formatDate(date: Date): string {

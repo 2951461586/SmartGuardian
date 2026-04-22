@@ -1,8 +1,9 @@
 /**
  * SmartGuardian - Parent Order Detail Page
- * View order details, payment status, and perform actions
+ * View order details, payment progress and follow-up actions
  */
 
+import { Card, EmptyState, EmptyType, HeaderTheme, InfoCard, InfoItem, LoadingSize, LoadingState, PageHeader, SectionHeader } from '../../components/common';
 import { Order } from '../../models/service';
 import { OrderService as OrderAPIService } from '../../services/api/service';
 import { OrderStore } from '../../stores/orderStore';
@@ -58,7 +59,7 @@ struct ParentOrderDetailPage {
     }
   }
 
-  getPayAmount(): number {
+  private getPayAmount(): number {
     if (!this.orderDetail) {
       return 0;
     }
@@ -71,7 +72,7 @@ struct ParentOrderDetailPage {
     return this.orderDetail.amount || 0;
   }
 
-  getServiceAmount(): number {
+  private getServiceAmount(): number {
     if (!this.orderDetail) {
       return 0;
     }
@@ -81,7 +82,7 @@ struct ParentOrderDetailPage {
     return this.orderDetail.amount || 0;
   }
 
-  handlePay() {
+  private handlePay() {
     if (!this.orderDetail) {
       return;
     }
@@ -98,58 +99,135 @@ struct ParentOrderDetailPage {
     }
   }
 
-  handleCancel() {
+  private handleCancel() {
     console.log('Cancel order');
   }
 
-  getStatusText(status: string): string {
-    const statusMap: Record<string, string> = {
-      'PENDING': '待审核',
-      'APPROVED': '已审核',
-      'REJECTED': '已拒绝',
-      'CANCELLED': '已取消',
-      'COMPLETED': '已完成',
-      'REFUNDED': '已退款'
-    };
-    return statusMap[status] || status;
+  private getStatusText(status: string): string {
+    switch (status) {
+      case 'PENDING':
+        return '待审核';
+      case 'APPROVED':
+        return '待支付';
+      case 'REJECTED':
+        return '已驳回';
+      case 'CANCELLED':
+        return '已取消';
+      case 'COMPLETED':
+        return '已完成';
+      case 'REFUNDED':
+        return '已退款';
+      default:
+        return status || '未知状态';
+    }
   }
 
-  getStatusColor(status: string): string {
-    const colorMap: Record<string, string> = {
-      'PENDING': '#FF9800',
-      'APPROVED': '#4CAF50',
-      'REJECTED': '#F44336',
-      'CANCELLED': '#9E9E9E',
-      'COMPLETED': '#2196F3',
-      'REFUNDED': '#9E9E9E'
-    };
-    return colorMap[status] || '#666666';
+  private getStatusColor(status: string): string {
+    switch (status) {
+      case 'PENDING':
+        return '#D97706';
+      case 'APPROVED':
+        return '#1F5EFF';
+      case 'REJECTED':
+        return '#E5484D';
+      case 'CANCELLED':
+      case 'REFUNDED':
+        return '#7A879A';
+      case 'COMPLETED':
+        return '#15803D';
+      default:
+        return '#5B6678';
+    }
+  }
+
+  private getStatusHint(): string {
+    const status = this.orderDetail?.orderStatus || 'PENDING';
+    if (status === 'PENDING') {
+      return '订单已提交，等待机构审核。';
+    }
+    if (status === 'APPROVED' && this.orderDetail?.payStatus === 'UNPAID') {
+      return '审核已通过，请尽快完成支付。';
+    }
+    if (status === 'REJECTED') {
+      return this.orderDetail?.auditRemark || '订单未通过审核，请联系机构处理。';
+    }
+    if (status === 'COMPLETED') {
+      return '当前订单已履约完成，可查看相关服务记录。';
+    }
+    return '可在此查看订单状态、金额和服务周期。';
+  }
+
+  private getOrderInfoItems(): InfoItem[] {
+    return [
+      { label: '订单编号', value: this.orderDetail?.orderNo || '--' },
+      { label: '下单时间', value: this.orderDetail?.createdAt || '--' },
+      { label: '订单状态', value: this.getStatusText(this.orderDetail?.orderStatus || ''), valueColor: this.getStatusColor(this.orderDetail?.orderStatus || '') },
+      { label: '支付状态', value: this.getPayStatusText(this.orderDetail?.payStatus || '') }
+    ];
+  }
+
+  private getServiceInfoItems(): InfoItem[] {
+    return [
+      { label: '服务名称', value: this.orderDetail?.serviceProductName || '--' },
+      { label: '学生姓名', value: this.orderDetail?.studentName || '--' },
+      { label: '开始日期', value: this.orderDetail?.startDate || '--' },
+      { label: '结束日期', value: this.orderDetail?.endDate || '--' }
+    ];
+  }
+
+  private getPayStatusText(status: string): string {
+    if (status === 'PAID') {
+      return '已支付';
+    }
+    if (status === 'PARTIAL') {
+      return '部分支付';
+    }
+    if (status === 'UNPAID') {
+      return '未支付';
+    }
+    return status || '--';
   }
 
   build() {
     Column() {
-      this.buildHeader()
+      PageHeader({
+        title: '订单详情',
+        subtitle: '查看审核进度、服务周期与支付信息。',
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        theme: HeaderTheme.PRIMARY
+      })
 
       if (this.isLoading) {
-        this.buildLoading()
-      } else if (this.orderDetail) {
+        LoadingState({
+          loadingSize: LoadingSize.LARGE,
+          fullscreen: false
+        })
+      } else if (!this.orderDetail) {
+        EmptyState({
+          type: EmptyType.NO_ORDER,
+          customTitle: '未找到订单信息',
+          customDescription: '订单可能已失效，请返回列表重新查看。',
+          actionText: '返回上一页',
+          onAction: () => {
+            this.getUIContext().getRouter().back();
+          }
+        })
+      } else {
         Scroll() {
           Column() {
             this.buildStatusCard()
-            this.buildOrderInfo()
-            this.buildStudentInfo()
-            this.buildAmountInfo()
+            this.buildOrderSummary()
+            this.buildAmountPanel()
           }
           .width('100%')
-          .padding($r('app.float.page_padding'))
-          .padding({ bottom: 100 })
+          .padding({ left: 16, right: 16, top: 16, bottom: 120 })
         }
         .width('100%')
         .layoutWeight(1)
+        .scrollBar(BarState.Off)
 
         this.buildBottomBar()
-      } else {
-        this.buildEmpty()
       }
     }
     .width('100%')
@@ -158,138 +236,88 @@ struct ParentOrderDetailPage {
   }
 
   @Builder
-  buildHeader() {
-    Row() {
-      Image($r('app.media.ic_arrow_left'))
-        .width($r('app.float.icon_large_size'))
-        .height($r('app.float.icon_large_size'))
-        .onClick(() => this.getUIContext().getRouter().back())
+  private buildStatusCard() {
+    Card({
+      title: '当前进度',
+      subtitle: this.getStatusHint(),
+      content: this.buildStatusCardContent
+    })
+  }
 
-      Text('订单详情')
-        .fontSize($r('app.float.page_title_size'))
+  @Builder
+  private buildStatusCardContent() {
+    Column() {
+      Text(this.getStatusText(this.orderDetail?.orderStatus || ''))
+        .fontSize(28)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .layoutWeight(1)
-        .textAlign(TextAlign.Center)
+        .fontColor(this.getStatusColor(this.orderDetail?.orderStatus || ''))
 
-      Blank()
-        .width($r('app.float.icon_large_size'))
-    }
-    .width('100%')
-    .padding($r('app.float.page_padding'))
-    .backgroundColor($r('app.color.primary'))
-    .padding({ top: Number($r('app.float.status_bar_height')) + 10 })
-  }
-
-  @Builder
-  buildLoading() {
-    Column() {
-      LoadingProgress()
-        .width(50)
-        .height(50)
-        .color($r('app.color.primary'))
-      Text('加载中...')
-        .fontSize($r('app.float.text_secondary_size'))
+      Text(`应付金额：¥${this.getPayAmount().toFixed(2)}`)
+        .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 16 })
+        .margin({ top: 8 })
     }
     .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
-  buildEmpty() {
+  private buildOrderSummary() {
     Column() {
-      Text('订单不存在')
-        .fontSize($r('app.float.text_primary_size'))
-        .fontColor($r('app.color.text_secondary'))
+      SectionHeader({
+        title: '订单信息',
+        subtitle: '统一查看订单编号、服务周期和学生信息。'
+      })
+
+      InfoCard({
+        items: this.getOrderInfoItems(),
+        columns: 2
+      })
+
+      Card({
+        title: '服务信息',
+        content: this.buildServiceInfo
+      })
     }
     .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
   }
 
   @Builder
-  buildStatusCard() {
-    Column() {
-      Text(this.getStatusText(this.orderDetail?.orderStatus || 'PENDING'))
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.getStatusColor(this.orderDetail?.orderStatus || 'PENDING'))
-
-      if (this.orderDetail?.orderStatus === 'PENDING') {
-        Text('请等待机构审核')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-      } else if (this.orderDetail?.orderStatus === 'APPROVED') {
-        Text('请在24小时内完成支付')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor('#FF5722')
-          .margin({ top: 8 })
-      }
-    }
-    .width('100%')
-    .padding(24)
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
+  private buildServiceInfo() {
+    InfoCard({
+      items: this.getServiceInfoItems(),
+      columns: 2
+    })
   }
 
   @Builder
-  buildOrderInfo() {
+  private buildAmountPanel() {
     Column() {
-      Text('订单信息')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ bottom: 12 })
+      SectionHeader({
+        title: '金额明细',
+        subtitle: '包含服务金额、优惠金额和最终应付金额。'
+      })
 
-      this.buildInfoRow('订单编号', this.orderDetail?.orderNo || '')
-      this.buildInfoRow('服务名称', this.orderDetail?.serviceProductName || '')
-      this.buildInfoRow('下单时间', this.orderDetail?.createdAt || '')
+      Card({
+        title: '费用结算',
+        content: this.buildAmountInfo
+      })
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
   }
 
   @Builder
-  buildStudentInfo() {
+  private buildAmountInfo() {
     Column() {
-      Text('学生信息')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ bottom: 12 })
+      this.buildAmountRow('服务费用', `¥${this.getServiceAmount().toFixed(2)}`, false)
 
-      this.buildInfoRow('学生姓名', this.orderDetail?.studentName || '')
-      this.buildInfoRow('服务日期', `${this.orderDetail?.startDate || ''} 至 ${this.orderDetail?.endDate || ''}`)
-    }
-    .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
-  }
-
-  @Builder
-  buildAmountInfo() {
-    Column() {
-      Text('金额信息')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ bottom: 12 })
-
-      this.buildInfoRow('服务费用', `¥${this.getServiceAmount().toFixed(2)}`)
       if ((this.orderDetail?.discountAmount || 0) > 0) {
-        this.buildInfoRow('优惠金额', `-¥${(this.orderDetail?.discountAmount || 0).toFixed(2)}`, '#FF5722')
+        this.buildAmountRow('优惠金额', `-¥${(this.orderDetail?.discountAmount || 0).toFixed(2)}`, true)
       }
 
-      Divider().color('#E0E0E0').margin({ top: 12, bottom: 12 })
+      Divider()
+        .color('#E0E8F2')
+        .margin({ top: 12, bottom: 12 })
 
       Row() {
         Text('应付金额')
@@ -297,74 +325,69 @@ struct ParentOrderDetailPage {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
-        Row() {
-          Text('¥')
-            .fontSize($r('app.float.text_primary_size'))
-            .fontColor('#F44336')
-            .fontWeight(FontWeight.Bold)
+        Blank()
 
-          Text(this.getPayAmount().toFixed(2))
-            .fontSize(24)
-            .fontColor('#F44336')
-            .fontWeight(FontWeight.Bold)
-        }
+        Text(`¥${this.getPayAmount().toFixed(2)}`)
+          .fontSize(26)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#E5484D')
       }
       .width('100%')
+      .alignItems(VerticalAlign.Center)
     }
     .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ top: 12 })
   }
 
   @Builder
-  buildInfoRow(label: string, value: string, valueColor?: string) {
+  private buildAmountRow(label: string, value: string, highlight: boolean) {
     Row() {
       Text(label)
         .fontSize($r('app.float.text_primary_size'))
         .fontColor($r('app.color.text_secondary'))
 
+      Blank()
+
       Text(value)
         .fontSize($r('app.float.text_primary_size'))
-        .fontColor(valueColor || $r('app.color.text_primary'))
-        .layoutWeight(1)
-        .textAlign(TextAlign.End)
+        .fontColor(highlight ? '#D97706' : $r('app.color.text_primary'))
     }
     .width('100%')
     .margin({ top: 8, bottom: 8 })
   }
 
   @Builder
-  buildBottomBar() {
+  private buildBottomBar() {
     Row() {
       if (this.orderDetail?.orderStatus === 'APPROVED' && this.orderDetail?.payStatus === 'UNPAID') {
         Button('立即支付')
           .width('100%')
-          .height(44)
-          .fontSize($r('app.float.text_primary_size'))
+          .height(46)
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
           .fontColor(Color.White)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(22)
+          .borderRadius(18)
           .onClick(() => this.handlePay())
       } else if (this.orderDetail?.orderStatus === 'PENDING') {
         Button('取消订单')
           .width('100%')
-          .height(44)
-          .fontSize($r('app.float.text_primary_size'))
+          .height(46)
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor('#F5F5F5')
-          .borderRadius(22)
+          .backgroundColor('#F2F5F8')
+          .borderRadius(18)
           .onClick(() => this.handleCancel())
       }
     }
     .width('100%')
-    .padding(16)
+    .padding({ left: 16, right: 16, top: 12, bottom: 18 })
     .backgroundColor(Color.White)
     .shadow({
       radius: 10,
-      color: '#1A000000',
-      offsetY: -2
+      color: '#10172F14',
+      offsetX: 0,
+      offsetY: -4
     })
   }
 }

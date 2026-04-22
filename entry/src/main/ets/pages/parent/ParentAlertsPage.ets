@@ -43,11 +43,11 @@ struct ParentAlertsPage {
       if (resp.code === 0 && resp.data) {
         this.statistics = resp.data;
       } else {
-        this.statistics = this.getEmptyStatistics();
+        this.statistics = null;
       }
     } catch (error) {
       console.error('Failed to load statistics:', String(error));
-      this.statistics = this.getEmptyStatistics();
+      this.statistics = null;
     }
   }
 
@@ -309,7 +309,7 @@ struct ParentAlertsPage {
               }
             })
 
-          Button('已知晓')
+          Button('已知悉')
             .fontSize(14)
             .fontColor(Color.White)
             .backgroundColor($r('app.color.primary'))
@@ -346,35 +346,52 @@ struct ParentAlertsPage {
   }
 
   getSeverityText(severity: string): string {
-    const texts: Record<string, string> = {
-      LOW: '低',
-      MEDIUM: '中',
-      HIGH: '高',
-      CRITICAL: '紧急'
-    };
-    return texts[severity] || '未知';
+    switch (severity) {
+      case 'LOW':
+        return '低';
+      case 'MEDIUM':
+        return '中';
+      case 'HIGH':
+        return '高';
+      case 'CRITICAL':
+        return '紧急';
+      default:
+        return '未知';
+    }
   }
 
   getSeverityColor(severity: string): string {
-    const colors: Record<string, string> = {
-      LOW: '#4CAF50',
-      MEDIUM: '#FF9800',
-      HIGH: '#FF5722',
-      CRITICAL: '#D32F2F'
-    };
-    return colors[severity] || '#9E9E9E';
+    switch (severity) {
+      case 'LOW':
+        return '#4CAF50';
+      case 'MEDIUM':
+        return '#FF9800';
+      case 'HIGH':
+        return '#FF5722';
+      case 'CRITICAL':
+        return '#D32F2F';
+      default:
+        return '#9E9E9E';
+    }
   }
 
   getAlertTypeText(type: string): string {
-    const texts: Record<string, string> = {
-      ATTENDANCE_ANOMALY: '考勤异常',
-      SAFETY_CONCERN: '安全隐患',
-      ACADEMIC_PERFORMANCE: '学业表现',
-      BEHAVIORAL_ISSUE: '行为问题',
-      FEE_DUE: '费用到期',
-      SYSTEM: '系统提醒'
-    };
-    return texts[type] || '其他';
+    switch (type) {
+      case 'ATTENDANCE_ANOMALY':
+        return '考勤异常';
+      case 'SAFETY_CONCERN':
+        return '安全隐患';
+      case 'ACADEMIC_PERFORMANCE':
+        return '学业表现';
+      case 'BEHAVIORAL_ISSUE':
+        return '行为问题';
+      case 'FEE_DUE':
+        return '费用到期';
+      case 'SYSTEM':
+        return '系统提醒';
+      default:
+        return '其他';
+    }
   }
 
   formatTime(time: string): string {
@@ -393,16 +410,5 @@ struct ParentAlertsPage {
       return `${hours}小时前`;
     }
     return time.substring(0, 10);
-  }
-
-  private getEmptyStatistics(): AlertStatistics {
-    return {
-      total: this.alerts.length,
-      active: 0,
-      acknowledged: 0,
-      resolved: 0,
-      byType: {},
-      bySeverity: {}
-    };
   }
 }

@@ -21,7 +21,10 @@ import {
   EmptyType,
   LoadingSize,
   OrderListItem,
-  OrderItemMode
+  OrderItemMode,
+  SectionHeader,
+  Card,
+  StatCard
 } from '../../components/common';
 
 @Component
@@ -155,7 +158,7 @@ export struct ParentOrdersPage {
     Column() {
       PageHeader({
         title: '我的订单',
-        subtitle: '管理报名、支付与服务进度',
+        subtitle: '集中管理报名、支付与托管服务进度',
         theme: HeaderTheme.WHITE
       })
 
@@ -171,52 +174,58 @@ export struct ParentOrdersPage {
   @Builder
   buildOverviewPanel() {
     Row() {
-      this.buildOverviewMetric('当前列表', `${this.orders.length}`, '#4F7CFF', '#EAF2FF')
-      Blank().width(10)
-      this.buildOverviewMetric('待审核', `${this.getPendingCount()}`, '#F2994A', '#FFF4E8')
-      Blank().width(10)
-      this.buildOverviewMetric('待支付', `${this.getPayableCount()}`, '#2F9B52', '#EAF7EC')
+      StatCard({
+        value: `${this.orders.length}`,
+        label: '当前列表',
+        icon: $r('app.media.ic_order'),
+        iconColor: '#4F7CFF'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getPendingCount()}`,
+        label: '待审核',
+        icon: $r('app.media.ic_warning'),
+        iconColor: '#F2994A'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getPayableCount()}`,
+        label: '待支付',
+        icon: $r('app.media.ic_money'),
+        iconColor: '#2F9B52'
+      })
+      .layoutWeight(1)
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12 })
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 6 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  buildTabSection() {
+    Card({
+      title: '订单筛选',
+      subtitle: '按状态切换当前工作视图',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
+    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
 
   @Builder
-  buildTabSection() {
-    Column() {
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: () => {
-          this.loadOrders();
-        }
-      })
-    }
-    .width('100%')
-    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-    .backgroundColor(Color.White)
-    .borderRadius(18)
-    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: () => {
+        this.loadOrders();
+      }
+    })
   }
 
   @Builder
@@ -245,6 +254,11 @@ export struct ParentOrdersPage {
   buildOrderList() {
     Scroll() {
       Column() {
+        SectionHeader({
+          title: '订单列表',
+          subtitle: '支持查看详情与处理待支付订单'
+        })
+
         ForEach(this.orders, (order: Order) => {
           Column() {
             OrderListItem({

@@ -7,7 +7,7 @@ import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
-import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem } from '../../components/common';
+import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem, Card, SectionHeader, StatCard } from '../../components/common';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
@@ -210,7 +210,7 @@ export struct ParentMessagesPage {
     Column() {
       PageHeader({
         title: '消息中心',
-        subtitle: '跟进系统通知、考勤提醒与作业反馈',
+        subtitle: '集中处理系统通知、考勤提醒与作业反馈',
         theme: HeaderTheme.WHITE
       }) {
         if (this.unreadCount > 0) {
@@ -237,50 +237,56 @@ export struct ParentMessagesPage {
   @Builder
   buildOverviewPanel() {
     Row() {
-      this.buildOverviewMetric('全部消息', `${this.getTotalCount()}`, '#4F7CFF', '#EAF2FF')
-      Blank().width(10)
-      this.buildOverviewMetric('未读消息', `${this.getUnreadStatCount()}`, '#F2994A', '#FFF4E8')
-      Blank().width(10)
-      this.buildOverviewMetric(this.getCurrentTabLabel(), `${this.getCurrentTabCount()}`, '#2F9B52', '#EAF7EC')
+      StatCard({
+        value: `${this.getTotalCount()}`,
+        label: '全部消息',
+        icon: $r('app.media.ic_message'),
+        iconColor: '#4F7CFF'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getUnreadStatCount()}`,
+        label: '未读消息',
+        icon: $r('app.media.ic_notification'),
+        iconColor: '#F2994A'
+      })
+      .layoutWeight(1)
+
+      Blank().width(12)
+
+      StatCard({
+        value: `${this.getCurrentTabCount()}`,
+        label: this.getCurrentTabLabel(),
+        icon: $r('app.media.ic_home'),
+        iconColor: '#2F9B52'
+      })
+      .layoutWeight(1)
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12 })
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 6 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  buildTabSection() {
+    Card({
+      title: '消息分组',
+      subtitle: '按业务类型快速聚焦当前需要处理的消息',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
+    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
 
   @Builder
-  buildTabSection() {
-    Column() {
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: (index: number) => this.handleTabChange(index)
-      })
-    }
-    .width('100%')
-    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-    .backgroundColor(Color.White)
-    .borderRadius(18)
-    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: (index: number) => this.handleTabChange(index)
+    })
   }
 
   @Builder
@@ -310,6 +316,11 @@ export struct ParentMessagesPage {
   buildMessageList() {
     Scroll() {
       Column() {
+        SectionHeader({
+          title: '消息列表',
+          subtitle: '点开可查看详情，也可直接标记已读'
+        })
+
         ForEach(this.filteredMessages, (message: MessageRecord) => {
           MessageListItem({
             message: message,

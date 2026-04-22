@@ -11,6 +11,7 @@ import {
   Card,
   ActionButton,
   StatCard,
+  SectionHeader,
   EmptyState,
   EmptyType
 } from '../../components/common';
@@ -64,13 +65,17 @@ export struct AdminHomePage {
     this.errorMessage = '';
 
     try {
-      const [studentsResp, attendanceResp, ordersResp, messagesResp, financeResp] = await Promise.all([
-        StudentService.getStudents({ pageNum: 1, pageSize: 1 }),
-        ReportsService.getAttendanceReport(),
-        OrderService.getOrders({ pageNum: 1, pageSize: 200, orderStatus: 'PENDING' }),
-        MessageService.getUnreadCount(),
-        ReportsService.getFinanceReport()
-      ]);
+      const studentsPromise = StudentService.getStudents({ pageNum: 1, pageSize: 1 });
+      const attendancePromise = ReportsService.getAttendanceReport();
+      const ordersPromise = OrderService.getOrders({ pageNum: 1, pageSize: 200, orderStatus: 'PENDING' });
+      const messagesPromise = MessageService.getUnreadCount();
+      const financePromise = ReportsService.getFinanceReport();
+
+      const studentsResp = await studentsPromise;
+      const attendanceResp = await attendancePromise;
+      const ordersResp = await ordersPromise;
+      const messagesResp = await messagesPromise;
+      const financeResp = await financePromise;
 
       const totalStudents = studentsResp.code === 0 && studentsResp.data ? studentsResp.data.total : 0;
       const presentStudents = attendanceResp.code === 0 && attendanceResp.data ? attendanceResp.data.presentCount : 0;
@@ -91,9 +96,9 @@ export struct AdminHomePage {
       };
 
       this.recentActivities = [
-        { title: 'Student scale', content: `The system currently tracks ${totalStudents} students.`, time: 'Live' },
-        { title: 'Pending orders', content: `${pendingOrders} orders still need review or follow-up.`, time: 'Live' },
-        { title: 'Message alerts', content: `${unreadMessages} notifications remain unread in the console.`, time: 'Live' }
+        { title: '学生规模', content: `系统当前共管理 ${totalStudents} 名学生。`, time: '实时' },
+        { title: '待处理订单', content: `还有 ${pendingOrders} 笔订单待审核或跟进。`, time: '实时' },
+        { title: '消息提醒', content: `当前工作台还有 ${unreadMessages} 条未读通知。`, time: '实时' }
       ];
     } catch (error) {
       this.stats = {
@@ -115,10 +120,10 @@ export struct AdminHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: 'Track students, order flow, and operating indicators from one management cockpit.',
+        greeting: '集中查看学生、订单流转和经营指标。',
         theme: HeaderTheme.WHITE,
-        badgeText: 'Admin cockpit',
-        metaText: `Attendance rate today: ${this.stats.attendanceRate}%`,
+        badgeText: '管理驾驶舱',
+        metaText: `今日出勤率：${this.stats.attendanceRate}%`,
         onRightIconClick: () => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
         }
@@ -194,16 +199,44 @@ export struct AdminHomePage {
   buildOverviewPanel() {
     Column() {
       Row() {
-        this.buildOverviewMetric('Students', `${this.stats.totalStudents}`, '#1F5EFF', '#EDF4FF')
-        Blank().width(10)
-        this.buildOverviewMetric('Present today', `${this.stats.presentStudents}`, '#16A34A', '#ECFDF5')
+        StatCard({
+          value: `${this.stats.totalStudents}`,
+          label: '学生总数',
+          icon: $r('app.media.ic_user'),
+          iconColor: '#1F5EFF'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: `${this.stats.presentStudents}`,
+          label: '今日到校',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#16A34A'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
 
       Row() {
-        this.buildOverviewMetric('Pending orders', `${this.stats.pendingOrders}`, '#F59E0B', '#FFF7E8')
-        Blank().width(10)
-        this.buildOverviewMetric('Unread alerts', `${this.stats.unreadMessages}`, '#8B5CF6', '#F5F0FF')
+        StatCard({
+          value: `${this.stats.pendingOrders}`,
+          label: '待处理订单',
+          icon: $r('app.media.ic_order'),
+          iconColor: '#F59E0B'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: `${this.stats.unreadMessages}`,
+          label: '未读提醒',
+          icon: $r('app.media.ic_message'),
+          iconColor: '#8B5CF6'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
@@ -235,16 +268,14 @@ export struct AdminHomePage {
   @Builder
   buildQuickActions() {
     Column() {
-      Text('Quick entries')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .width('100%')
-        .margin({ bottom: 10 })
+      SectionHeader({
+        title: '快捷入口',
+        subtitle: '把核心运营操作收拢到一个工作台'
+      })
 
       Row() {
         ActionButton({
-          label: 'Students',
+          label: '学生档案',
           icon: $r('app.media.ic_user'),
           bgColor: '#F5F0FF',
           iconColor: '#8B5CF6',
@@ -256,7 +287,7 @@ export struct AdminHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Messages',
+          label: '消息中心',
           icon: $r('app.media.ic_message'),
           bgColor: '#EDF4FF',
           iconColor: '#1F5EFF',
@@ -269,7 +300,7 @@ export struct AdminHomePage {
 
       Row() {
         ActionButton({
-          label: 'Order review',
+          label: '订单审核',
           icon: $r('app.media.ic_order'),
           bgColor: '#FFF7E8',
           iconColor: '#F59E0B',
@@ -281,7 +312,7 @@ export struct AdminHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Reports',
+          label: '统计报表',
           icon: $r('app.media.ic_report'),
           bgColor: '#ECFDF5',
           iconColor: '#16A34A',
@@ -300,8 +331,8 @@ export struct AdminHomePage {
   @Builder
   buildStatsSection() {
     Card({
-      title: 'Operating snapshot',
-      subtitle: this.errorMessage ? this.errorMessage : 'Combine student scale, attendance, order flow, and revenue into one summary view.',
+      title: '运营概览',
+      subtitle: this.errorMessage ? this.errorMessage : '集中查看学生规模、考勤、订单流转和营收情况。',
       content: this.buildStatsContent
     })
   }
@@ -312,7 +343,7 @@ export struct AdminHomePage {
       Row() {
         StatCard({
           value: this.stats.totalStudents,
-          label: 'Students',
+          label: '学生',
           icon: $r('app.media.ic_user'),
           iconColor: '#8B5CF6'
         })
@@ -322,7 +353,7 @@ export struct AdminHomePage {
 
         StatCard({
           value: this.stats.presentStudents,
-          label: 'Present',
+          label: '到校',
           icon: $r('app.media.ic_attendance'),
           iconColor: '#16A34A'
         })
@@ -333,7 +364,7 @@ export struct AdminHomePage {
       Row() {
         StatCard({
           value: `${this.stats.attendanceRate}%`,
-          label: 'Attendance rate',
+          label: '出勤率',
           icon: $r('app.media.ic_home'),
           iconColor: '#1F5EFF'
         })
@@ -343,7 +374,7 @@ export struct AdminHomePage {
 
         StatCard({
           value: `¥${this.stats.netIncome.toFixed(0)}`,
-          label: 'Net income',
+          label: '净收入',
           icon: $r('app.media.ic_money'),
           iconColor: '#F59E0B'
         })
@@ -358,9 +389,9 @@ export struct AdminHomePage {
   @Builder
   buildActivityCard() {
     Card({
-      title: 'Live updates',
-      subtitle: 'Highlight the items that need management attention today.',
-      actionText: 'Open reports',
+      title: '实时动态',
+      subtitle: '聚焦今天需要管理关注的重点事项。',
+      actionText: '打开报表',
       onAction: () => {
         AppStorage.setOrCreate('main_current_index', 2);
       },
@@ -406,8 +437,8 @@ export struct AdminHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: 'No live updates',
-        customDescription: 'More operating signals will appear here after full real-environment validation.'
+        customTitle: '暂无实时动态',
+        customDescription: '完成真实环境联调后，这里会展示更多运营信号。'
       })
     }
   }

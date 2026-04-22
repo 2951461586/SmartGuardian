@@ -8,6 +8,7 @@ import { Student } from '../../models/user';
 import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
+import { Card, EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, SectionHeader, StatCard } from '../../components/common';
 
 interface StudentWithGuardian extends Student {
   guardianName?: string;
@@ -16,7 +17,7 @@ interface StudentWithGuardian extends Student {
 
 @Entry
 @Component
-export struct AdminStudentsPage {
+struct AdminStudentsPage {
   @StorageLink('student_list') studentList: StudentWithGuardian[] = [];
 
   @State isLoading: boolean = false;
@@ -127,10 +128,28 @@ export struct AdminStudentsPage {
 
   build() {
     Column() {
-      this.buildHeader()
-      this.buildSearchBar()
-      this.buildGradeFilter()
-      this.buildStudentList()
+      PageHeader({
+        title: '学生档案管理',
+        subtitle: '统一查看学生基础档案、监护人信息与年级分布。',
+        theme: HeaderTheme.PRIMARY,
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        rightContent: this.buildHeaderAction
+      })
+
+      Scroll() {
+        Column() {
+          this.buildOverviewPanel()
+          this.buildSearchBar()
+          this.buildGradeFilter()
+          this.buildStudentList()
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
@@ -138,36 +157,73 @@ export struct AdminStudentsPage {
   }
 
   @Builder
-  buildHeader() {
+  buildHeaderAction() {
     Row() {
-      Image($r('app.media.ic_arrow_left'))
-        .width(24)
-        .height(24)
-        .fillColor($r('app.color.text_primary'))
-        .onClick(() => this.getUIContext().getRouter().back())
-
-      Text('学生档案管理')
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .layoutWeight(1)
-        .textAlign(TextAlign.Center)
-
       Image($r('app.media.ic_add'))
-        .width(24)
-        .height(24)
-        .fillColor($r('app.color.primary'))
-        .onClick(() => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
-        })
+        .width(22)
+        .height(22)
+        .fillColor(Color.White)
+    }
+    .width(42)
+    .height(42)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor('#FFFFFF1F')
+    .borderRadius(16)
+    .border({
+      width: 1,
+      color: '#FFFFFF29',
+      radius: 16,
+      style: BorderStyle.Solid
+    })
+    .onClick(() => {
+      this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
+    })
+  }
+
+  @Builder
+  buildOverviewPanel() {
+    Row() {
+      StatCard({
+        value: this.allStudents.length,
+        label: '学生总数',
+        icon: $r('app.media.ic_user'),
+        iconColor: '#1F5EFF'
+      })
+      .layoutWeight(1)
+
+      StatCard({
+        value: this.studentList.length,
+        label: '当前页条数',
+        icon: $r('app.media.ic_report'),
+        iconColor: '#D97706'
+      })
+      .layoutWeight(1)
+      .margin({ left: 12, right: 12 })
+
+      StatCard({
+        value: this.getSelectedGradeText(),
+        label: '筛选年级',
+        icon: $r('app.media.ic_filter'),
+        iconColor: '#15803D'
+      })
+      .layoutWeight(1)
     }
     .width('100%')
-    .padding($r('app.float.page_padding'))
-    .backgroundColor(Color.White)
+    .alignItems(VerticalAlign.Top)
+    .margin({ bottom: 12 })
   }
 
   @Builder
   buildSearchBar() {
+    Card({
+      title: '搜索学生',
+      subtitle: '支持按学生姓名或学号快速检索档案。',
+      content: this.buildSearchBarContent
+    })
+  }
+
+  @Builder
+  buildSearchBarContent() {
     Row() {
       Image($r('app.media.ic_search'))
         .width(18)
@@ -175,7 +231,7 @@ export struct AdminStudentsPage {
         .fillColor($r('app.color.text_tertiary'))
 
       TextInput({
-        placeholder: '搜索学生姓名/学号',
+        placeholder: '搜索学生姓名或学号',
         text: this.searchKeyword
       })
         .fontSize($r('app.float.text_primary_size'))
@@ -192,86 +248,79 @@ export struct AdminStudentsPage {
     }
     .width('100%')
     .padding(12)
-    .margin({ top: 1 })
-    .backgroundColor(Color.White)
+    .backgroundColor('#F7FAFD')
+    .borderRadius(16)
   }
 
   @Builder
   buildGradeFilter() {
+    Card({
+      title: '年级筛选',
+      subtitle: '按年级快速切换当前档案池。',
+      customPadding: 14,
+      content: this.buildGradeFilterContent
+    })
+  }
+
+  @Builder
+  buildGradeFilterContent() {
     Scroll() {
       Row() {
         ForEach(this.grades, (grade: string) => {
           Text(grade === 'ALL' ? '全部' : `${grade}年级`)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(this.selectedGrade === grade ? Color.White : $r('app.color.text_secondary'))
-            .padding({ left: 14, right: 14, top: 6, bottom: 6 })
-            .backgroundColor(this.selectedGrade === grade ? $r('app.color.primary') : $r('app.color.page_background'))
-            .borderRadius(14)
+            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+            .backgroundColor(this.selectedGrade === grade ? $r('app.color.primary') : '#F3F7FB')
+            .borderRadius(16)
             .onClick(() => {
               this.selectedGrade = grade;
               this.currentPage = 1;
               this.applyFiltersAndPagination();
             })
+            .margin({ right: 8 })
         })
       }
     }
     .width('100%')
     .scrollBar(BarState.Off)
-    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
+    .padding({ left: 2, right: 2, top: 4, bottom: 4 })
   }
 
   @Builder
   buildStudentList() {
     if (this.isLoading && this.studentList.length === 0) {
-      Column() {
-        LoadingProgress()
-          .color($r('app.color.primary'))
-          .width(48)
-          .height(48)
-
-        Text('加载中...')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 16 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      LoadingState({
+        loadingSize: LoadingSize.LARGE,
+        fullscreen: false
+      })
     } else if (this.studentList.length === 0) {
-      Column() {
-        Image($r('app.media.ic_empty'))
-          .width(100)
-          .height(100)
-          .opacity(0.5)
-
-        Text('暂无学生数据')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 16 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      EmptyState({
+        type: EmptyType.NO_STUDENT,
+        customTitle: '暂无学生档案',
+        customDescription: '当前筛选条件下没有匹配的学生信息。',
+        actionText: '重新加载',
+        onAction: () => {
+          this.loadStudents();
+        }
+      })
     } else {
       Column() {
-        Scroll() {
-          Column() {
-            ForEach(this.studentList, (student: StudentWithGuardian) => {
-              this.buildStudentCard(student)
-            })
-          }
-          .width('100%')
-          .padding($r('app.float.page_padding'))
+        SectionHeader({
+          title: '学生列表',
+          subtitle: `第 ${this.currentPage} 页，共 ${this.totalPages} 页`
+        })
+
+        Column() {
+          ForEach(this.studentList, (student: StudentWithGuardian) => {
+            this.buildStudentCard(student)
+          })
         }
         .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
 
         this.buildPagination()
       }
       .width('100%')
-      .layoutWeight(1)
     }
   }
 
@@ -293,21 +342,25 @@ export struct AdminStudentsPage {
             .fontColor($r('app.color.text_primary'))
 
           if (student.gender) {
-            Text(student.gender === 'MALE' ? 'M' : 'F')
-              .fontSize(14)
-              .margin({ left: 4 })
+            Text(student.gender === 'MALE' ? '男' : '女')
+              .fontSize(12)
+              .fontColor(student.gender === 'MALE' ? '#1F5EFF' : '#D946EF')
+              .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+              .backgroundColor(student.gender === 'MALE' ? '#EAF1FF' : '#FDF0FF')
+              .borderRadius(999)
+              .margin({ left: 8 })
           }
         }
 
-        Text(`学号: ${student.studentNo || '--'}`)
+        Text(`学号：${student.studentNo || '--'}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 2 })
+          .margin({ top: 6 })
 
-        Text(`${student.grade || '--'} 年级 ${student.className || '--'}`)
+        Text(`${student.grade || '--'} 年级 · ${student.className || '--'}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 2 })
+          .margin({ top: 4 })
 
         if (student.guardianName) {
           Row() {
@@ -316,7 +369,7 @@ export struct AdminStudentsPage {
               .height(12)
               .fillColor($r('app.color.text_tertiary'))
 
-            Text(` 监护人: ${student.guardianName}`)
+            Text(` 监护人：${student.guardianName}`)
               .fontSize($r('app.float.text_tiny_size'))
               .fontColor($r('app.color.text_tertiary'))
 
@@ -348,28 +401,44 @@ export struct AdminStudentsPage {
     .width('100%')
     .padding($r('app.float.card_padding'))
     .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
+    .borderRadius(20)
     .margin({ bottom: $r('app.float.card_margin') })
+    .border({
+      width: 1,
+      color: '#EEF3F8',
+      radius: 20,
+      style: BorderStyle.Solid
+    })
     .shadow({
-      radius: 2,
-      color: '#1A000000',
+      radius: 10,
+      color: '#10172F12',
       offsetX: 0,
-      offsetY: 1
+      offsetY: 4
     })
   }
 
   @Builder
   buildPagination() {
+    Card({
+      title: '分页导航',
+      subtitle: '按页浏览更多学生档案。',
+      customPadding: 16,
+      content: this.buildPaginationContent
+    })
+  }
+
+  @Builder
+  buildPaginationContent() {
     Row() {
-      Button('Prev')
+      Button('上一页')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary'))
         .backgroundColor(Color.Transparent)
-        .border({ width: 1, color: this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary') })
-        .borderRadius(4)
-        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+        .border({ width: 1, color: this.currentPage > 1 ? $r('app.color.primary') : '#D7E1EE', radius: 14 })
+        .borderRadius(14)
+        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
         .enabled(this.currentPage > 1)
-        .opacity(this.currentPage > 1 ? 1 : 0.3)
+        .opacity(this.currentPage > 1 ? 1 : 0.4)
         .onClick(() => {
           if (this.currentPage > 1) {
             this.currentPage--;
@@ -382,15 +451,15 @@ export struct AdminStudentsPage {
         .fontColor($r('app.color.text_primary'))
         .margin({ left: 20, right: 20 })
 
-      Button('Next')
+      Button('下一页')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary'))
         .backgroundColor(Color.Transparent)
-        .border({ width: 1, color: this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary') })
-        .borderRadius(4)
-        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+        .border({ width: 1, color: this.currentPage < this.totalPages ? $r('app.color.primary') : '#D7E1EE', radius: 14 })
+        .borderRadius(14)
+        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
         .enabled(this.currentPage < this.totalPages)
-        .opacity(this.currentPage < this.totalPages ? 1 : 0.3)
+        .opacity(this.currentPage < this.totalPages ? 1 : 0.4)
         .onClick(() => {
           if (this.currentPage < this.totalPages) {
             this.currentPage++;
@@ -400,7 +469,10 @@ export struct AdminStudentsPage {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
+    .alignItems(VerticalAlign.Center)
+  }
+
+  private getSelectedGradeText(): string {
+    return this.selectedGrade === 'ALL' ? '全部' : `${this.selectedGrade}年级`;
   }
 }

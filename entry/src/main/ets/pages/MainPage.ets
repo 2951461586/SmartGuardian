@@ -167,13 +167,13 @@ struct MainPage {
         offsetY: 10
       })
 
-      Text("Preparing workspace")
+      Text('正在准备工作台')
         .fontSize(22)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .margin({ top: 22 })
 
-      Text(`Mode: ${ApiConfig.getEnvironmentLabel()}`)
+      Text(`当前模式：${ApiConfig.getEnvironmentLabel()}`)
         .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
@@ -188,17 +188,17 @@ struct MainPage {
   buildAuthLockedState() {
     Column() {
       Column() {
-        Text("Session expired")
+        Text('登录状态已失效')
           .fontSize(22)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
-        Text("Please sign in again to continue using SmartGuardian.")
+        Text('请重新登录后继续使用智慧学生托管系统。')
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 10 })
 
-        Button("Back to sign in")
+        Button('返回登录')
           .width('100%')
           .height(48)
           .fontSize(15)

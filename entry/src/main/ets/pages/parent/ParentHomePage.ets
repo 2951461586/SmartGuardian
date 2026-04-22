@@ -3,7 +3,7 @@
  * Parent dashboard with enterprise education style and real data hooks
  */
 
-import { GreetingHeader, Card, LoadingState, LoadingSize, HeaderTheme, ActionButton, HomeworkCard, HomeworkCardMode } from '../../components/common';
+import { GreetingHeader, Card, LoadingState, LoadingSize, HeaderTheme, ActionButton, HomeworkCard, HomeworkCardMode, SectionHeader, StatCard } from '../../components/common';
 import { AttendanceBadge } from '../../components/StatusBadge';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { TodayStatusCard } from '../../models/card';
@@ -41,12 +41,15 @@ export struct ParentHomePage {
       const studentId = StudentStore.getCurrentStudentId() ?? undefined;
       const params: HomeworkQueryParams = { pageSize: 3 };
 
-      const [summaryResp, homeworkResp, unreadResp, alertResp] = await Promise.all([
-        CardService.getTodayStatus(studentId),
-        HomeworkService.getTasks(params),
-        MessageService.getUnreadCount(),
-        CardService.getAbnormalAlert(studentId)
-      ]);
+      const summaryPromise = CardService.getTodayStatus(studentId);
+      const homeworkPromise = HomeworkService.getTasks(params);
+      const unreadPromise = MessageService.getUnreadCount();
+      const alertPromise = CardService.getAbnormalAlert(studentId);
+
+      const summaryResp = await summaryPromise;
+      const homeworkResp = await homeworkPromise;
+      const unreadResp = await unreadPromise;
+      const alertResp = await alertPromise;
 
       if (summaryResp.code === 0 && summaryResp.data) {
         this.todaySummary = summaryResp.data;
@@ -80,10 +83,10 @@ export struct ParentHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: "Track the current care session, homework progress, and school messages in one place.",
+        greeting: '在一个页面掌握今日托管、作业进度和校园消息。',
         theme: HeaderTheme.WHITE,
-        badgeText: "Parent workspace",
-        metaText: this.todaySummary?.studentName ? `Watching: ${this.todaySummary.studentName}` : '',
+        badgeText: '家长工作台',
+        metaText: this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '',
         onRightIconClick: () => {
           AppStorage.setOrCreate('main_current_index', 2);
         }
@@ -164,16 +167,44 @@ export struct ParentHomePage {
   buildOverviewPanel() {
     Column() {
       Row() {
-        this.buildStatusMetric('Attendance', this.getAttendanceText(), '#1F5EFF', '#EDF4FF')
-        Blank().width(10)
-        this.buildStatusMetric('Homework', this.getHomeworkProgressText(), '#14B8A6', '#ECFDF5')
+        StatCard({
+          value: this.getAttendanceText(),
+          label: '考勤状态',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#1F5EFF'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getHomeworkProgressText(),
+          label: '作业进度',
+          icon: $r('app.media.ic_homework'),
+          iconColor: '#14B8A6'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
 
       Row() {
-        this.buildStatusMetric('Unread', `${this.unreadCount}`, '#F59E0B', '#FFF7E8')
-        Blank().width(10)
-        this.buildStatusMetric('Session', this.todaySummary?.sessionName || 'Pending', '#8B5CF6', '#F5F0FF')
+        StatCard({
+          value: `${this.unreadCount}`,
+          label: '未读消息',
+          icon: $r('app.media.ic_message'),
+          iconColor: '#F59E0B'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.todaySummary?.sessionName || '待安排',
+          label: '托管场次',
+          icon: $r('app.media.ic_calendar'),
+          iconColor: '#8B5CF6'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
@@ -220,7 +251,7 @@ export struct ParentHomePage {
       .borderRadius(14)
 
       Column() {
-        Text('Today alert')
+        Text('今日提醒')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
@@ -253,16 +284,14 @@ export struct ParentHomePage {
   @Builder
   buildQuickActions() {
     Column() {
-      Text('Quick actions')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .width('100%')
-        .margin({ bottom: 10 })
+      SectionHeader({
+        title: '快捷操作',
+        subtitle: '一键进入高频业务入口'
+      })
 
       Row() {
         ActionButton({
-          label: 'Leave request',
+          label: '请假申请',
           icon: $r('app.media.ic_leave'),
           bgColor: '#EAF1FF',
           iconColor: '#1F5EFF',
@@ -274,7 +303,7 @@ export struct ParentHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Pickup QR',
+          label: '接送码',
           icon: $r('app.media.ic_qrcode'),
           bgColor: '#ECFDF5',
           iconColor: '#16A34A',
@@ -287,7 +316,7 @@ export struct ParentHomePage {
 
       Row() {
         ActionButton({
-          label: 'Message teacher',
+          label: '联系老师',
           icon: $r('app.media.ic_message'),
           bgColor: '#FFF7E8',
           iconColor: '#F59E0B',
@@ -299,7 +328,7 @@ export struct ParentHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Session plan',
+          label: '托管安排',
           icon: $r('app.media.ic_calendar'),
           bgColor: '#F5F0FF',
           iconColor: '#8B5CF6',
@@ -318,8 +347,8 @@ export struct ParentHomePage {
   @Builder
   buildTodayStatusCard() {
     Card({
-      title: 'Today care',
-      subtitle: this.errorMessage ? this.errorMessage : "Review the current session, attendance, and teacher feedback.",
+      title: '今日托管',
+      subtitle: this.errorMessage ? this.errorMessage : '查看当前场次、考勤状态和老师反馈。',
       showArrow: true,
       clickable: true,
       onCardClick: () => {
@@ -335,7 +364,7 @@ export struct ParentHomePage {
       Column() {
         Row() {
           Column() {
-            Text(this.todaySummary.sessionName || 'Care session')
+            Text(this.todaySummary.sessionName || '托管场次')
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.text_primary'))
@@ -354,19 +383,19 @@ export struct ParentHomePage {
         .alignItems(VerticalAlign.Top)
 
         Row() {
-          this.buildInlineTag('Student', this.todaySummary.studentName || '--')
+          this.buildInlineTag('学生', this.todaySummary.studentName || '--')
           Blank().width(8)
-          this.buildInlineTag('Homework', this.getHomeworkProgressText())
+          this.buildInlineTag('作业', this.getHomeworkProgressText())
         }
         .width('100%')
         .margin({ top: 16 })
 
         Column() {
-          Text('Teacher feedback')
+          Text('老师反馈')
             .fontSize(12)
             .fontColor($r('app.color.text_secondary'))
 
-          Text(this.todaySummary.latestDynamic || 'No teacher update yet.')
+          Text(this.todaySummary.latestDynamic || '老师暂未更新动态。')
             .fontSize(14)
             .fontColor($r('app.color.text_primary'))
             .lineHeight(21)
@@ -381,7 +410,7 @@ export struct ParentHomePage {
       }
       .width('100%')
     } else {
-      Text('No schedule for today.')
+      Text('今日暂无托管安排。')
         .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
     }
@@ -410,9 +439,9 @@ export struct ParentHomePage {
   @Builder
   buildRecentHomework() {
     Card({
-      title: 'Recent homework',
-      subtitle: 'Stay aligned with the latest assignments and coaching progress.',
-      actionText: 'View all',
+      title: '最近作业',
+      subtitle: '及时了解最新作业和辅导进度。',
+      actionText: '查看全部',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
       },
@@ -436,7 +465,7 @@ export struct ParentHomePage {
       }
       .width('100%')
     } else {
-      Text('No homework records yet.')
+      Text('暂无作业记录。')
         .fontSize(14)
         .fontColor($r('app.color.text_secondary'))
         .padding({ top: 8, bottom: 8 })
@@ -446,23 +475,23 @@ export struct ParentHomePage {
   private getAttendanceText(): string {
     switch (this.todaySummary?.status) {
       case 'SIGNED_IN':
-        return 'On site';
+        return '已到校';
       case 'SIGNED_OUT':
-        return 'Checked out';
+        return '已签退';
       case 'IN_PROGRESS':
-        return 'In progress';
+        return '进行中';
       default:
-        return 'Pending';
+        return '待签到';
     }
   }
 
   private getHomeworkProgressText(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
     if (progress <= 0) {
-      return 'Not started';
+      return '未开始';
     }
     if (progress >= 100) {
-      return 'Completed';
+      return '已完成';
     }
     return `${progress}%`;
   }

@@ -1,9 +1,13 @@
 /**
  * SmartGuardian - Admin Student Detail Page
- * Student detail placeholder page
+ * Student profile overview for admin flow
  */
 
-import { PageHeader, HeaderTheme, Card, InfoCard, EmptyState, EmptyType } from '../../components/common';
+import { Card, EmptyState, EmptyType, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
+
+interface StudentDetailParams {
+  studentId?: number | string;
+}
 
 @Entry
 @Component
@@ -11,8 +15,8 @@ struct AdminStudentDetailPage {
   @State studentId: string = '--';
 
   aboutToAppear() {
-    const params = this.getUIContext().getRouter().getParams() as Record<string, number | string>;
-    const studentId = params?.studentId;
+    const params = this.getUIContext().getRouter().getParams() as StudentDetailParams;
+    const studentId = params.studentId;
     this.studentId = studentId ? `${studentId}` : '--';
   }
 
@@ -20,7 +24,7 @@ struct AdminStudentDetailPage {
     Column() {
       PageHeader({
         title: '学生档案详情',
-        subtitle: '查看学生基础信息与后续扩展字段',
+        subtitle: '查看学生基础资料、监护关系和后续扩展信息。',
         showBack: true,
         onBackClick: () => this.getUIContext().getRouter().back(),
         theme: HeaderTheme.PRIMARY
@@ -28,18 +32,24 @@ struct AdminStudentDetailPage {
 
       Scroll() {
         Column() {
-          Card({
-            title: '基础信息',
-            content: this.buildBasicInfo
+          SectionHeader({
+            title: '档案概览',
+            subtitle: '当前先保留稳定入口，后续接入完整学生档案。'
+          })
+
+          InfoCard({
+            items: this.getBasicItems(),
+            columns: 2
           })
 
           Card({
-            title: '页面状态',
+            title: '后续接入内容',
+            subtitle: '可在这里扩展健康档案、监护人信息与历史记录。',
             content: this.buildPlaceholder
           })
         }
         .width('100%')
-        .padding($r('app.float.page_padding'))
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
       }
       .width('100%')
       .layoutWeight(1)
@@ -50,22 +60,21 @@ struct AdminStudentDetailPage {
     .backgroundColor($r('app.color.page_background'))
   }
 
-  @Builder
-  buildBasicInfo() {
-    InfoCard({
-      items: [
-        { label: '学生ID', value: this.studentId },
-        { label: '状态', value: '详情页已恢复可访问' }
-      ]
-    })
+  private getBasicItems(): InfoItem[] {
+    return [
+      { label: '学生编号', value: this.studentId },
+      { label: '页面状态', value: '可访问' },
+      { label: '信息范围', value: '基础档案' },
+      { label: '维护角色', value: '管理端' }
+    ];
   }
 
   @Builder
-  buildPlaceholder() {
+  private buildPlaceholder() {
     EmptyState({
       type: EmptyType.DEFAULT,
-      customTitle: '详情内容待完善',
-      customDescription: '后续可在此接入学生档案、监护人信息和历史记录'
+      customTitle: '详情模块待补齐',
+      customDescription: '后续可接入学生档案、监护人信息、健康备注和历史服务记录。'
     })
   }
 }

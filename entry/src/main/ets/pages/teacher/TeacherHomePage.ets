@@ -11,7 +11,9 @@ import {
   EmptyState,
   EmptyType,
   Card,
-  ActionButton
+  ActionButton,
+  SectionHeader,
+  StatCard
 } from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { AttendanceRecord } from '../../models/attendance';
@@ -56,10 +58,11 @@ export struct TeacherHomePage {
         sessionParams.teacherUserId = teacherUserId;
       }
 
-      const [sessionsResp, unreadResp] = await Promise.all([
-        SessionService.getSessions(sessionParams),
-        MessageService.getUnreadCount()
-      ]);
+      const sessionsPromise = SessionService.getSessions(sessionParams);
+      const unreadPromise = MessageService.getUnreadCount();
+
+      const sessionsResp = await sessionsPromise;
+      const unreadResp = await unreadPromise;
 
       if (sessionsResp.code === 0 && sessionsResp.data) {
         this.todaySessions = sessionsResp.data ?? [];
@@ -117,12 +120,12 @@ export struct TeacherHomePage {
 
   private getSessionStatusText(status?: string): string {
     if (status === 'ONGOING') {
-      return 'In progress';
+      return '进行中';
     }
     if (status === 'ENDED') {
-      return 'Ended';
+      return '已结束';
     }
-    return 'Upcoming';
+    return '待开始';
   }
 
   private getSessionStatusColor(status?: string): string {
@@ -149,10 +152,10 @@ export struct TeacherHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: "Stay on top of sessions, attendance, and homework handling from one workspace.",
+        greeting: '统一查看场次安排、考勤进度和作业处理情况。',
         theme: HeaderTheme.WHITE,
-        badgeText: "Teacher workspace",
-        metaText: this.currentSession?.serviceProductName ? `Current session: ${this.currentSession.serviceProductName}` : '',
+        badgeText: '教师工作台',
+        metaText: this.currentSession?.serviceProductName ? `当前场次：${this.currentSession.serviceProductName}` : '',
         onRightIconClick: () => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
         }
@@ -229,16 +232,44 @@ export struct TeacherHomePage {
   buildOverviewPanel() {
     Column() {
       Row() {
-        this.buildOverviewMetric('Sessions', `${this.todaySessions.length}`, '#1F5EFF', '#EDF4FF')
-        Blank().width(10)
-        this.buildOverviewMetric('Pending sign-in', `${this.getUnsignedCount()}`, '#F59E0B', '#FFF7E8')
+        StatCard({
+          value: `${this.todaySessions.length}`,
+          label: '今日场次',
+          icon: $r('app.media.ic_calendar'),
+          iconColor: '#1F5EFF'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: `${this.getUnsignedCount()}`,
+          label: '待签到',
+          icon: $r('app.media.ic_warning'),
+          iconColor: '#F59E0B'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
 
       Row() {
-        this.buildOverviewMetric('Signed in', `${this.getSignedCount()}`, '#16A34A', '#ECFDF5')
-        Blank().width(10)
-        this.buildOverviewMetric('Unread messages', `${this.unreadCount}`, '#8B5CF6', '#F5F0FF')
+        StatCard({
+          value: `${this.getSignedCount()}`,
+          label: '已签到',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#16A34A'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: `${this.unreadCount}`,
+          label: '未读消息',
+          icon: $r('app.media.ic_message'),
+          iconColor: '#8B5CF6'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
@@ -270,16 +301,14 @@ export struct TeacherHomePage {
   @Builder
   buildQuickActions() {
     Column() {
-      Text('Quick actions')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .width('100%')
-        .margin({ bottom: 10 })
+      SectionHeader({
+        title: '快捷操作',
+        subtitle: '把高频教学任务集中到首页'
+      })
 
       Row() {
         ActionButton({
-          label: 'QR sign-in',
+          label: '扫码签到',
           icon: $r('app.media.ic_qrcode'),
           bgColor: '#ECFDF5',
           iconColor: '#16A34A',
@@ -291,7 +320,7 @@ export struct TeacherHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Attendance',
+          label: '考勤管理',
           icon: $r('app.media.ic_attendance'),
           bgColor: '#EDF4FF',
           iconColor: '#1F5EFF',
@@ -304,7 +333,7 @@ export struct TeacherHomePage {
 
       Row() {
         ActionButton({
-          label: 'Homework',
+          label: '作业管理',
           icon: $r('app.media.ic_homework'),
           bgColor: '#FFF7E8',
           iconColor: '#F59E0B',
@@ -316,7 +345,7 @@ export struct TeacherHomePage {
         Blank().width(10)
 
         ActionButton({
-          label: 'Schedule',
+          label: '课程安排',
           icon: $r('app.media.ic_calendar'),
           bgColor: '#F5F0FF',
           iconColor: '#8B5CF6',
@@ -335,8 +364,8 @@ export struct TeacherHomePage {
   @Builder
   buildSessionOverviewCard() {
     Card({
-      title: 'Current session',
-      subtitle: this.currentSession ? 'Focus on the live session and the current sign-in progress.' : 'No live session found. Showing the next available plan for today.',
+      title: '当前场次',
+      subtitle: this.currentSession ? '聚焦当前进行中的场次和签到进度。' : '当前没有进行中的场次，展示今日最近安排。',
       showArrow: this.getDisplaySession() !== null,
       clickable: this.getDisplaySession() !== null,
       onCardClick: () => {
@@ -352,7 +381,7 @@ export struct TeacherHomePage {
       Column() {
         Row() {
           Column() {
-            Text(this.getDisplaySession()?.serviceProductName ?? 'Care session')
+            Text(this.getDisplaySession()?.serviceProductName ?? '托管场次')
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.text_primary'))
@@ -378,9 +407,9 @@ export struct TeacherHomePage {
         .alignItems(VerticalAlign.Top)
 
         Row() {
-          this.buildInlineMetric('Signed in', `${this.getSignedCount()}`, '#16A34A')
+          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#16A34A')
           Blank().width(10)
-          this.buildInlineMetric('Pending', `${this.getUnsignedCount()}`, '#F59E0B')
+          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#F59E0B')
         }
         .width('100%')
         .margin({ top: 16 })
@@ -389,8 +418,8 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: 'No session scheduled',
-        customDescription: this.errorMessage || 'Refresh later or open the schedule page to review the latest plan.'
+        customTitle: '暂无场次安排',
+        customDescription: this.errorMessage || '稍后再刷新，或前往课程安排页查看最新计划。'
       })
     }
   }
@@ -418,8 +447,8 @@ export struct TeacherHomePage {
   @Builder
   buildTodayStatsCard() {
     Card({
-      title: 'Today summary',
-      subtitle: 'Check session execution and the current sign-in completion.',
+      title: '今日概览',
+      subtitle: '查看场次执行情况和当前签到完成度。',
       content: this.buildTodayStatsContent
     })
   }
@@ -427,21 +456,21 @@ export struct TeacherHomePage {
   @Builder
   buildTodayStatsContent() {
     Row() {
-      this.buildStatBlock(String(this.todaySessions.length), 'Sessions', '#1F5EFF')
+      this.buildStatBlock(String(this.todaySessions.length), '场次', '#1F5EFF')
 
       Divider()
         .vertical(true)
         .height(42)
         .color('#E6ECF2')
 
-      this.buildStatBlock(String(this.getSignedCount()), 'Signed in', '#16A34A')
+      this.buildStatBlock(String(this.getSignedCount()), '已签到', '#16A34A')
 
       Divider()
         .vertical(true)
         .height(42)
         .color('#E6ECF2')
 
-      this.buildStatBlock(String(this.unreadCount), 'Pending messages', '#8B5CF6')
+      this.buildStatBlock(String(this.unreadCount), '待处理消息', '#8B5CF6')
     }
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
@@ -468,9 +497,9 @@ export struct TeacherHomePage {
   @Builder
   buildTodaySessionsCard() {
     Card({
-      title: 'Today sessions',
-      subtitle: 'Review all sessions planned for the day.',
-      actionText: 'View all',
+      title: '今日场次',
+      subtitle: '查看今天全部已排班次。',
+      actionText: '查看全部',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
       },
@@ -485,7 +514,7 @@ export struct TeacherHomePage {
         ForEach(this.todaySessions, (session: SessionSchedule, index: number) => {
           Row() {
             Column() {
-              Text(session.serviceProductName ?? 'Care session')
+              Text(session.serviceProductName ?? '托管场次')
                 .fontSize(16)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.text_primary'))
@@ -519,8 +548,8 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: 'No session records',
-        customDescription: this.errorMessage || 'There is no session data to display right now.'
+        customTitle: '暂无场次记录',
+        customDescription: this.errorMessage || '当前没有可展示的场次数据。'
       })
     }
   }

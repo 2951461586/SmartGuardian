@@ -4,7 +4,7 @@
  */
 
 import { ReportsService, AttendanceReport, FinanceReport, TeacherPerformance } from '../../services/api/reports';
-import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, TabBar } from '../../components/common';
+import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, TabBar, Card, SectionHeader, StatCard } from '../../components/common';
 import { formatDate } from '../../utils/date';
 
 class AttendanceDailyStat {
@@ -156,7 +156,7 @@ export struct AdminReportsPage {
     Column() {
       PageHeader({
         title: '数据统计',
-        subtitle: '从考勤、财务与教师绩效三方面查看机构运营',
+        subtitle: '从考勤、财务与教师绩效三方面查看机构运营状态',
         theme: HeaderTheme.WHITE
       })
 
@@ -174,31 +174,97 @@ export struct AdminReportsPage {
   buildOverviewPanel() {
     if (this.currentTab === 0) {
       Row() {
-        this.buildOverviewMetric('学生总量', this.getAttendanceOverviewValue('students'), '#4F7CFF', '#EAF2FF')
-        Blank().width(10)
-        this.buildOverviewMetric('出勤率', this.getAttendanceOverviewValue('rate'), '#2F9B52', '#EAF7EC')
-        Blank().width(10)
-        this.buildOverviewMetric('迟到人数', this.getAttendanceOverviewValue('late'), '#F2994A', '#FFF4E8')
+        StatCard({
+          value: this.getAttendanceOverviewValue('students'),
+          label: '学生总量',
+          icon: $r('app.media.ic_user'),
+          iconColor: '#4F7CFF'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getAttendanceOverviewValue('rate'),
+          label: '出勤率',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#2F9B52'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getAttendanceOverviewValue('late'),
+          label: '迟到人数',
+          icon: $r('app.media.ic_warning'),
+          iconColor: '#F2994A'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12 })
     } else if (this.currentTab === 1) {
       Row() {
-        this.buildOverviewMetric('总收入', this.getFinanceOverviewValue('income'), '#2F9B52', '#EAF7EC')
-        Blank().width(10)
-        this.buildOverviewMetric('总退款', this.getFinanceOverviewValue('refund'), '#F2994A', '#FFF4E8')
-        Blank().width(10)
-        this.buildOverviewMetric('净收入', this.getFinanceOverviewValue('net'), '#4F7CFF', '#EAF2FF')
+        StatCard({
+          value: this.getFinanceOverviewValue('income'),
+          label: '总收入',
+          icon: $r('app.media.ic_money'),
+          iconColor: '#2F9B52'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getFinanceOverviewValue('refund'),
+          label: '总退款',
+          icon: $r('app.media.ic_order'),
+          iconColor: '#F2994A'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getFinanceOverviewValue('net'),
+          label: '净收入',
+          icon: $r('app.media.ic_report'),
+          iconColor: '#4F7CFF'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12 })
     } else {
       Row() {
-        this.buildOverviewMetric('教师人数', this.getPerformanceOverviewValue('teachers'), '#8E5CF6', '#F4EEFF')
-        Blank().width(10)
-        this.buildOverviewMetric('班次总数', this.getPerformanceOverviewValue('sessions'), '#4F7CFF', '#EAF2FF')
-        Blank().width(10)
-        this.buildOverviewMetric('平均出勤率', this.getPerformanceOverviewValue('rate'), '#2F9B52', '#EAF7EC')
+        StatCard({
+          value: this.getPerformanceOverviewValue('teachers'),
+          label: '教师人数',
+          icon: $r('app.media.ic_user'),
+          iconColor: '#8E5CF6'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getPerformanceOverviewValue('sessions'),
+          label: '班次总数',
+          icon: $r('app.media.ic_calendar'),
+          iconColor: '#4F7CFF'
+        })
+        .layoutWeight(1)
+
+        Blank().width(12)
+
+        StatCard({
+          value: this.getPerformanceOverviewValue('rate'),
+          label: '平均出勤率',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#2F9B52'
+        })
+        .layoutWeight(1)
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12 })
@@ -206,27 +272,18 @@ export struct AdminReportsPage {
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 6 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  buildRangeSection() {
+    Card({
+      title: '时间范围',
+      subtitle: '切换报表统计周期',
+      customPadding: 12,
+      content: this.buildRangeSectionContent
+    })
+    .margin({ left: 16, right: 16, top: 14 })
   }
 
   @Builder
-  buildRangeSection() {
+  buildRangeSectionContent() {
     Row() {
       ForEach(this.rangeOptions, (range: string) => {
         Text(range)
@@ -243,23 +300,26 @@ export struct AdminReportsPage {
       })
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: 14 })
   }
 
   @Builder
   buildTabSection() {
-    Column() {
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: (index: number) => this.handleTabChange(index)
-      })
-    }
-    .width('100%')
-    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-    .backgroundColor(Color.White)
-    .borderRadius(18)
+    Card({
+      title: '报表类型',
+      subtitle: '在考勤、财务、绩效之间切换分析视图',
+      customPadding: 12,
+      content: this.buildTabSectionContent
+    })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  }
+
+  @Builder
+  buildTabSectionContent() {
+    TabBar({
+      tabs: this.tabs,
+      currentIndex: $currentTab,
+      onTabChange: (index: number) => this.handleTabChange(index)
+    })
   }
 
   @Builder
@@ -293,8 +353,13 @@ export struct AdminReportsPage {
   buildAttendanceReport() {
     Scroll() {
       Column() {
+        SectionHeader({
+          title: '考勤趋势',
+          subtitle: '按日查看出勤、迟到与缺勤变化'
+        })
+
         Column() {
-          Text('考勤趋势')
+          Text('考勤趋势明细')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
@@ -353,8 +418,13 @@ export struct AdminReportsPage {
       Column() {
         this.buildFinanceSummaryCard()
 
+        SectionHeader({
+          title: '收支趋势',
+          subtitle: '按日核对收入与退款变化'
+        })
+
         Column() {
-          Text('收支趋势')
+          Text('收支趋势明细')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
@@ -426,6 +496,11 @@ export struct AdminReportsPage {
   buildTeacherPerformance() {
     Scroll() {
       Column() {
+        SectionHeader({
+          title: '教师绩效列表',
+          subtitle: '关注评分、出勤率和作业完成情况'
+        })
+
         ForEach(this.teacherPerformance, (teacher: TeacherPerformance) => {
           this.buildTeacherItem(teacher)
         })
