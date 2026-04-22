@@ -1,19 +1,13 @@
 /**
  * SmartGuardian - 学生档案管理页
- * 机构管理员管理学生信息
- * Features: Data mask for privacy protection
- * 
- * @optimized Using StudentStore for state management
- * @migrated 2026-04-18 - P0 Migration
+ * 管理员查看和筛选学生信息
  */
 
 import { StudentService } from '../../services/api/auth';
-import { Student, GuardianRelation } from '../../models/user';
+import { Student } from '../../models/user';
 import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
-import { ErrorMessages } from '../../constants/ErrorMessages';
-import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 
 interface StudentWithGuardian extends Student {
   guardianName?: string;
@@ -23,44 +17,34 @@ interface StudentWithGuardian extends Student {
 @Entry
 @Component
 export struct AdminStudentsPage {
-  // ✅ 使用 Store 管理学生数据（缓存优先）
   @StorageLink('student_list') studentList: StudentWithGuardian[] = [];
-  
-  // 本地 UI 状态
+
   @State isLoading: boolean = false;
   @State searchKeyword: string = '';
   @State selectedGrade: string = 'ALL';
   @State currentPage: number = 1;
   @State totalPages: number = 1;
-  
-  // 缓存时间戳
-  private lastLoadTime: number = 0;
-  private readonly CACHE_DURATION: number = 5 * 60 * 1000; // 5分钟缓存
 
+  private allStudents: StudentWithGuardian[] = [];
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 5 * 60 * 1000;
+  private readonly pageSize: number = 20;
   private grades: string[] = ['ALL', '1', '2', '3', '4', '5', '6'];
 
   aboutToAppear() {
     this.loadStudentsWithCache();
   }
 
-  /**
-   * 带缓存的学生数据加载策略
-   * 1. 优先使用缓存数据（Store）
-   * 2. 判断缓存是否过期
-   * 3. 过期则后台刷新
-   */
   async loadStudentsWithCache() {
-    // 优先显示缓存数据
     const cachedStudents = StudentStore.getStudentList();
     if (cachedStudents.length > 0) {
-      this.studentList = cachedStudents as StudentWithGuardian[];
+      this.allStudents = cachedStudents as StudentWithGuardian[];
+      this.applyFiltersAndPagination();
       LogUtil.info('AdminStudentsPage', `Using cached students: ${cachedStudents.length} items`);
     }
-    
-    // 判断是否需要刷新
+
     const now = Date.now();
     const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
-    
     if (shouldRefresh || cachedStudents.length === 0) {
       await this.loadStudents();
     }
@@ -71,74 +55,81 @@ export struct AdminStudentsPage {
     try {
       const resp = await StudentService.getStudents({
         keyword: this.searchKeyword || undefined,
-        grade: this.selectedGrade === 'ALL' ? undefined : Number(this.selectedGrade),
-        pageNum: this.currentPage,
-        pageSize: 20
+        pageNum: 1,
+        pageSize: 500
       });
 
       if (resp.code === 0 && resp.data) {
-        const list: StudentWithGuardian[] = [];
-        const rawList = resp.data.list || [];
-        for (let i = 0; i < rawList.length; i++) {
-          const s = rawList[i];
-          
-          // 应用数据脱敏
+        const rawList = resp.data.list ?? [];
+        const list: StudentWithGuardian[] = rawList.map((s: StudentWithGuardian) => {
           const processed: StudentWithGuardian = {
             id: s.id,
-            name: DataMaskUtil.maskName(s.name), // 姓名脱敏
-            studentNo: DataMaskUtil.maskStudentNo(s.studentNo), // 学号脱敏
+            name: DataMaskUtil.maskName(s.name),
+            studentNo: DataMaskUtil.maskStudentNo(s.studentNo),
             grade: s.grade,
+            classId: s.classId,
             className: s.className,
             gender: s.gender,
-            schoolId: 0,
-            guardianUserId: 0,
-            status: 'ACTIVE',
-            createdAt: '',
-            updatedAt: ''
+            schoolId: s.schoolId,
+            guardianUserId: s.guardianUserId,
+            status: s.status,
+            createdAt: s.createdAt,
+            updatedAt: s.updatedAt
           };
-          processed.schoolId = s.schoolId;
-          processed.guardianUserId = s.guardianUserId;
-          processed.status = s.status;
-          
-          // 监护人信息脱敏
+
           if (s.guardianName) {
             processed.guardianName = DataMaskUtil.maskName(s.guardianName);
           }
           if (s.guardianMobile) {
             processed.guardianMobile = DataMaskUtil.maskPhone(s.guardianMobile);
           }
-          list.push(processed);
-        }
-        
-        // 更新 Store 缓存
+          return processed;
+        });
+
+        this.allStudents = list;
         StudentStore.setStudentList(list);
-        
-        // 同步到本地状态
-        this.studentList = list;
-        this.totalPages = Math.ceil(resp.data.total / 20);
         this.lastLoadTime = Date.now();
-        
+        this.applyFiltersAndPagination();
         LogUtil.info('AdminStudentsPage', `Loaded and cached ${list.length} students`);
+      } else {
+        this.allStudents = [];
+        this.studentList = [];
+        this.totalPages = 1;
       }
     } catch (error) {
-      LogUtil.error('AdminStudentsPage', `Load students failed: ${JSON.stringify(error)}`);
+      LogUtil.error('AdminStudentsPage', `Load students failed: ${String(error)}`);
+      this.allStudents = [];
+      this.studentList = [];
+      this.totalPages = 1;
     } finally {
       this.isLoading = false;
     }
   }
 
+  private applyFiltersAndPagination(): void {
+    const filtered = this.allStudents.filter((student: StudentWithGuardian) => {
+      if (this.selectedGrade === 'ALL') {
+        return true;
+      }
+
+      const gradeText = student.grade ? String(student.grade) : '';
+      return gradeText === this.selectedGrade || gradeText.includes(this.selectedGrade);
+    });
+
+    this.totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+
+    const start = (this.currentPage - 1) * this.pageSize;
+    this.studentList = filtered.slice(start, start + this.pageSize);
+  }
+
   build() {
     Column() {
-      // Header
       this.buildHeader()
-
-      // Search bar
       this.buildSearchBar()
-
-      // Filter tabs
       this.buildGradeFilter()
-
-      // Student list
       this.buildStudentList()
     }
     .width('100%')
@@ -219,7 +210,7 @@ export struct AdminStudentsPage {
             .onClick(() => {
               this.selectedGrade = grade;
               this.currentPage = 1;
-              this.loadStudents();
+              this.applyFiltersAndPagination();
             })
         })
       }
@@ -238,7 +229,7 @@ export struct AdminStudentsPage {
           .color($r('app.color.primary'))
           .width(48)
           .height(48)
-        
+
         Text('加载中...')
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
@@ -277,7 +268,6 @@ export struct AdminStudentsPage {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
 
-        // Pagination
         this.buildPagination()
       }
       .width('100%')
@@ -288,7 +278,6 @@ export struct AdminStudentsPage {
   @Builder
   buildStudentCard(student: StudentWithGuardian) {
     Row() {
-      // Avatar
       Image($r('app.media.ic_default_avatar'))
         .width(48)
         .height(48)
@@ -296,28 +285,26 @@ export struct AdminStudentsPage {
         .backgroundColor($r('app.color.primary_light'))
         .margin({ right: 12 })
 
-      // Student info
       Column() {
         Row() {
           Text(student.name)
             .fontSize($r('app.float.text_primary_size'))
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.text_primary'))
-          
-          // 性别标识
+
           if (student.gender) {
-            Text(student.gender === 'MALE' ? '👦' : '👧')
+            Text(student.gender === 'MALE' ? 'M' : 'F')
               .fontSize(14)
               .margin({ left: 4 })
           }
         }
-        
+
         Text(`学号: ${student.studentNo || '--'}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 2 })
 
-        Text(`${student.grade}年级 ${student.className}`)
+        Text(`${student.grade || '--'} 年级 ${student.className || '--'}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 2 })
@@ -328,11 +315,11 @@ export struct AdminStudentsPage {
               .width(12)
               .height(12)
               .fillColor($r('app.color.text_tertiary'))
-            
+
             Text(` 监护人: ${student.guardianName}`)
               .fontSize($r('app.float.text_tiny_size'))
               .fontColor($r('app.color.text_tertiary'))
-            
+
             if (student.guardianMobile) {
               Text(` ${student.guardianMobile}`)
                 .fontSize($r('app.float.text_tiny_size'))
@@ -345,7 +332,6 @@ export struct AdminStudentsPage {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      // Actions
       Column() {
         Image($r('app.media.ic_arrow_right'))
           .width(16)
@@ -375,7 +361,7 @@ export struct AdminStudentsPage {
   @Builder
   buildPagination() {
     Row() {
-      Button('上一页')
+      Button('Prev')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary'))
         .backgroundColor(Color.Transparent)
@@ -387,7 +373,7 @@ export struct AdminStudentsPage {
         .onClick(() => {
           if (this.currentPage > 1) {
             this.currentPage--;
-            this.loadStudents();
+            this.applyFiltersAndPagination();
           }
         })
 
@@ -396,7 +382,7 @@ export struct AdminStudentsPage {
         .fontColor($r('app.color.text_primary'))
         .margin({ left: 20, right: 20 })
 
-      Button('下一页')
+      Button('Next')
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor(this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary'))
         .backgroundColor(Color.Transparent)
@@ -408,7 +394,7 @@ export struct AdminStudentsPage {
         .onClick(() => {
           if (this.currentPage < this.totalPages) {
             this.currentPage++;
-            this.loadStudents();
+            this.applyFiltersAndPagination();
           }
         })
     }

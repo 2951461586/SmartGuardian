@@ -1,12 +1,8 @@
 /**
  * SmartGuardian - Teacher Home Page
- * Teacher dashboard with unified common components
+ * Teacher dashboard with real attendance and session data
  */
 
-import { UserStore } from '../../stores/userStore';
-import { AttendanceRecord } from '../../models/attendance';
-import { AttendanceService } from '../../services/api/attendance';
-import { SessionSchedule, SessionService } from '../../services/api/service';
 import {
   GreetingHeader,
   HeaderTheme,
@@ -17,8 +13,13 @@ import {
   Card,
   ActionButton
 } from '../../components/common';
-import { formatDate, formatTime } from '../../utils/date';
 import { ErrorMessages } from '../../constants/ErrorMessages';
+import { AttendanceRecord } from '../../models/attendance';
+import { AttendanceService } from '../../services/api/attendance';
+import { MessageService } from '../../services/api/message';
+import { SessionSchedule, SessionService } from '../../services/api/service';
+import { UserStore } from '../../stores/userStore';
+import { formatDate, formatTime } from '../../utils/date';
 
 interface SessionQueryParams {
   sessionDate: string;
@@ -33,6 +34,7 @@ export struct TeacherHomePage {
   @State isLoading: boolean = true;
   @State currentSession: SessionSchedule | null = null;
   @State errorMessage: string = '';
+  @State unreadCount: number = 0;
 
   async aboutToAppear() {
     const userInfo = UserStore.getUserInfo();
@@ -45,16 +47,20 @@ export struct TeacherHomePage {
   async loadData() {
     this.isLoading = true;
     this.errorMessage = '';
+
     try {
       const today = formatDate(new Date());
-      const userInfo = UserStore.getUserInfo();
-      const teacherUserId = userInfo?.id;
+      const teacherUserId = UserStore.getUserInfo()?.id;
       const sessionParams: SessionQueryParams = { sessionDate: today };
       if (teacherUserId) {
         sessionParams.teacherUserId = teacherUserId;
       }
 
-      const sessionsResp = await SessionService.getSessions(sessionParams);
+      const [sessionsResp, unreadResp] = await Promise.all([
+        SessionService.getSessions(sessionParams),
+        MessageService.getUnreadCount()
+      ]);
+
       if (sessionsResp.code === 0 && sessionsResp.data) {
         this.todaySessions = sessionsResp.data ?? [];
         this.currentSession = this.todaySessions.find((session: SessionSchedule) => session.status === 'ONGOING') ?? null;
@@ -62,6 +68,8 @@ export struct TeacherHomePage {
         this.todaySessions = [];
         this.currentSession = null;
       }
+
+      this.unreadCount = unreadResp.code === 0 && unreadResp.data ? unreadResp.data.count : 0;
 
       if (this.currentSession) {
         const attendanceResp = await AttendanceService.getAttendanceList({
@@ -80,6 +88,7 @@ export struct TeacherHomePage {
       this.todaySessions = [];
       this.todayAttendance = [];
       this.currentSession = null;
+      this.unreadCount = 0;
       this.errorMessage = ErrorMessages.DATA_LOAD_FAILED;
     } finally {
       this.isLoading = false;
@@ -108,40 +117,42 @@ export struct TeacherHomePage {
 
   private getSessionStatusText(status?: string): string {
     if (status === 'ONGOING') {
-      return '进行中';
+      return 'In progress';
     }
     if (status === 'ENDED') {
-      return '已结束';
+      return 'Ended';
     }
-    return '未开始';
+    return 'Upcoming';
   }
 
   private getSessionStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#2F9B52';
+      return '#16A34A';
     }
     if (status === 'ENDED') {
-      return '#7F8A9A';
+      return '#7A879A';
     }
-    return '#4F7CFF';
+    return '#1F5EFF';
   }
 
   private getSessionStatusBgColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#EAF7EC';
+      return '#ECFDF5';
     }
     if (status === 'ENDED') {
-      return '#EEF2F6';
+      return '#EEF3F8';
     }
-    return '#EAF2FF';
+    return '#EDF4FF';
   }
 
   build() {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '今日班次、考勤异常与作业处理集中查看',
+        greeting: "Stay on top of sessions, attendance, and homework handling from one workspace.",
         theme: HeaderTheme.WHITE,
+        badgeText: "Teacher workspace",
+        metaText: this.currentSession?.serviceProductName ? `Current session: ${this.currentSession.serviceProductName}` : '',
         onRightIconClick: () => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
         }
@@ -162,17 +173,35 @@ export struct TeacherHomePage {
 
   @Builder
   buildMessageEntry() {
-    Column() {
-      Image($r('app.media.ic_notification'))
-        .width(22)
-        .height(22)
-        .objectFit(ImageFit.Contain)
+    Stack({ alignContent: Alignment.TopEnd }) {
+      Column() {
+        Image($r('app.media.ic_notification'))
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor('#12305F')
+      }
+      .width(46)
+      .height(46)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(18)
+      .border({
+        width: 1,
+        color: '#E5EEF9',
+        radius: 18,
+        style: BorderStyle.Solid
+      })
+
+      if (this.unreadCount > 0) {
+        Text(this.unreadCount > 99 ? '99+' : `${this.unreadCount}`)
+          .fontSize(10)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.error'))
+          .borderRadius(9)
+          .padding({ left: 5, right: 5, top: 1, bottom: 1 })
+      }
     }
-    .width(40)
-    .height(40)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#F1F5FB')
-    .borderRadius(20)
     .onClick(() => {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
     })
@@ -189,7 +218,7 @@ export struct TeacherHomePage {
         this.buildTodaySessionsCard()
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 20 })
+      .padding({ left: 16, right: 16, top: 12, bottom: 24 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -198,12 +227,21 @@ export struct TeacherHomePage {
 
   @Builder
   buildOverviewPanel() {
-    Row() {
-      this.buildOverviewMetric('今日班次', `${this.todaySessions.length}`, '#4F7CFF', '#EAF2FF')
-      Blank().width(10)
-      this.buildOverviewMetric('待处理签到', `${this.getUnsignedCount()}`, '#F2994A', '#FFF4E8')
-      Blank().width(10)
-      this.buildOverviewMetric('已完成签到', `${this.getSignedCount()}`, '#2F9B52', '#EAF7EC')
+    Column() {
+      Row() {
+        this.buildOverviewMetric('Sessions', `${this.todaySessions.length}`, '#1F5EFF', '#EDF4FF')
+        Blank().width(10)
+        this.buildOverviewMetric('Pending sign-in', `${this.getUnsignedCount()}`, '#F59E0B', '#FFF7E8')
+      }
+      .width('100%')
+
+      Row() {
+        this.buildOverviewMetric('Signed in', `${this.getSignedCount()}`, '#16A34A', '#ECFDF5')
+        Blank().width(10)
+        this.buildOverviewMetric('Unread messages', `${this.unreadCount}`, '#8B5CF6', '#F5F0FF')
+      }
+      .width('100%')
+      .margin({ top: 10 })
     }
     .width('100%')
     .margin({ bottom: 14 })
@@ -220,72 +258,75 @@ export struct TeacherHomePage {
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
         .fontColor(valueColor)
-        .margin({ top: 6 })
+        .margin({ top: 8 })
     }
     .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
+    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
     .backgroundColor(bgColor)
-    .borderRadius(18)
+    .borderRadius(20)
     .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
   buildQuickActions() {
     Column() {
-      Row() {
-        Text('快捷操作')
-          .fontSize(18)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-      }
-      .width('100%')
-      .margin({ bottom: 10 })
+      Text('Quick actions')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .width('100%')
+        .margin({ bottom: 10 })
 
       Row() {
         ActionButton({
-          label: '扫码签到',
+          label: 'QR sign-in',
           icon: $r('app.media.ic_qrcode'),
-          bgColor: '#EAF7EC',
-          iconColor: '#2F9B52',
+          bgColor: '#ECFDF5',
+          iconColor: '#16A34A',
           onButtonClick: () => {
             this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherScanPage' });
           }
         })
 
+        Blank().width(10)
+
         ActionButton({
-          label: '考勤管理',
+          label: 'Attendance',
           icon: $r('app.media.ic_attendance'),
-          bgColor: '#EAF2FF',
-          iconColor: '#4F7CFF',
+          bgColor: '#EDF4FF',
+          iconColor: '#1F5EFF',
           onButtonClick: () => {
             AppStorage.setOrCreate('main_current_index', 1);
           }
         })
+      }
+      .width('100%')
 
+      Row() {
         ActionButton({
-          label: '作业处理',
+          label: 'Homework',
           icon: $r('app.media.ic_homework'),
-          bgColor: '#FFF4E8',
-          iconColor: '#F2994A',
+          bgColor: '#FFF7E8',
+          iconColor: '#F59E0B',
           onButtonClick: () => {
             AppStorage.setOrCreate('main_current_index', 2);
           }
         })
 
+        Blank().width(10)
+
         ActionButton({
-          label: '班次安排',
+          label: 'Schedule',
           icon: $r('app.media.ic_calendar'),
-          bgColor: '#F4EEFF',
-          iconColor: '#8E5CF6',
+          bgColor: '#F5F0FF',
+          iconColor: '#8B5CF6',
           onButtonClick: () => {
             this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
           }
         })
       }
       .width('100%')
-      .padding({ top: 10, bottom: 10 })
-      .backgroundColor(Color.White)
-      .borderRadius(20)
+      .margin({ top: 10 })
     }
     .width('100%')
     .margin({ bottom: 14 })
@@ -294,8 +335,8 @@ export struct TeacherHomePage {
   @Builder
   buildSessionOverviewCard() {
     Card({
-      title: '当前班次',
-      subtitle: this.currentSession ? '优先展示当前进行中的班次' : '今日最近班次概览',
+      title: 'Current session',
+      subtitle: this.currentSession ? 'Focus on the live session and the current sign-in progress.' : 'No live session found. Showing the next available plan for today.',
       showArrow: this.getDisplaySession() !== null,
       clickable: this.getDisplaySession() !== null,
       onCardClick: () => {
@@ -311,7 +352,7 @@ export struct TeacherHomePage {
       Column() {
         Row() {
           Column() {
-            Text(this.getDisplaySession()?.serviceProductName ?? '托管班次')
+            Text(this.getDisplaySession()?.serviceProductName ?? 'Care session')
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.text_primary'))
@@ -319,7 +360,7 @@ export struct TeacherHomePage {
               .textOverflow({ overflow: TextOverflow.Ellipsis })
 
             Text(`${formatTime(this.getDisplaySession()?.startTime ?? '')} - ${formatTime(this.getDisplaySession()?.endTime ?? '')}`)
-              .fontSize($r('app.float.text_secondary_size'))
+              .fontSize(13)
               .fontColor($r('app.color.text_secondary'))
               .margin({ top: 6 })
           }
@@ -337,9 +378,9 @@ export struct TeacherHomePage {
         .alignItems(VerticalAlign.Top)
 
         Row() {
-          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#2F9B52')
+          this.buildInlineMetric('Signed in', `${this.getSignedCount()}`, '#16A34A')
           Blank().width(10)
-          this.buildInlineMetric('未签到', `${this.getUnsignedCount()}`, '#F2994A')
+          this.buildInlineMetric('Pending', `${this.getUnsignedCount()}`, '#F59E0B')
         }
         .width('100%')
         .margin({ top: 16 })
@@ -348,8 +389,8 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: '今日暂无班次安排',
-        customDescription: this.errorMessage || '可稍后刷新查看最新安排'
+        customTitle: 'No session scheduled',
+        customDescription: this.errorMessage || 'Refresh later or open the schedule page to review the latest plan.'
       })
     }
   }
@@ -369,7 +410,7 @@ export struct TeacherHomePage {
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFF')
+    .backgroundColor('#F7FAFD')
     .borderRadius(14)
     .alignItems(HorizontalAlign.Start)
   }
@@ -377,8 +418,8 @@ export struct TeacherHomePage {
   @Builder
   buildTodayStatsCard() {
     Card({
-      title: '今日工作摘要',
-      subtitle: '快速确认班次执行与签到进度',
+      title: 'Today summary',
+      subtitle: 'Check session execution and the current sign-in completion.',
       content: this.buildTodayStatsContent
     })
   }
@@ -386,21 +427,21 @@ export struct TeacherHomePage {
   @Builder
   buildTodayStatsContent() {
     Row() {
-      this.buildStatBlock(String(this.todaySessions.length), '今日班次', '#4F7CFF')
+      this.buildStatBlock(String(this.todaySessions.length), 'Sessions', '#1F5EFF')
 
       Divider()
         .vertical(true)
         .height(42)
         .color('#E6ECF2')
 
-      this.buildStatBlock(String(this.getSignedCount()), '已签到', '#2F9B52')
+      this.buildStatBlock(String(this.getSignedCount()), 'Signed in', '#16A34A')
 
       Divider()
         .vertical(true)
         .height(42)
         .color('#E6ECF2')
 
-      this.buildStatBlock(String(this.getUnsignedCount()), '未签到', '#F2994A')
+      this.buildStatBlock(String(this.unreadCount), 'Pending messages', '#8B5CF6')
     }
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
@@ -416,7 +457,7 @@ export struct TeacherHomePage {
         .fontWeight(FontWeight.Bold)
 
       Text(label)
-        .fontSize($r('app.float.text_secondary_size'))
+        .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 4 })
     }
@@ -427,9 +468,9 @@ export struct TeacherHomePage {
   @Builder
   buildTodaySessionsCard() {
     Card({
-      title: '今日班次列表',
-      subtitle: '按时间查看当天全部班次安排',
-      actionText: '查看全部',
+      title: 'Today sessions',
+      subtitle: 'Review all sessions planned for the day.',
+      actionText: 'View all',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
       },
@@ -444,15 +485,15 @@ export struct TeacherHomePage {
         ForEach(this.todaySessions, (session: SessionSchedule, index: number) => {
           Row() {
             Column() {
-              Text(session.serviceProductName ?? '托管班次')
-                .fontSize($r('app.float.text_primary_size'))
+              Text(session.serviceProductName ?? 'Care session')
+                .fontSize(16)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.text_primary'))
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-              Text(`${formatTime(session.startTime)} - ${formatTime(session.endTime)}`)
-                .fontSize($r('app.float.text_secondary_size'))
+              Text(`${formatTime(session.startTime)} - ${formatTime(session.endTime)} · ${formatDate(new Date())}`)
+                .fontSize(13)
                 .fontColor($r('app.color.text_secondary'))
                 .margin({ top: 4 })
             }
@@ -478,8 +519,8 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: '暂无班次记录',
-        customDescription: this.errorMessage || '今日还没有可展示的班次安排'
+        customTitle: 'No session records',
+        customDescription: this.errorMessage || 'There is no session data to display right now.'
       })
     }
   }

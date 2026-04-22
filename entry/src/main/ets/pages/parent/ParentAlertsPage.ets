@@ -25,13 +25,13 @@ struct ParentAlertsPage {
     try {
       const resp = await AlertService.getActiveAlerts(1, 50);
       if (resp.code === 0 && resp.data) {
-        this.alerts = resp.data.list || [];
+        this.alerts = resp.data.list ?? [];
       } else {
-        this.alerts = this.getMockAlerts();
+        this.alerts = [];
       }
     } catch (error) {
       console.error('Failed to load alerts:', String(error));
-      this.alerts = this.getMockAlerts();
+      this.alerts = [];
     } finally {
       this.isLoading = false;
     }
@@ -43,11 +43,11 @@ struct ParentAlertsPage {
       if (resp.code === 0 && resp.data) {
         this.statistics = resp.data;
       } else {
-        this.statistics = this.getMockStatistics();
+        this.statistics = this.getEmptyStatistics();
       }
     } catch (error) {
       console.error('Failed to load statistics:', String(error));
-      this.statistics = this.getMockStatistics();
+      this.statistics = this.getEmptyStatistics();
     }
   }
 
@@ -128,7 +128,7 @@ struct ParentAlertsPage {
   buildStatistics() {
     Column() {
       Row() {
-        this.buildStatItem('活动预警', this.statistics?.active || 0, '#FF5722')
+        this.buildStatItem('活跃预警', this.statistics?.active || 0, '#FF5722')
         this.buildStatItem('已确认', this.statistics?.acknowledged || 0, '#FF9800')
         this.buildStatItem('已解决', this.statistics?.resolved || 0, '#4CAF50')
       }
@@ -347,32 +347,32 @@ struct ParentAlertsPage {
 
   getSeverityText(severity: string): string {
     const texts: Record<string, string> = {
-      'LOW': '低',
-      'MEDIUM': '中',
-      'HIGH': '高',
-      'CRITICAL': '紧急'
+      LOW: '低',
+      MEDIUM: '中',
+      HIGH: '高',
+      CRITICAL: '紧急'
     };
     return texts[severity] || '未知';
   }
 
   getSeverityColor(severity: string): string {
     const colors: Record<string, string> = {
-      'LOW': '#4CAF50',
-      'MEDIUM': '#FF9800',
-      'HIGH': '#FF5722',
-      'CRITICAL': '#D32F2F'
+      LOW: '#4CAF50',
+      MEDIUM: '#FF9800',
+      HIGH: '#FF5722',
+      CRITICAL: '#D32F2F'
     };
     return colors[severity] || '#9E9E9E';
   }
 
   getAlertTypeText(type: string): string {
     const texts: Record<string, string> = {
-      'ATTENDANCE_ANOMALY': '考勤异常',
-      'SAFETY_CONCERN': '安全隐患',
-      'ACADEMIC_PERFORMANCE': '学业表现',
-      'BEHAVIORAL_ISSUE': '行为问题',
-      'FEE_DUE': '费用到期',
-      'SYSTEM': '系统提醒'
+      ATTENDANCE_ANOMALY: '考勤异常',
+      SAFETY_CONCERN: '安全隐患',
+      ACADEMIC_PERFORMANCE: '学业表现',
+      BEHAVIORAL_ISSUE: '行为问题',
+      FEE_DUE: '费用到期',
+      SYSTEM: '系统提醒'
     };
     return texts[type] || '其他';
   }
@@ -395,53 +395,14 @@ struct ParentAlertsPage {
     return time.substring(0, 10);
   }
 
-  getMockAlerts(): AlertRecord[] {
-    return [
-      {
-        id: 1,
-        studentId: 1,
-        studentName: '张小明',
-        alertType: 'ATTENDANCE_ANOMALY',
-        severity: 'HIGH',
-        title: '未按时签到',
-        description: '学生今日未在规定时间内完成签到，请及时关注',
-        suggestedAction: '请联系班主任确认学生情况',
-        status: 'ACTIVE',
-        createdAt: '2026-04-16 09:00:00',
-        updatedAt: '2026-04-16'
-      },
-      {
-        id: 2,
-        studentId: 1,
-        studentName: '张小明',
-        alertType: 'SAFETY_CONCERN',
-        severity: 'MEDIUM',
-        title: '位置异常',
-        description: '学生签到位置与活动地点不符',
-        suggestedAction: '请核实学生实际位置',
-        status: 'ACTIVE',
-        createdAt: '2026-04-16 10:30:00',
-        updatedAt: '2026-04-16'
-      }
-    ];
-  }
-
-  getMockStatistics(): AlertStatistics {
+  private getEmptyStatistics(): AlertStatistics {
     return {
-      total: 5,
-      active: 2,
-      acknowledged: 1,
-      resolved: 2,
-      byType: {
-        ATTENDANCE_ANOMALY: 3,
-        SAFETY_CONCERN: 1,
-        ACADEMIC_PERFORMANCE: 1
-      },
-      bySeverity: {
-        HIGH: 1,
-        MEDIUM: 1,
-        LOW: 3
-      }
+      total: this.alerts.length,
+      active: 0,
+      acknowledged: 0,
+      resolved: 0,
+      byType: {},
+      bySeverity: {}
     };
   }
 }

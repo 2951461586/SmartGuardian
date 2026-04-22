@@ -76,6 +76,6 @@ public class AttendanceService {
     if (rows.isEmpty()) {
       throw new BizException(404, "考勤记录不存在");
     }
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 }

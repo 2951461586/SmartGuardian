@@ -2,43 +2,43 @@
   "color": [
     {
       "name": "primary",
-      "value": "#007AFF"
+      "value": "#1F5EFF"
     },
     {
       "name": "primary_light",
-      "value": "#E3F2FD"
+      "value": "#EAF1FF"
     },
     {
       "name": "secondary",
-      "value": "#5856D6"
+      "value": "#14B8A6"
     },
     {
       "name": "success",
-      "value": "#34C759"
+      "value": "#16A34A"
     },
     {
       "name": "warning",
-      "value": "#FF9500"
+      "value": "#F59E0B"
     },
     {
       "name": "error",
-      "value": "#FF3B30"
+      "value": "#E5484D"
     },
     {
       "name": "text_primary",
-      "value": "#1C1C1E"
+      "value": "#10203A"
     },
     {
       "name": "text_secondary",
-      "value": "#8E8E93"
+      "value": "#5F6C80"
     },
     {
       "name": "text_tertiary",
-      "value": "#AEAEB2"
+      "value": "#8B98AB"
     },
     {
       "name": "page_background",
-      "value": "#F2F2F7"
+      "value": "#F4F8FC"
     },
     {
       "name": "card_background",
@@ -46,15 +46,15 @@
     },
     {
       "name": "divider",
-      "value": "#E5E5EA"
+      "value": "#E5EDF6"
     },
     {
       "name": "bottom_nav_background",
-      "value": "#FFFFFF"
+      "value": "#F9FBFE"
     },
     {
       "name": "nav_icon_inactive",
-      "value": "#8E8E93"
+      "value": "#7A879A"
     },
     {
       "name": "start_window_background",

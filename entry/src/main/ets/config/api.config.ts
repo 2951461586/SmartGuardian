@@ -15,46 +15,80 @@ export class ApiEnvironment {
  * API environment configuration
  */
 export class ApiConfig {
+  static readonly API_ENV_STORAGE_KEY: string = 'smart_guardian_api_env';
+  static readonly API_BASE_URL_STORAGE_KEY: string = 'smart_guardian_api_base_url';
+
   /**
-   * 当前环境。
-   * DEV_MOCK: 本地开发/界面联调，全部走 Mock。
-   * TEST_REAL: 测试环境联调，全部走真实后端。
+   * Default environment for fresh installs.
+   * Keep mock as the baseline and let runtime config switch to real services.
    */
   static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
 
   /**
-   * 测试环境后端地址。
-   *
-   * @description 请在外部配置实际联调地址，例如 https://api.example.com
+   * Default real backend base URL. Can be overridden at runtime.
    */
   static readonly TEST_BASE_URL: string = '';
+
+  static getCurrentEnv(): string {
+    return AppStorage.get<string>(ApiConfig.API_ENV_STORAGE_KEY) ?? ApiConfig.CURRENT_ENV;
+  }
+
+  static setCurrentEnv(env: string): void {
+    AppStorage.setOrCreate(ApiConfig.API_ENV_STORAGE_KEY, env);
+  }
+
+  static getConfiguredBaseUrl(): string {
+    const runtimeUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY) ?? ApiConfig.TEST_BASE_URL;
+    return ApiConfig.normalizeBaseUrl(runtimeUrl);
+  }
+
+  static setConfiguredBaseUrl(url: string): void {
+    AppStorage.setOrCreate(ApiConfig.API_BASE_URL_STORAGE_KEY, ApiConfig.normalizeBaseUrl(url));
+  }
+
+  static applyRuntimeConfig(env: string, baseUrl?: string): void {
+    ApiConfig.setCurrentEnv(env);
+    if (baseUrl !== undefined) {
+      ApiConfig.setConfiguredBaseUrl(baseUrl);
+    }
+  }
+
+  static clearRuntimeConfig(): void {
+    AppStorage.delete(ApiConfig.API_ENV_STORAGE_KEY);
+    AppStorage.delete(ApiConfig.API_BASE_URL_STORAGE_KEY);
+  }
+
+  static getEnvironmentLabel(): string {
+    return ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL ? 'REAL' : 'MOCK';
+  }
 
   /**
    * Enable mock data mode
    */
   static isMockEnabled(): boolean {
-    return ApiConfig.CURRENT_ENV === ApiEnvironment.DEV_MOCK;
+    return ApiConfig.getCurrentEnv() === ApiEnvironment.DEV_MOCK;
   }
 
   /**
    * API base URL
    */
   static getBaseUrl(): string {
-    if (ApiConfig.CURRENT_ENV === ApiEnvironment.TEST_REAL) {
-      return ApiConfig.TEST_BASE_URL;
+    if (ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL) {
+      return ApiConfig.getConfiguredBaseUrl();
     }
     return '';
   }
 
-  /**
-   * 兼容旧版 ApiWrapper 的 Mock 开关字段
-   */
-  static readonly USE_MOCK_DATA: boolean = ApiConfig.isMockEnabled();
+  private static normalizeBaseUrl(url: string): string {
+    return url.trim().replace(/\/+$/, '');
+  }
 
   /**
-   * 兼容旧版 ApiWrapper 的基础地址字段
+   * Compatibility fields for legacy wrappers.
+   * These remain static defaults; new code should call the methods above.
    */
-  static readonly BASE_URL: string = ApiConfig.getBaseUrl();
+  static readonly USE_MOCK_DATA: boolean = ApiConfig.CURRENT_ENV === ApiEnvironment.DEV_MOCK;
+  static readonly BASE_URL: string = ApiConfig.TEST_BASE_URL;
 
   /**
    * Request timeout in milliseconds
@@ -84,7 +118,7 @@ export class ApiConfig {
   /**
    * Cache expiration time in seconds
    */
-  static readonly CACHE_EXPIRATION: number = 300; // 5 minutes
+  static readonly CACHE_EXPIRATION: number = 300;
 }
 
 /**
@@ -93,27 +127,16 @@ export class ApiConfig {
  * @note This class allows fine-grained control over which services use mock data
  */
 export class MockSwitch {
-  // Auth & User
   static readonly AUTH_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly STUDENT_SERVICE: boolean = ApiConfig.isMockEnabled();
-
-  // Service & Order
   static readonly SERVICE_PRODUCT_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly ORDER_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly SESSION_SERVICE: boolean = ApiConfig.isMockEnabled();
-
-  // Attendance & Homework
   static readonly ATTENDANCE_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly HOMEWORK_SERVICE: boolean = ApiConfig.isMockEnabled();
-
-  // Communication
   static readonly MESSAGE_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly TIMELINE_SERVICE: boolean = ApiConfig.isMockEnabled();
-
-  // Payment & Report
   static readonly PAYMENT_SERVICE: boolean = ApiConfig.isMockEnabled();
   static readonly REPORT_SERVICE: boolean = ApiConfig.isMockEnabled();
-
-  // Card
   static readonly CARD_SERVICE: boolean = ApiConfig.isMockEnabled();
 }

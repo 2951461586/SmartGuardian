@@ -77,7 +77,7 @@ export struct ParentOrdersPage {
       const resp = await OrderService.getOrders(params);
 
       if (resp.code === 0 && resp.data) {
-        const rawOrders = Array.isArray(resp.data) ? resp.data : [];
+        const rawOrders = resp.data.list ?? [];
         OrderStore.setOrderList(rawOrders);
         this.orders = rawOrders;
         this.lastLoadTime = Date.now();

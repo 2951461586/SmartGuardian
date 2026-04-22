@@ -3,21 +3,21 @@
  * Main shell with bottom navigation for different roles
  */
 
+import { ApiConfig } from '../config/api.config';
+import { UserRole } from '../models/common';
 import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
-import { UserRole } from '../models/common';
 import { getToken } from '../utils/request';
-
-import { ParentHomePage } from './parent/ParentHomePage';
-import { ParentOrdersPage } from './parent/ParentOrdersPage';
-import { ParentMessagesPage } from './parent/ParentMessagesPage';
-import { ParentProfilePage } from './parent/ParentProfilePage';
-import { TeacherHomePage } from './teacher/TeacherHomePage';
-import { TeacherAttendancePage } from './teacher/TeacherAttendancePage';
-import { TeacherHomeworkPage } from './teacher/TeacherHomeworkPage';
 import { AdminHomePage } from './admin/AdminHomePage';
 import { AdminOrdersPage } from './admin/AdminOrdersPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
+import { ParentHomePage } from './parent/ParentHomePage';
+import { ParentMessagesPage } from './parent/ParentMessagesPage';
+import { ParentOrdersPage } from './parent/ParentOrdersPage';
+import { ParentProfilePage } from './parent/ParentProfilePage';
+import { TeacherAttendancePage } from './teacher/TeacherAttendancePage';
+import { TeacherHomePage } from './teacher/TeacherHomePage';
+import { TeacherHomeworkPage } from './teacher/TeacherHomeworkPage';
 
 interface NavItem {
   label: ResourceStr;
@@ -98,7 +98,7 @@ struct MainPage {
     this.ensureValidCurrentIndex();
   }
 
-  ensureValidCurrentIndex(): void {
+  private ensureValidCurrentIndex(): void {
     const maxIndex = this.currentRole === UserRole.PARENT ? 3 : 2;
     if (this.currentIndex > maxIndex) {
       this.currentIndex = 0;
@@ -149,15 +149,34 @@ struct MainPage {
   @Builder
   buildInitializingState() {
     Column() {
-      LoadingProgress()
-        .color($r('app.color.primary'))
-        .width(36)
-        .height(36)
+      Column() {
+        LoadingProgress()
+          .color(Color.White)
+          .width(40)
+          .height(40)
+      }
+      .width(76)
+      .height(76)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor($r('app.color.primary'))
+      .borderRadius(28)
+      .shadow({
+        radius: 18,
+        color: '#1F5EFF33',
+        offsetX: 0,
+        offsetY: 10
+      })
 
-      Text('正在准备你的工作台...')
-        .fontSize($r('app.float.text_secondary_size'))
+      Text("Preparing workspace")
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 22 })
+
+      Text(`Mode: ${ApiConfig.getEnvironmentLabel()}`)
+        .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 14 })
+        .margin({ top: 8 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -169,26 +188,46 @@ struct MainPage {
   buildAuthLockedState() {
     Column() {
       Column() {
-        Text('登录状态已失效')
-          .fontSize(20)
+        Text("Session expired")
+          .fontSize(22)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
-        Text('请重新登录以继续使用智慧托管')
+        Text("Please sign in again to continue using SmartGuardian.")
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 10 })
+
+        Button("Back to sign in")
+          .width('100%')
+          .height(48)
+          .fontSize(15)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.primary'))
+          .borderRadius(16)
+          .margin({ top: 22 })
+          .onClick(() => {
+            this.navigateToLogin();
+          })
       }
+      .width('100%')
       .padding(24)
       .backgroundColor(Color.White)
-      .borderRadius(20)
-      .margin({ left: 24, right: 24 })
+      .borderRadius(24)
+      .border({
+        width: 1,
+        color: '#EAF0F7',
+        radius: 24,
+        style: BorderStyle.Solid
+      })
       .shadow({
-        radius: 16,
-        color: '#12000000',
+        radius: 18,
+        color: '#10172F12',
         offsetX: 0,
         offsetY: 8
       })
+      .margin({ left: 24, right: 24 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -233,19 +272,31 @@ struct MainPage {
 
   @Builder
   buildBottomNav() {
-    Row() {
-      ForEach(this.getNavItems(), (item: NavItem, index: number) => {
-        this.buildNavItem(index, item.label, item.icon)
+    Column() {
+      Row() {
+        ForEach(this.getNavItems(), (item: NavItem, index: number) => {
+          this.buildNavItem(index, item.label, item.icon)
+        })
+      }
+      .width('100%')
+      .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+      .backgroundColor($r('app.color.bottom_nav_background'))
+      .borderRadius(26)
+      .border({
+        width: 1,
+        color: '#EAF0F7',
+        radius: 26,
+        style: BorderStyle.Solid
+      })
+      .shadow({
+        radius: 16,
+        color: '#10172F14',
+        offsetX: 0,
+        offsetY: 6
       })
     }
     .width('100%')
-    .padding({ left: 12, right: 12, top: 10, bottom: 14 })
-    .backgroundColor('#FAFCFF')
-    .border({
-      width: { top: 1 },
-      color: { top: '#E9EEF5' },
-      style: BorderStyle.Solid
-    })
+    .padding({ left: 12, right: 12, top: 8, bottom: 14 })
   }
 
   @Builder
@@ -256,22 +307,22 @@ struct MainPage {
           .width(22)
           .height(22)
           .objectFit(ImageFit.Contain)
-          .fillColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
+          .fillColor(this.currentIndex === index ? Color.White : $r('app.color.nav_icon_inactive'))
       }
-      .width(40)
-      .height(32)
+      .width(42)
+      .height(42)
       .justifyContent(FlexAlign.Center)
-      .backgroundColor(this.currentIndex === index ? '#EAF2FF' : Color.Transparent)
-      .borderRadius(16)
+      .backgroundColor(this.currentIndex === index ? $r('app.color.primary') : '#F3F7FB')
+      .borderRadius(18)
 
       Text(label)
         .fontSize(11)
         .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
         .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
-        .margin({ top: 6 })
+        .margin({ top: 8 })
     }
     .layoutWeight(1)
-    .padding({ top: 4, bottom: 2 })
+    .padding({ top: 6, bottom: 4 })
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
     .onClick(() => {

@@ -22,7 +22,7 @@ public class OverviewService {
       "select s.id as studentId, s.name as studentName, ss.id as sessionId, ss.session_date as sessionDate, ss.start_time as startTime, ss.end_time as endTime, sp.service_name as sessionName, a.status as attendanceStatus, a.sign_in_time as signInTime, a.sign_out_time as signOutTime, ht.status as homeworkStatus, 1 as homeworkCount, hf.progress_rate as homeworkProgress, hf.feedback_text as teacherFeedback from student s left join attendance_record a on a.student_id = s.id and a.attendance_date = CURRENT_DATE left join session_schedule ss on ss.id = a.session_id left join service_product sp on sp.id = ss.service_product_id left join homework_task ht on ht.student_id = s.id and ht.task_date = CURRENT_DATE left join homework_feedback hf on hf.student_id = s.id where s.id = :studentId",
       new MapSqlParameterSource("studentId", targetStudentId)
     );
-    Map<String, Object> row = rows.isEmpty() ? Map.of() : rows.getFirst();
+    Map<String, Object> row = rows.isEmpty() ? Map.of() : rows.get(0);
     Map<String, Object> sessionInfo = new LinkedHashMap<>();
     sessionInfo.put("sessionId", row.get("SESSIONID"));
     sessionInfo.put("sessionNo", "S" + row.get("SESSIONID"));
@@ -53,6 +53,6 @@ public class OverviewService {
   public Map<String, Object> getAbnormalAlert(Long studentId) {
     Long targetStudentId = studentId == null ? 1L : studentId;
     List<Map<String, Object>> rows = jdbcTemplate.queryForList("select ar.id as alertId, ar.student_id as studentId, s.name as studentName, ar.alert_type as alertType, ar.severity, ar.title as alertTitle, ar.description as alertContent, ar.created_at as alertTime, case when ar.status = 'ACTIVE' then false else true end as isRead from alert_record ar left join student s on s.id = ar.student_id where ar.student_id = :studentId and ar.status = 'ACTIVE' order by ar.id desc", new MapSqlParameterSource("studentId", targetStudentId));
-    return rows.isEmpty() ? null : rows.getFirst();
+    return rows.isEmpty() ? null : rows.get(0);
   }
 }

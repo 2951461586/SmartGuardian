@@ -1,10 +1,8 @@
 /**
  * SmartGuardian - Admin Home Page
- * Admin dashboard with unified common components
+ * Admin dashboard backed by real report and order APIs
  */
 
-import { UserStore } from '../../stores/userStore';
-import { StudentService } from '../../services/api/auth';
 import {
   GreetingHeader,
   HeaderTheme,
@@ -17,13 +15,19 @@ import {
   EmptyType
 } from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
-import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { StudentService } from '../../services/api/auth';
+import { MessageService } from '../../services/api/message';
+import { ReportsService } from '../../services/api/reports';
+import { OrderService } from '../../services/api/service';
+import { UserStore } from '../../stores/userStore';
 
 interface DashboardStats {
   totalStudents: number;
-  activeStudents: number;
-  todayAttendance: number;
+  presentStudents: number;
+  attendanceRate: number;
   pendingOrders: number;
+  unreadMessages: number;
+  netIncome: number;
 }
 
 interface ActivityItem {
@@ -39,16 +43,13 @@ export struct AdminHomePage {
   @State errorMessage: string = '';
   @State stats: DashboardStats = {
     totalStudents: 0,
-    activeStudents: 0,
-    todayAttendance: 0,
-    pendingOrders: 0
+    presentStudents: 0,
+    attendanceRate: 0,
+    pendingOrders: 0,
+    unreadMessages: 0,
+    netIncome: 0
   };
-
-  private readonly recentActivities: ActivityItem[] = [
-    { title: '新学生注册', content: '张三 已完成注册', time: '10分钟前' },
-    { title: '订单支付', content: '订单 #1234 支付成功', time: '30分钟前' },
-    { title: '请假申请', content: '李四 申请请假', time: '1小时前' }
-  ];
+  @State recentActivities: ActivityItem[] = [];
 
   aboutToAppear() {
     const userInfo = UserStore.getUserInfo();
@@ -61,23 +62,49 @@ export struct AdminHomePage {
   async loadDashboard() {
     this.isLoading = true;
     this.errorMessage = '';
+
     try {
-      const studentsResp = await StudentService.getStudents({ pageNum: 1, pageSize: 1 });
+      const [studentsResp, attendanceResp, ordersResp, messagesResp, financeResp] = await Promise.all([
+        StudentService.getStudents({ pageNum: 1, pageSize: 1 }),
+        ReportsService.getAttendanceReport(),
+        OrderService.getOrders({ pageNum: 1, pageSize: 200, orderStatus: 'PENDING' }),
+        MessageService.getUnreadCount(),
+        ReportsService.getFinanceReport()
+      ]);
+
       const totalStudents = studentsResp.code === 0 && studentsResp.data ? studentsResp.data.total : 0;
+      const presentStudents = attendanceResp.code === 0 && attendanceResp.data ? attendanceResp.data.presentCount : 0;
+      const attendanceRate = attendanceResp.code === 0 && attendanceResp.data
+        ? Math.round((attendanceResp.data.attendanceRate ?? 0) * 100)
+        : 0;
+      const pendingOrders = ordersResp.code === 0 && ordersResp.data ? (ordersResp.data.list?.length ?? 0) : 0;
+      const unreadMessages = messagesResp.code === 0 && messagesResp.data ? messagesResp.data.count : 0;
+      const netIncome = financeResp.code === 0 && financeResp.data ? Number(financeResp.data.netIncome ?? 0) : 0;
 
       this.stats = {
         totalStudents,
-        activeStudents: Math.floor(totalStudents * 0.9),
-        todayAttendance: Math.floor(totalStudents * 0.85),
-        pendingOrders: 5
+        presentStudents,
+        attendanceRate,
+        pendingOrders,
+        unreadMessages,
+        netIncome
       };
+
+      this.recentActivities = [
+        { title: 'Student scale', content: `The system currently tracks ${totalStudents} students.`, time: 'Live' },
+        { title: 'Pending orders', content: `${pendingOrders} orders still need review or follow-up.`, time: 'Live' },
+        { title: 'Message alerts', content: `${unreadMessages} notifications remain unread in the console.`, time: 'Live' }
+      ];
     } catch (error) {
       this.stats = {
         totalStudents: 0,
-        activeStudents: 0,
-        todayAttendance: 0,
-        pendingOrders: 0
+        presentStudents: 0,
+        attendanceRate: 0,
+        pendingOrders: 0,
+        unreadMessages: 0,
+        netIncome: 0
       };
+      this.recentActivities = [];
       this.errorMessage = ErrorMessages.DATA_LOAD_FAILED;
     } finally {
       this.isLoading = false;
@@ -88,8 +115,10 @@ export struct AdminHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '聚焦学生规模、订单处理与机构运营状态',
+        greeting: 'Track students, order flow, and operating indicators from one management cockpit.',
         theme: HeaderTheme.WHITE,
+        badgeText: 'Admin cockpit',
+        metaText: `Attendance rate today: ${this.stats.attendanceRate}%`,
         onRightIconClick: () => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
         }
@@ -110,17 +139,35 @@ export struct AdminHomePage {
 
   @Builder
   buildMessageEntry() {
-    Column() {
-      Image($r('app.media.ic_notification'))
-        .width(22)
-        .height(22)
-        .objectFit(ImageFit.Contain)
+    Stack({ alignContent: Alignment.TopEnd }) {
+      Column() {
+        Image($r('app.media.ic_notification'))
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor('#12305F')
+      }
+      .width(46)
+      .height(46)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(18)
+      .border({
+        width: 1,
+        color: '#E5EEF9',
+        radius: 18,
+        style: BorderStyle.Solid
+      })
+
+      if (this.stats.unreadMessages > 0) {
+        Text(this.stats.unreadMessages > 99 ? '99+' : `${this.stats.unreadMessages}`)
+          .fontSize(10)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.error'))
+          .borderRadius(9)
+          .padding({ left: 5, right: 5, top: 1, bottom: 1 })
+      }
     }
-    .width(40)
-    .height(40)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#F1F5FB')
-    .borderRadius(20)
     .onClick(() => {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
     })
@@ -136,7 +183,7 @@ export struct AdminHomePage {
         this.buildActivityCard()
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 20 })
+      .padding({ left: 16, right: 16, top: 12, bottom: 24 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -145,12 +192,21 @@ export struct AdminHomePage {
 
   @Builder
   buildOverviewPanel() {
-    Row() {
-      this.buildOverviewMetric('学生总量', `${this.stats.totalStudents}`, '#4F7CFF', '#EAF2FF')
-      Blank().width(10)
-      this.buildOverviewMetric('待处理订单', `${this.stats.pendingOrders}`, '#F2994A', '#FFF4E8')
-      Blank().width(10)
-      this.buildOverviewMetric('出勤概览', `${this.stats.todayAttendance}`, '#2F9B52', '#EAF7EC')
+    Column() {
+      Row() {
+        this.buildOverviewMetric('Students', `${this.stats.totalStudents}`, '#1F5EFF', '#EDF4FF')
+        Blank().width(10)
+        this.buildOverviewMetric('Present today', `${this.stats.presentStudents}`, '#16A34A', '#ECFDF5')
+      }
+      .width('100%')
+
+      Row() {
+        this.buildOverviewMetric('Pending orders', `${this.stats.pendingOrders}`, '#F59E0B', '#FFF7E8')
+        Blank().width(10)
+        this.buildOverviewMetric('Unread alerts', `${this.stats.unreadMessages}`, '#8B5CF6', '#F5F0FF')
+      }
+      .width('100%')
+      .margin({ top: 10 })
     }
     .width('100%')
     .margin({ bottom: 14 })
@@ -167,72 +223,75 @@ export struct AdminHomePage {
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
         .fontColor(valueColor)
-        .margin({ top: 6 })
+        .margin({ top: 8 })
     }
     .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
+    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
     .backgroundColor(bgColor)
-    .borderRadius(18)
+    .borderRadius(20)
     .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
   buildQuickActions() {
     Column() {
-      Row() {
-        Text('快捷入口')
-          .fontSize(18)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-      }
-      .width('100%')
-      .margin({ bottom: 10 })
+      Text('Quick entries')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .width('100%')
+        .margin({ bottom: 10 })
 
       Row() {
         ActionButton({
-          label: '学生管理',
+          label: 'Students',
           icon: $r('app.media.ic_user'),
-          bgColor: '#F4EEFF',
-          iconColor: '#8E5CF6',
+          bgColor: '#F5F0FF',
+          iconColor: '#8B5CF6',
           onButtonClick: () => {
             this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
           }
         })
 
+        Blank().width(10)
+
         ActionButton({
-          label: '消息管理',
+          label: 'Messages',
           icon: $r('app.media.ic_message'),
-          bgColor: '#EAF2FF',
-          iconColor: '#4F7CFF',
+          bgColor: '#EDF4FF',
+          iconColor: '#1F5EFF',
           onButtonClick: () => {
             this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
           }
         })
+      }
+      .width('100%')
 
+      Row() {
         ActionButton({
-          label: '订单审核',
+          label: 'Order review',
           icon: $r('app.media.ic_order'),
-          bgColor: '#FFF4E8',
-          iconColor: '#F2994A',
+          bgColor: '#FFF7E8',
+          iconColor: '#F59E0B',
           onButtonClick: () => {
             AppStorage.setOrCreate('main_current_index', 1);
           }
         })
 
+        Blank().width(10)
+
         ActionButton({
-          label: '数据统计',
+          label: 'Reports',
           icon: $r('app.media.ic_report'),
-          bgColor: '#EAF7EC',
-          iconColor: '#2F9B52',
+          bgColor: '#ECFDF5',
+          iconColor: '#16A34A',
           onButtonClick: () => {
             AppStorage.setOrCreate('main_current_index', 2);
           }
         })
       }
       .width('100%')
-      .padding({ top: 10, bottom: 10 })
-      .backgroundColor(Color.White)
-      .borderRadius(20)
+      .margin({ top: 10 })
     }
     .width('100%')
     .margin({ bottom: 14 })
@@ -241,8 +300,8 @@ export struct AdminHomePage {
   @Builder
   buildStatsSection() {
     Card({
-      title: '运营概览',
-      subtitle: this.errorMessage ? this.errorMessage : '聚焦机构当前最重要的四项运营指标',
+      title: 'Operating snapshot',
+      subtitle: this.errorMessage ? this.errorMessage : 'Combine student scale, attendance, order flow, and revenue into one summary view.',
       content: this.buildStatsContent
     })
   }
@@ -253,19 +312,19 @@ export struct AdminHomePage {
       Row() {
         StatCard({
           value: this.stats.totalStudents,
-          label: '学生总数',
+          label: 'Students',
           icon: $r('app.media.ic_user'),
-          iconColor: '#8E5CF6'
+          iconColor: '#8B5CF6'
         })
         .layoutWeight(1)
 
         Blank().width(12)
 
         StatCard({
-          value: this.stats.activeStudents,
-          label: '活跃学生',
-          icon: $r('app.media.ic_home'),
-          iconColor: '#2F9B52'
+          value: this.stats.presentStudents,
+          label: 'Present',
+          icon: $r('app.media.ic_attendance'),
+          iconColor: '#16A34A'
         })
         .layoutWeight(1)
       }
@@ -273,20 +332,20 @@ export struct AdminHomePage {
 
       Row() {
         StatCard({
-          value: this.stats.todayAttendance,
-          label: '今日出勤',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#4F7CFF'
+          value: `${this.stats.attendanceRate}%`,
+          label: 'Attendance rate',
+          icon: $r('app.media.ic_home'),
+          iconColor: '#1F5EFF'
         })
         .layoutWeight(1)
 
         Blank().width(12)
 
         StatCard({
-          value: this.stats.pendingOrders,
-          label: '待处理订单',
-          icon: $r('app.media.ic_order'),
-          iconColor: '#F2994A'
+          value: `¥${this.stats.netIncome.toFixed(0)}`,
+          label: 'Net income',
+          icon: $r('app.media.ic_money'),
+          iconColor: '#F59E0B'
         })
         .layoutWeight(1)
       }
@@ -299,9 +358,9 @@ export struct AdminHomePage {
   @Builder
   buildActivityCard() {
     Card({
-      title: '最近活动',
-      subtitle: '帮助管理员快速了解学生、订单与请假变动',
-      actionText: '查看报表',
+      title: 'Live updates',
+      subtitle: 'Highlight the items that need management attention today.',
+      actionText: 'Open reports',
       onAction: () => {
         AppStorage.setOrCreate('main_current_index', 2);
       },
@@ -317,20 +376,21 @@ export struct AdminHomePage {
           Row() {
             Column() {
               Text(item.title)
-                .fontSize($r('app.float.text_primary_size'))
+                .fontSize(16)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.text_primary'))
 
               Text(item.content)
-                .fontSize($r('app.float.text_secondary_size'))
+                .fontSize(13)
                 .fontColor($r('app.color.text_secondary'))
+                .lineHeight(20)
                 .margin({ top: 4 })
             }
             .alignItems(HorizontalAlign.Start)
             .layoutWeight(1)
 
             Text(item.time)
-              .fontSize($r('app.float.text_tiny_size'))
+              .fontSize(12)
               .fontColor($r('app.color.text_tertiary'))
           }
           .width('100%')
@@ -346,13 +406,9 @@ export struct AdminHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: '暂无最近活动',
-        customDescription: '后续将展示学生、订单和消息的动态记录'
+        customTitle: 'No live updates',
+        customDescription: 'More operating signals will appear here after full real-environment validation.'
       })
     }
-  }
-
-  private showFeatureInDevelopment(): void {
-    ErrorHandlerUtil.showErrorToast(ErrorMessages.FEATURE_IN_DEVELOPMENT);
   }
 }

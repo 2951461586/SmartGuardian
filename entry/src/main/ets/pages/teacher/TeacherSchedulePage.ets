@@ -1,13 +1,16 @@
 /**
- * SmartGuardian - 教师排课日历页
- * 教师查看和管理个人课表
+ * SmartGuardian - 教师排课页
+ * 教师查看每日课次安排
  */
 
-import { router } from '@kit.ArkUI';
+import { SessionService } from '../../services/api/service';
+import { SessionSchedule } from '../../models/service';
 import { DateUtils } from '../../utils/dateUtils';
+import { UserStore } from '../../stores/userStore';
+import { EmptyState, EmptyType } from '../../components/common';
 
 interface ScheduleItem {
-  id: string;
+  id: number;
   className: string;
   sessionName: string;
   startTime: string;
@@ -25,6 +28,7 @@ export struct TeacherSchedulePage {
   @State weekDates: Date[] = [];
   @State scheduleList: ScheduleItem[] = [];
   @State isLoading: boolean = false;
+  @State errorMessage: string = '';
 
   aboutToAppear() {
     this.generateWeekDates();
@@ -42,50 +46,106 @@ export struct TeacherSchedulePage {
 
   async loadSchedule() {
     this.isLoading = true;
-    try {
-      // Simulate API call
-      await new Promise<void>((resolve: () => void) => setTimeout(resolve, 500));
+    this.errorMessage = '';
 
-      // Mock data
-      this.scheduleList = [
-        {
-          id: '1',
-          className: '一年级(1)班',
-          sessionName: '作业辅导',
-          startTime: '15:30',
-          endTime: '17:30',
-          location: '101教室',
-          studentCount: 25,
-          status: 'SCHEDULED'
-        },
-        {
-          id: '2',
-          className: '一年级(2)班',
-          sessionName: '作业辅导',
-          startTime: '17:30',
-          endTime: '19:30',
-          location: '102教室',
-          studentCount: 22,
-          status: 'SCHEDULED'
-        }
-      ];
+    try {
+      const teacherUserId = UserStore.getUserInfo()?.id;
+      const response = await SessionService.getSessions({
+        sessionDate: this.formatDate(this.selectedDate),
+        teacherUserId: teacherUserId
+      });
+
+      if (response.code === 0 && response.data) {
+        const sessions = Array.isArray(response.data) ? response.data : [];
+        this.scheduleList = sessions.map((session: SessionSchedule) => this.toScheduleItem(session));
+      } else {
+        this.scheduleList = [];
+      }
+    } catch (error) {
+      console.error('Load schedule failed:', String(error));
+      this.scheduleList = [];
+      this.errorMessage = '加载排课失败';
     } finally {
       this.isLoading = false;
     }
   }
 
+  private toScheduleItem(session: SessionSchedule): ScheduleItem {
+    return {
+      id: session.id,
+      className: session.serviceProductName ?? session.sessionNo ?? `Session ${session.id}`,
+      sessionName: session.serviceProductName ?? 'Session',
+      startTime: session.startTime,
+      endTime: session.endTime,
+      location: session.location ?? 'unset',
+      studentCount: session.currentCount ?? 0,
+      status: (session.status ?? 'SCHEDULED') as ScheduleItem['status']
+    };
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatWeekRange(): string {
+    if (this.weekDates.length === 0) {
+      return '';
+    }
+    return `${this.formatDate(this.weekDates[0])} - ${this.formatDate(this.weekDates[6])}`;
+  }
+
+  private getWeekDayText(date: Date): string {
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return weekdays[date.getDay()];
+  }
+
+  private getStatusText(status: string): string {
+    if (status === 'IN_PROGRESS') {
+      return 'In progress';
+    }
+    if (status === 'COMPLETED') {
+      return 'Completed';
+    }
+    if (status === 'CANCELLED') {
+      return 'Cancelled';
+    }
+    return 'Scheduled';
+  }
+
+  private getStatusColor(status: string): string {
+    if (status === 'IN_PROGRESS') {
+      return '#16A34A';
+    }
+    if (status === 'COMPLETED') {
+      return '#7A879A';
+    }
+    if (status === 'CANCELLED') {
+      return '#D14343';
+    }
+    return '#1F5EFF';
+  }
+
+  private getStatusBgColor(status: string): string {
+    if (status === 'IN_PROGRESS') {
+      return '#ECFDF5';
+    }
+    if (status === 'COMPLETED') {
+      return '#EEF3F8';
+    }
+    if (status === 'CANCELLED') {
+      return '#FEF2F2';
+    }
+    return '#EDF4FF';
+  }
+
   build() {
     Column() {
-      // Header
       this.buildHeader()
-
-      // Week navigation
       this.buildWeekNav()
-
-      // Date tabs
       this.buildDateTabs()
-
-      // Schedule list
       this.buildScheduleList()
     }
     .width('100%')
@@ -96,10 +156,18 @@ export struct TeacherSchedulePage {
   @Builder
   buildHeader() {
     Row() {
+      Image($r('app.media.ic_arrow_left'))
+        .width(20)
+        .height(20)
+        .fillColor($r('app.color.text_primary'))
+        .onClick(() => this.getUIContext().getRouter().back())
+
       Text('我的课表')
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
+        .layoutWeight(1)
+        .textAlign(TextAlign.Center)
     }
     .width('100%')
     .padding($r('app.float.page_padding'))
@@ -116,6 +184,7 @@ export struct TeacherSchedulePage {
         .onClick(() => {
           this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
           this.generateWeekDates();
+          this.selectedDate = new Date(this.currentWeekStart);
           this.loadSchedule();
         })
 
@@ -132,6 +201,7 @@ export struct TeacherSchedulePage {
         .onClick(() => {
           this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
           this.generateWeekDates();
+          this.selectedDate = new Date(this.currentWeekStart);
           this.loadSchedule();
         })
     }
@@ -182,20 +252,11 @@ export struct TeacherSchedulePage {
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
     } else if (this.scheduleList.length === 0) {
-      Column() {
-        Image($r('app.media.ic_empty'))
-          .width(100)
-          .height(100)
-          .opacity(0.5)
-
-        Text('当日无课程安排')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: $r('app.float.card_margin') })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
+      EmptyState({
+        type: EmptyType.DEFAULT,
+        customTitle: '当天暂无排课',
+        customDescription: this.errorMessage || 'No sessions for this date.'
+      })
     } else {
       Scroll() {
         Column() {
@@ -208,13 +269,13 @@ export struct TeacherSchedulePage {
       }
       .width('100%')
       .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
   }
 
   @Builder
   buildScheduleCard(item: ScheduleItem) {
     Column() {
-      // Time indicator
       Row() {
         Column() {
           Text(item.startTime)
@@ -229,25 +290,21 @@ export struct TeacherSchedulePage {
         .alignItems(HorizontalAlign.Start)
         .margin({ right: 16 })
 
-        // Timeline bar
         Column() {
-          Column() {
-            Text(item.sessionName)
-              .fontSize($r('app.float.text_primary_size'))
-              .fontColor(Color.White)
-          }
-          .width('100%')
-          .padding(8)
-          .backgroundColor($r('app.color.primary'))
-          .borderRadius($r('app.float.badge_radius'))
+          Text(item.sessionName)
+            .fontSize($r('app.float.text_primary_size'))
+            .fontColor(Color.White)
         }
+        .width('100%')
+        .padding(8)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius($r('app.float.badge_radius'))
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
       .margin({ bottom: 12 })
 
-      // Class info
       Row() {
         Column() {
           Text(item.className)
@@ -260,16 +317,21 @@ export struct TeacherSchedulePage {
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
 
-            Text(` | ${item.studentCount}人`)
+            Text(`  ${item.studentCount}人`)
               .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_tertiary'))
+              .fontColor($r('app.color.text_secondary'))
           }
           .margin({ top: 4 })
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        this.getStatusBadge(item.status)
+        Text(this.getStatusText(item.status))
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor(this.getStatusColor(item.status))
+          .backgroundColor(this.getStatusBgColor(item.status))
+          .borderRadius(12)
+          .padding({ left: 10, right: 10, top: 4, bottom: 4 })
       }
       .width('100%')
     }
@@ -278,57 +340,5 @@ export struct TeacherSchedulePage {
     .backgroundColor(Color.White)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ bottom: $r('app.float.card_margin') })
-  }
-
-  @Builder
-  getStatusBadge(status: string) {
-    if (status === 'SCHEDULED') {
-      Text('待上课')
-        .fontSize($r('app.float.text_tiny_size'))
-        .fontColor('#FF9800')
-        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-        .backgroundColor('#FF980020')
-        .borderRadius($r('app.float.badge_radius'))
-    } else if (status === 'IN_PROGRESS') {
-      Text('进行中')
-        .fontSize($r('app.float.text_tiny_size'))
-        .fontColor('#4CAF50')
-        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-        .backgroundColor('#4CAF5020')
-        .borderRadius($r('app.float.badge_radius'))
-    } else if (status === 'COMPLETED') {
-      Text('已完成')
-        .fontSize($r('app.float.text_tiny_size'))
-        .fontColor('#2196F3')
-        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-        .backgroundColor('#2196F320')
-        .borderRadius($r('app.float.badge_radius'))
-    } else if (status === 'CANCELLED') {
-      Text('已取消')
-        .fontSize($r('app.float.text_tiny_size'))
-        .fontColor('#9E9E9E')
-        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-        .backgroundColor('#9E9E9E20')
-        .borderRadius($r('app.float.badge_radius'))
-    } else {
-      Text('未知')
-        .fontSize($r('app.float.text_tiny_size'))
-        .fontColor('#999999')
-        .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-        .backgroundColor('#99999920')
-        .borderRadius($r('app.float.badge_radius'))
-    }
-  }
-
-  formatWeekRange(): string {
-    const start = this.currentWeekStart;
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6);
-    return `${start.getMonth() + 1}月${start.getDate()}日 - ${end.getMonth() + 1}月${end.getDate()}日`;
-  }
-
-  getWeekDayText(date: Date): string {
-    const days = ['日', '一', '二', '三', '四', '五', '六'];
-    return '周' + days[date.getDay()];
   }
 }

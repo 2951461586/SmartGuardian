@@ -11,7 +11,7 @@
  */
 
 import { get, post, put } from '../../utils/request';
-import { ApiResponse } from '../../models/common';
+import { ApiResponse, PageResponse } from '../../models/common';
 import { ServiceProduct, ServiceProductCreateRequest, Order, OrderCreateRequest, OrderAuditRequest, OrderRefundRequest, SessionSchedule, AutoScheduleRequest, SessionWithStudents } from '../../models/service';
 
 // Re-export types for convenience
@@ -96,8 +96,8 @@ export class OrderService {
     orderStatus?: string;
     payStatus?: string;
     studentId?: number;
-  }): Promise<ApiResponse<Order[]>> {
-    return get<Order[]>(ApiEndpoints.ORDERS, params);
+  }): Promise<ApiResponse<PageResponse<Order>>> {
+    return get<PageResponse<Order>>(ApiEndpoints.ORDERS, params);
   }
 
   /**

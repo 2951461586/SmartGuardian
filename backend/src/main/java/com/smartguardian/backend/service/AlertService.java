@@ -32,7 +32,7 @@ public class AlertService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(404, "告警不存在");
     }
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 
   public void acknowledge(Long alertId) {

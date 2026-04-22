@@ -1,9 +1,6 @@
 /**
  * SmartGuardian - Parent Messages Page
  * Enhanced message center with unified visual system
- *
- * @optimized Using MessageStore for state management
- * @migrated 2026-04-20 - P2 Migration with Common Components
  */
 
 import { MessageRecord, MessageStatistics } from '../../models/message';
@@ -63,7 +60,7 @@ export struct ParentMessagesPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        const messageList = resp.data.list || [];
+        const messageList = resp.data.list ?? [];
         const unread = messageList.filter((message: MessageRecord) => !message.readStatus).length;
 
         MessageStore.setMessageList(messageList);
@@ -75,11 +72,11 @@ export struct ParentMessagesPage {
         this.filterMessages();
         LogUtil.info('ParentMessagesPage', `Loaded ${messageList.length} messages, unread: ${unread}`);
       } else {
-        this.applyFallbackMessages();
+        this.applyEmptyMessages();
       }
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', 'Load messages failed');
-      this.applyFallbackMessages();
+      LogUtil.error('ParentMessagesPage', `Load messages failed: ${String(error)}`);
+      this.applyEmptyMessages();
     } finally {
       this.isLoading = false;
     }
@@ -91,10 +88,11 @@ export struct ParentMessagesPage {
       if (resp.code === 0 && resp.data) {
         this.statistics = resp.data;
       } else {
-        this.statistics = this.getMockStatistics();
+        this.statistics = this.getEmptyStatistics();
       }
     } catch (error) {
-      this.statistics = this.getMockStatistics();
+      LogUtil.error('ParentMessagesPage', `Load statistics failed: ${String(error)}`);
+      this.statistics = this.getEmptyStatistics();
     }
   }
 
@@ -106,7 +104,7 @@ export struct ParentMessagesPage {
       this.loadStatistics();
       LogUtil.info('ParentMessagesPage', `Marked message ${messageId} as read`);
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', 'Mark message as read failed');
+      LogUtil.error('ParentMessagesPage', `Mark message as read failed: ${String(error)}`);
     }
   }
 
@@ -139,20 +137,16 @@ export struct ParentMessagesPage {
       this.loadStatistics();
       LogUtil.info('ParentMessagesPage', 'Marked all messages as read');
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', 'Mark all messages as read failed');
+      LogUtil.error('ParentMessagesPage', `Mark all messages as read failed: ${String(error)}`);
     }
   }
 
-  private applyFallbackMessages(): void {
-    const fallbackMessages = this.getMockMessages();
-    const unread = fallbackMessages.filter((message: MessageRecord) => !message.readStatus).length;
-
-    this.messages = fallbackMessages;
-    this.unreadCount = unread;
-    this.filterMessages();
-
-    MessageStore.setMessageList(fallbackMessages);
-    MessageStore.setUnreadCount(unread);
+  private applyEmptyMessages(): void {
+    this.messages = [];
+    this.unreadCount = 0;
+    this.filteredMessages = [];
+    MessageStore.setMessageList([]);
+    MessageStore.setUnreadCount(0);
   }
 
   private handleTabChange(index: number): void {
@@ -188,7 +182,7 @@ export struct ParentMessagesPage {
 
   private getEmptyDescription(): string {
     if (this.selectedTab === 'ALL') {
-      return '暂时没有新的家校消息，可稍后刷新查看';
+      return '暂无新的家校消息，可稍后刷新查看';
     }
     return `${this.getCurrentTabLabel()}分类下暂无消息记录`;
   }
@@ -208,7 +202,7 @@ export struct ParentMessagesPage {
         }
       });
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', 'Open message detail failed');
+      LogUtil.error('ParentMessagesPage', `Open message detail failed: ${String(error)}`);
     }
   }
 
@@ -336,21 +330,11 @@ export struct ParentMessagesPage {
     .scrollBar(BarState.Off)
   }
 
-  getMockMessages(): MessageRecord[] {
-    return [
-      { id: 1, userId: 1, msgType: 'SYSTEM', title: '系统维护通知', content: '系统将在今晚22:00进行维护升级，届时将暂停服务，请提前做好准备。', readStatus: false, createdAt: '2026-04-16 10:00:00', updatedAt: '2026-04-16' },
-      { id: 2, userId: 1, msgType: 'ATTENDANCE', title: '签到提醒', content: '您的孩子张三已于08:35签到进入托管中心。', readStatus: false, createdAt: '2026-04-16 14:00:00', updatedAt: '2026-04-16' },
-      { id: 3, userId: 1, msgType: 'HOMEWORK', title: '作业完成', content: '您的孩子已完成今日数学作业，正确率95%。', readStatus: true, createdAt: '2026-04-15 16:00:00', updatedAt: '2026-04-15' },
-      { id: 4, userId: 1, msgType: 'ORDER', title: '订单审核通过', content: '您提交的托管服务订单已通过审核，请及时完成支付。', readStatus: false, createdAt: '2026-04-15 12:00:00', updatedAt: '2026-04-15' },
-      { id: 5, userId: 1, msgType: 'ATTENDANCE', title: '签退提醒', content: '您的孩子张三已于17:30签退离开托管中心。', readStatus: true, createdAt: '2026-04-14 17:30:00', updatedAt: '2026-04-14' }
-    ];
-  }
-
-  getMockStatistics(): MessageStatistics {
+  private getEmptyStatistics(): MessageStatistics {
     return {
-      total: 5,
-      unread: 3,
-      byType: { SYSTEM: 1, ATTENDANCE: 2, HOMEWORK: 0, ORDER: 0 }
+      total: this.messages.length,
+      unread: this.unreadCount,
+      byType: {}
     };
   }
 }

@@ -52,7 +52,7 @@ public class OrderService {
     if (rows.isEmpty()) {
       throw new BizException(404, "订单不存在");
     }
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 
   public void auditOrder(Long orderId, Map<String, Object> request) {
@@ -67,6 +67,6 @@ public class OrderService {
 
   private Map<String, Object> getOrderDetailByOrderNo(String orderNo) {
     List<Map<String, Object>> rows = jdbcTemplate.queryForList("select o.id, o.order_no as orderNo, o.student_id as studentId, o.service_product_id as serviceProductId, o.order_status as orderStatus, o.amount, o.paid_amount as paidAmount, o.pay_status as payStatus, o.audit_status as auditStatus, o.start_date as startDate, o.end_date as endDate, o.created_at as createdAt, o.updated_at as updatedAt from order_info o where o.order_no = :orderNo", new MapSqlParameterSource("orderNo", orderNo));
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 }

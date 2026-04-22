@@ -2,5 +2,67 @@ package com.smartguardian.backend.common;
 
 import java.util.List;
 
-public record PageResponse<T>(List<T> list, long total, int pageNum, int pageSize) {
+public class PageResponse<T> {
+  private List<T> list;
+  private long total;
+  private int pageNum;
+  private int pageSize;
+
+  public PageResponse() {
+  }
+
+  public PageResponse(List<T> list, long total, int pageNum, int pageSize) {
+    this.list = list;
+    this.total = total;
+    this.pageNum = pageNum;
+    this.pageSize = pageSize;
+  }
+
+  public List<T> getList() {
+    return list;
+  }
+
+  public void setList(List<T> list) {
+    this.list = list;
+  }
+
+  public long getTotal() {
+    return total;
+  }
+
+  public void setTotal(long total) {
+    this.total = total;
+  }
+
+  public int getPageNum() {
+    return pageNum;
+  }
+
+  public void setPageNum(int pageNum) {
+    this.pageNum = pageNum;
+  }
+
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
+  }
+
+  public List<T> list() {
+    return list;
+  }
+
+  public long total() {
+    return total;
+  }
+
+  public int pageNum() {
+    return pageNum;
+  }
+
+  public int pageSize() {
+    return pageSize;
+  }
 }

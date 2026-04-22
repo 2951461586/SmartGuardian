@@ -5,6 +5,7 @@
 
 import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
+import { StudentStore } from '../../stores/studentStore';
 import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
 
 @Entry
@@ -23,6 +24,10 @@ struct ParentChildrenPage {
       const response = await StudentService.getStudents({ pageNum: 1, pageSize: 100 });
       if (response.code === 0 && response.data) {
         this.children = response.data.list ?? [];
+        StudentStore.setStudentList(this.children);
+        if (this.children.length > 0) {
+          StudentStore.setCurrentStudent(this.children[0]);
+        }
       }
     } catch (error) {
       console.error('Load children failed:', error);

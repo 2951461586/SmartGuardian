@@ -6,7 +6,8 @@
 import { Student } from '../../models/user';
 import { TimelineItem } from '../../models/timeline';
 import { TimelineService } from '../../services/api/timeline';
-import { UserStore } from '../../stores/userStore';
+import { StudentService } from '../../services/api/auth';
+import { StudentStore } from '../../stores/studentStore';
 
 interface TimelineEvent {
   id: number;
@@ -33,50 +34,78 @@ struct ParentTimelinePage {
   }
 
   loadStudents() {
-    const userInfo = UserStore.getUserInfo();
-    if (userInfo) {
-      this.students = [
-        { id: 1, studentNo: 'S001', name: '张小明', schoolId: 1, schoolName: '第一小学',
-          classId: 1, className: '三年级1班', grade: '三年级', guardianUserId: userInfo.id, status: 'ACTIVE', createdAt: '', updatedAt: '' }
-      ];
-      if (this.students.length > 0) {
-        this.selectedStudentId = this.students[0].id;
-        this.selectedStudentName = this.students[0].name;
-        this.loadTimeline();
-      }
+    const cachedStudents = StudentStore.getStudentList();
+    if (cachedStudents.length > 0) {
+      this.applyStudents(cachedStudents);
+      this.loadTimeline();
+      return;
+    }
+
+    this.isLoading = true;
+    StudentService.getStudents({ pageNum: 1, pageSize: 100 })
+      .then((response) => {
+        if (response.code === 0 && response.data) {
+          const students = response.data.list ?? [];
+          StudentStore.setStudentList(students);
+          if (students.length > 0) {
+            this.applyStudents(students);
+            this.loadTimeline();
+            return;
+          }
+        }
+
+        this.students = [];
+        this.timelineEvents = [];
+        this.isLoading = false;
+      })
+      .catch((error) => {
+        console.error('Load students failed:', String(error));
+        this.students = [];
+        this.timelineEvents = [];
+        this.isLoading = false;
+      });
+  }
+
+  private applyStudents(students: Student[]) {
+    this.students = students;
+    const currentStudent = StudentStore.getCurrentStudent();
+    if (currentStudent && students.some((student: Student) => student.id === currentStudent.id)) {
+      this.selectedStudentId = currentStudent.id;
+      this.selectedStudentName = currentStudent.name;
+    } else {
+      this.selectedStudentId = students[0].id;
+      this.selectedStudentName = students[0].name;
+      StudentStore.setCurrentStudent(students[0]);
     }
   }
 
   async loadTimeline() {
-    if (!this.selectedStudentId) return;
+    if (!this.selectedStudentId) {
+      this.timelineEvents = [];
+      this.isLoading = false;
+      return;
+    }
 
     this.isLoading = true;
     try {
       const resp = await TimelineService.getStudentTimeline(this.selectedStudentId);
       if (resp.code === 0 && resp.data) {
-        // Handle both PageResponse and array
-        if (Array.isArray(resp.data)) {
-          this.timelineEvents = this.convertToTimelineEvents(resp.data as TimelineItem[]);
-        } else {
-          // Use mock data for demo
-          this.timelineEvents = this.getMockTimeline();
-        }
+        const timelineItems = Array.isArray(resp.data) ? resp.data : (resp.data.list ?? []);
+        this.timelineEvents = this.convertToTimelineEvents(timelineItems as TimelineItem[]);
       } else {
-        // Use mock data for demo
-        this.timelineEvents = this.getMockTimeline();
+        this.timelineEvents = [];
       }
     } catch (error) {
-      console.error('Failed to load timeline:', error);
-      this.timelineEvents = this.getMockTimeline();
+      console.error('Failed to load timeline:', String(error));
+      this.timelineEvents = [];
     } finally {
       this.isLoading = false;
     }
   }
 
   convertToTimelineEvents(items: TimelineItem[]): TimelineEvent[] {
-    const events: TimelineEvent[] = [];
-    items.forEach((item: TimelineItem) => {
-      events.push({
+    return items.map((item: TimelineItem) => {
+      return {
         id: item.id,
         studentId: item.studentId,
         eventType: item.timelineType || 'MESSAGE',
@@ -84,9 +113,8 @@ struct ParentTimelinePage {
         title: item.title,
         content: item.content,
         icon: this.getEventIcon(item.timelineType || 'MESSAGE')
-      });
+      };
     });
-    return events;
   }
 
   getEventIcon(eventType: string): Resource | undefined {
@@ -104,20 +132,11 @@ struct ParentTimelinePage {
     }
   }
 
-  getMockTimeline(): TimelineEvent[] {
-    return [
-      { id: 1, studentId: this.selectedStudentId, eventType: 'ATTENDANCE', eventTime: '2026-04-16 16:30:00', title: '已签退', content: '您的孩子已于16:30签退，由张女士接回', icon: $r('app.media.ic_attendance') },
-      { id: 2, studentId: this.selectedStudentId, eventType: 'HOMEWORK', eventTime: '2026-04-16 15:30:00', title: '作业反馈', content: '数学作业已完成，正确率90%，需加强乘法运算', icon: $r('app.media.ic_homework') },
-      { id: 3, studentId: this.selectedStudentId, eventType: 'ATTENDANCE', eventTime: '2026-04-16 14:00:00', title: '已签到', content: '您的孩子已于14:00签到，开始课后托管', icon: $r('app.media.ic_attendance') },
-      { id: 4, studentId: this.selectedStudentId, eventType: 'ORDER', eventTime: '2026-04-15 10:00:00', title: '报名成功', content: '成功报名晚间托管服务，服务周期：2026-04-16 至 2026-05-15', icon: $r('app.media.ic_order') },
-      { id: 5, studentId: this.selectedStudentId, eventType: 'HOMEWORK', eventTime: '2026-04-15 16:00:00', title: '作业反馈', content: '语文作业全部完成，书写工整，继续保持', icon: $r('app.media.ic_homework') }
-    ];
-  }
-
   handleStudentChange(student: Student) {
     this.selectedStudentId = student.id;
     this.selectedStudentName = student.name;
     this.showStudentPicker = false;
+    StudentStore.setCurrentStudent(student);
     this.loadTimeline();
   }
 
@@ -219,66 +238,81 @@ struct ParentTimelinePage {
 
   @Builder
   buildTimeline() {
-    Column() {
-      ForEach(this.timelineEvents, (event: TimelineEvent, index: number) => {
-        Row() {
-          // Timeline line
-          Column() {
-            Circle()
-              .width(12)
-              .height(12)
-              .fill($r('app.color.primary'))
+    if (this.timelineEvents.length === 0) {
+      Column() {
+        Image($r('app.media.ic_empty'))
+          .width(120)
+          .height(120)
+          .opacity(0.5)
 
-            if (index < this.timelineEvents.length - 1) {
-              Divider()
-                .vertical(true)
-                .height(60)
-                .width(2)
-                .color('#E0E0E0')
-            }
-          }
-          .width(20)
-          .alignItems(HorizontalAlign.Center)
+        Text('暂无动态记录')
+          .fontSize($r('app.float.text_primary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 16 })
+      }
+      .width('100%')
+      .padding({ top: 40, bottom: 40 })
+      .alignItems(HorizontalAlign.Center)
+    } else {
+      Column() {
+        ForEach(this.timelineEvents, (event: TimelineEvent, index: number) => {
+          Row() {
+            Column() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill($r('app.color.primary'))
 
-          // Event card
-          Column() {
-            Row() {
-              if (event.icon) {
-                Image(event.icon)
-                  .width($r('app.float.icon_small_size'))
-                  .height($r('app.float.icon_small_size'))
+              if (index < this.timelineEvents.length - 1) {
+                Divider()
+                  .vertical(true)
+                  .height(60)
+                  .width(2)
+                  .color('#E0E0E0')
               }
-
-              Text(event.title)
-                .fontSize($r('app.float.text_primary_size'))
-                .fontWeight(FontWeight.Medium)
-                .fontColor($r('app.color.text_primary'))
-                .margin({ left: 8 })
             }
-            .width('100%')
+            .width(20)
+            .alignItems(HorizontalAlign.Center)
 
-            Text(event.content)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 8 })
+            Column() {
+              Row() {
+                if (event.icon) {
+                  Image(event.icon)
+                    .width($r('app.float.icon_small_size'))
+                    .height($r('app.float.icon_small_size'))
+                }
 
-            Text(this.formatTime(event.eventTime))
-              .fontSize(12)
-              .fontColor('#999999')
-              .margin({ top: 8 })
+                Text(event.title)
+                  .fontSize($r('app.float.text_primary_size'))
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor($r('app.color.text_primary'))
+                  .margin({ left: 8 })
+              }
+              .width('100%')
+
+              Text(event.content)
+                .fontSize($r('app.float.text_secondary_size'))
+                .fontColor($r('app.color.text_secondary'))
+                .margin({ top: 8 })
+
+              Text(this.formatTime(event.eventTime))
+                .fontSize(12)
+                .fontColor('#999999')
+                .margin({ top: 8 })
+            }
+            .layoutWeight(1)
+            .padding($r('app.float.card_padding'))
+            .backgroundColor(Color.White)
+            .borderRadius($r('app.float.card_border_radius'))
+            .margin({ left: 12 })
           }
-          .layoutWeight(1)
-          .padding($r('app.float.card_padding'))
-          .backgroundColor(Color.White)
-          .borderRadius($r('app.float.card_border_radius'))
-          .margin({ left: 12 })
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Top)
-        .margin({ top: index === 0 ? 0 : 16 })
-      })
+          .width('100%')
+          .alignItems(VerticalAlign.Top)
+          .margin({ top: index === 0 ? 0 : 16 })
+        })
+      }
+      .width('100%')
     }
-    .width('100%')
   }
 
   @Builder
@@ -320,6 +354,9 @@ struct ParentTimelinePage {
   }
 
   formatTime(time: string): string {
+    if (!time) {
+      return '';
+    }
     return time.replace('T', ' ');
   }
 }

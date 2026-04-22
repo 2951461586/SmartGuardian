@@ -9,9 +9,9 @@ public final class SecurityUtils {
   }
 
   public static CurrentUser currentUser(Authentication authentication) {
-    if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUser currentUser)) {
-      throw new BizException(401, "未授权或登录已过期");
+    if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUser)) {
+      throw new BizException(401, "Unauthorized or session expired");
     }
-    return currentUser;
+    return (CurrentUser) authentication.getPrincipal();
   }
 }

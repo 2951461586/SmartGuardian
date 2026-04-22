@@ -31,7 +31,7 @@ public class HomeworkService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(404, "作业任务不存在");
     }
-    return rows.getFirst();
+    return rows.get(0);
   }
 
   public Map<String, Object> createTask(Map<String, Object> request) {
@@ -69,6 +69,6 @@ public class HomeworkService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(404, "作业反馈不存在");
     }
-    return rows.getFirst();
+    return rows.get(0);
   }
 }

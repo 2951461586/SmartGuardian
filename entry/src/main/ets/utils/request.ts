@@ -107,7 +107,7 @@ export async function httpRequest<T = object>(
   const needAuth = options.needAuth ?? true;
   const baseUrl = ApiConfig.getBaseUrl();
   if (!url.startsWith('http') && baseUrl.length === 0) {
-    throw new Error('ApiConfig.TEST_BASE_URL is not configured');
+    throw new Error('Real backend base URL is not configured');
   }
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
@@ -173,11 +173,11 @@ export async function httpRequest<T = object>(
       hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
     }
 
-    // 使用统一的响应码判断
+    // Handle auth failures consistently for both HTTP and business error codes.
     if (result.code === 401 || result.code === 403) {
       hilog.error(DOMAIN, TAG, `Auth Error: ${result.code} - ${result.message}`);
       handleUnauthorized();
-      throw new Error(result.message || '登录已失效');
+      throw new Error(result.message || 'Session expired');
     }
 
     if (result.code !== 0 && result.code !== 200) {

@@ -14,7 +14,6 @@ export struct ParentServicesPage {
   @State selectedCategory: string = 'ALL';
   @State searchKeyword: string = '';
 
-  // Categories matching ServiceProduct.serviceType
   private categories: string[] = ['ALL', 'AFTER_SCHOOL', 'HOLIDAY', 'FULL_DAY', 'WEEKEND'];
 
   aboutToAppear() {
@@ -32,9 +31,12 @@ export struct ParentServicesPage {
 
       if (resp.code === 0 && resp.data) {
         this.serviceList = Array.isArray(resp.data) ? resp.data : [];
+      } else {
+        this.serviceList = [];
       }
     } catch (error) {
-      // Handle error
+      console.error('Load service products failed:', String(error));
+      this.serviceList = [];
     } finally {
       this.isLoading = false;
     }
@@ -42,13 +44,8 @@ export struct ParentServicesPage {
 
   build() {
     Column() {
-      // Search bar
       this.buildSearchBar()
-
-      // Category tabs
       this.buildCategoryTabs()
-
-      // Service list
       this.buildServiceList()
     }
     .width('100%')
@@ -164,7 +161,6 @@ export struct ParentServicesPage {
   @Builder
   buildServiceCard(service: ServiceProduct) {
     Column() {
-      // Service header
       Row() {
         Column() {
           Text(service.serviceName || service.name || '')
@@ -180,7 +176,7 @@ export struct ParentServicesPage {
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        Text(`¥${service.price}`)
+        Text(`￥${service.price}`)
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary'))
@@ -188,7 +184,6 @@ export struct ParentServicesPage {
       .width('100%')
       .margin({ bottom: 12 })
 
-      // Service details
       Row() {
         Column() {
           Row() {
@@ -210,7 +205,7 @@ export struct ParentServicesPage {
           }
 
           Row() {
-            Text('剩余名额：')
+            Text('剩余额度：')
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_tertiary'))
             Text(`${(service.maxStudents || 0) - (service.currentStudents || 0)}`)
@@ -224,7 +219,6 @@ export struct ParentServicesPage {
       .width('100%')
       .margin({ bottom: 12 })
 
-      // Action buttons
       Row() {
         Button('立即预约')
           .fontSize($r('app.float.text_primary_size'))

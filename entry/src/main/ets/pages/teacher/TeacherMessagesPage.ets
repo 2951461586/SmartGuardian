@@ -1,6 +1,6 @@
 /**
- * SmartGuardian - Teacher Messages Page
- * View notifications and messages
+ * SmartGuardian - 教师消息页
+ * 查看系统通知和考勤提醒
  */
 
 import { MessageRecord } from '../../models/message';
@@ -24,19 +24,21 @@ export struct TeacherMessagesPage {
   async loadMessages() {
     this.isLoading = true;
     try {
-      const msgType = this.currentTab === 1 ? 'SYSTEM' : 
-                      this.currentTab === 2 ? 'ATTENDANCE' : undefined;
-      
+      const msgType = this.currentTab === 1 ? 'SYSTEM' : (this.currentTab === 2 ? 'ATTENDANCE' : undefined);
       const response = await MessageService.getMessages({
         pageNum: 1,
         pageSize: 50,
         msgType: msgType
       });
+
       if (response.code === 0 && response.data) {
         this.messages = response.data.list ?? [];
+      } else {
+        this.messages = [];
       }
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      console.error('Failed to load messages:', String(error));
+      this.messages = [];
     } finally {
       this.isLoading = false;
     }
@@ -50,7 +52,7 @@ export struct TeacherMessagesPage {
           return message;
         }
 
-        const updatedMessage: MessageRecord = {
+        return {
           id: message.id,
           userId: message.userId,
           title: message.title,
@@ -60,10 +62,9 @@ export struct TeacherMessagesPage {
           createdAt: message.createdAt,
           updatedAt: message.updatedAt
         };
-        return updatedMessage;
       });
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      console.error('Failed to mark as read:', String(error));
     }
   }
 
@@ -71,7 +72,7 @@ export struct TeacherMessagesPage {
     Column() {
       Row() {
         Button({ type: ButtonType.Circle }) {
-          Text('←')
+          Text('Back')
             .fontSize(20)
             .fontColor(Color.White)
         }

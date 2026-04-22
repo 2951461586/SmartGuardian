@@ -35,7 +35,7 @@ public class MessageService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(404, "消息不存在");
     }
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 
   public void markAsRead(Long messageId) {

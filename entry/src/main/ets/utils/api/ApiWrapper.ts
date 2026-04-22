@@ -319,7 +319,7 @@ export class ApiWrapper {
     const { url, method, data, headers, needAuth, timeout, source } = options;
     
     // Mock模式
-    if (ApiConfig.USE_MOCK_DATA) {
+    if (ApiConfig.isMockEnabled()) {
       return MockService.handleMockRequest<T>({
         url,
         method: method as unknown as import('../../utils/request').HttpMethod,
@@ -328,8 +328,13 @@ export class ApiWrapper {
         needAuth
       });
     }
-    
-    const fullUrl = url.startsWith('http') ? url : `${ApiConfig.BASE_URL}${url}`;
+
+    const baseUrl = ApiConfig.getBaseUrl();
+    if (!url.startsWith('http') && baseUrl.length === 0) {
+      throw ErrorFactory.invalidParam('ApiConfig real backend address is not configured', { source });
+    }
+
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
     
     // 构建请求头
     const requestHeaders: Record<string, string> = {

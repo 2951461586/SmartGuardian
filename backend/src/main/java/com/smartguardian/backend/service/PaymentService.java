@@ -22,7 +22,7 @@ public class PaymentService {
     jdbcTemplate.update("insert into payment_record (order_id, payment_no, pay_channel, pay_amount, pay_status, refund_amount, refund_status, transaction_time, callback_time, is_deleted, created_by, updated_by, created_at, updated_at) values (:orderId, :paymentNo, :payChannel, :payAmount, 'CREATED', 0, 'NONE', null, null, 0, 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
       new MapSqlParameterSource().addValue("orderId", orderId).addValue("paymentNo", "PAY" + System.currentTimeMillis()).addValue("payChannel", RequestUtils.requireString(request, "payChannel")).addValue("payAmount", payAmount == null ? BigDecimal.ZERO : payAmount));
     Long id = jdbcTemplate.queryForObject("select max(id) from payment_record", new MapSqlParameterSource(), Long.class);
-    Map<String, Object> row = jdbcTemplate.queryForList("select id, order_id as orderId, payment_no as paymentNo, pay_channel as payChannel, pay_amount as payAmount, case when pay_status = 'SUCCESS' then 'SUCCESS' else 'CREATED' end as payStatus, transaction_time as payTime from payment_record where id = :id", new MapSqlParameterSource("id", id)).getFirst();
+    Map<String, Object> row = jdbcTemplate.queryForList("select id, order_id as orderId, payment_no as paymentNo, pay_channel as payChannel, pay_amount as payAmount, case when pay_status = 'SUCCESS' then 'SUCCESS' else 'CREATED' end as payStatus, transaction_time as payTime from payment_record where id = :id", new MapSqlParameterSource("id", id)).get(0);
     row.put("payUrl", "https://pay.smartguardian.local/" + row.get("PAYMENTNO"));
     row.put("qrCode", "QR-" + row.get("PAYMENTNO"));
     return row;

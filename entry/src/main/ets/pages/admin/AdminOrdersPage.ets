@@ -53,7 +53,7 @@ export struct AdminOrdersPage {
       const resp = await OrderService.getOrders(params);
 
       if (resp.code === 0 && resp.data) {
-        const rawOrders = Array.isArray(resp.data) ? resp.data : [];
+        const rawOrders = resp.data.list ?? [];
         // 数据脱敏处理
         this.orders = rawOrders.map((order: Order) => this.maskOrder(order));
         LogUtil.info('AdminOrdersPage', `Loaded ${this.orders.length} orders`);

@@ -55,7 +55,7 @@ public class RefundService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(404, "退款记录不存在");
     }
-    return rows.getFirst();
+    return rows.get(0);
   }
 
   public void cancelRefund(Long refundId) {
@@ -75,10 +75,10 @@ public class RefundService {
 
   public Map<String, Object> calculateRefundAmount(Long orderId) {
     List<BigDecimal> amounts = jdbcTemplate.query("select amount from order_info where id = :orderId", new MapSqlParameterSource("orderId", orderId), (rs, rowNum) -> rs.getBigDecimal("amount"));
-    if (amounts.isEmpty() || amounts.getFirst() == null) {
+    if (amounts.isEmpty() || amounts.get(0) == null) {
       throw new com.smartguardian.backend.common.BizException(404, "订单不存在");
     }
-    BigDecimal amount = amounts.getFirst();
+    BigDecimal amount = amounts.get(0);
     return Map.of("refundable", amount.compareTo(BigDecimal.ZERO) > 0, "refundAmount", amount, "deduction", BigDecimal.ZERO, "reason", "按演示规则全额退款");
   }
 
@@ -91,6 +91,6 @@ public class RefundService {
     if (rows.isEmpty()) {
       throw new com.smartguardian.backend.common.BizException(500, "退款记录创建失败");
     }
-    return rows.getFirst();
+    return rows.get(0);
   }
 }

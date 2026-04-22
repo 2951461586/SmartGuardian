@@ -6,7 +6,7 @@
     },
     {
       "name": "page_title_size",
-      "value": "20fp"
+      "value": "22fp"
     },
     {
       "name": "page_text_font_size",
@@ -38,7 +38,7 @@
     },
     {
       "name": "card_padding",
-      "value": "16fp"
+      "value": "18fp"
     },
     {
       "name": "card_margin",
@@ -58,7 +58,7 @@
     },
     {
       "name": "card_border_radius",
-      "value": "12fp"
+      "value": "20fp"
     },
     {
       "name": "button_radius",

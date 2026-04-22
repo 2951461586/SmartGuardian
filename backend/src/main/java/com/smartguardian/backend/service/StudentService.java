@@ -43,6 +43,6 @@ public class StudentService {
     if (rows.isEmpty()) {
       throw new BizException(404, "学生不存在");
     }
-    return new LinkedHashMap<>(rows.getFirst());
+    return new LinkedHashMap<>(rows.get(0));
   }
 }
