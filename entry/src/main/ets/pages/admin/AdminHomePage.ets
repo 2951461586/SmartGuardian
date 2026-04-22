@@ -88,12 +88,14 @@ export struct AdminHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '查看机构运营数据与待办事项',
-        theme: HeaderTheme.PRIMARY,
+        greeting: '聚焦学生规模、订单处理与机构运营状态',
+        theme: HeaderTheme.WHITE,
         onRightIconClick: () => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
         }
-      })
+      }) {
+        this.buildMessageEntry()
+      }
 
       if (this.isLoading) {
         LoadingState({ loadingSize: LoadingSize.DEFAULT })
@@ -107,15 +109,34 @@ export struct AdminHomePage {
   }
 
   @Builder
+  buildMessageEntry() {
+    Column() {
+      Image($r('app.media.ic_notification'))
+        .width(22)
+        .height(22)
+        .objectFit(ImageFit.Contain)
+    }
+    .width(40)
+    .height(40)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor('#F1F5FB')
+    .borderRadius(20)
+    .onClick(() => {
+      this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
+    })
+  }
+
+  @Builder
   buildContent() {
     Scroll() {
       Column() {
+        this.buildOverviewPanel()
         this.buildQuickActions()
         this.buildStatsSection()
         this.buildActivityCard()
       }
       .width('100%')
-      .padding($r('app.float.page_padding'))
+      .padding({ left: 16, right: 16, top: 12, bottom: 20 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -123,58 +144,105 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildQuickActions() {
+  buildOverviewPanel() {
     Row() {
-      ActionButton({
-        label: '学生管理',
-        icon: $r('app.media.ic_user'),
-        bgColor: '#F3E5F5',
-        iconColor: '#8E24AA',
-        onButtonClick: () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
-        }
-      })
-
-      ActionButton({
-        label: '消息管理',
-        icon: $r('app.media.ic_message'),
-        bgColor: '#E3F2FD',
-        iconColor: '#2196F3',
-        onButtonClick: () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
-        }
-      })
-
-      ActionButton({
-        label: '订单审核',
-        icon: $r('app.media.ic_order'),
-        bgColor: '#FFF3E0',
-        iconColor: '#FB8C00',
-        onButtonClick: () => {
-          AppStorage.setOrCreate('main_current_index', 1);
-        }
-      })
-
-      ActionButton({
-        label: '数据统计',
-        icon: $r('app.media.ic_report'),
-        bgColor: '#E8F5E9',
-        iconColor: '#43A047',
-        onButtonClick: () => {
-          AppStorage.setOrCreate('main_current_index', 2);
-        }
-      })
+      this.buildOverviewMetric('学生总量', `${this.stats.totalStudents}`, '#4F7CFF', '#EAF2FF')
+      Blank().width(10)
+      this.buildOverviewMetric('待处理订单', `${this.stats.pendingOrders}`, '#F2994A', '#FFF4E8')
+      Blank().width(10)
+      this.buildOverviewMetric('出勤概览', `${this.stats.todayAttendance}`, '#2F9B52', '#EAF7EC')
     }
     .width('100%')
-    .justifyContent(FlexAlign.SpaceBetween)
-    .margin({ bottom: $r('app.float.card_margin') })
+    .margin({ bottom: 14 })
+  }
+
+  @Builder
+  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
+    Column() {
+      Text(title)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+
+      Text(value)
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(valueColor)
+        .margin({ top: 6 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
+    .backgroundColor(bgColor)
+    .borderRadius(18)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  buildQuickActions() {
+    Column() {
+      Row() {
+        Text('快捷入口')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+      }
+      .width('100%')
+      .margin({ bottom: 10 })
+
+      Row() {
+        ActionButton({
+          label: '学生管理',
+          icon: $r('app.media.ic_user'),
+          bgColor: '#F4EEFF',
+          iconColor: '#8E5CF6',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
+          }
+        })
+
+        ActionButton({
+          label: '消息管理',
+          icon: $r('app.media.ic_message'),
+          bgColor: '#EAF2FF',
+          iconColor: '#4F7CFF',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
+          }
+        })
+
+        ActionButton({
+          label: '订单审核',
+          icon: $r('app.media.ic_order'),
+          bgColor: '#FFF4E8',
+          iconColor: '#F2994A',
+          onButtonClick: () => {
+            AppStorage.setOrCreate('main_current_index', 1);
+          }
+        })
+
+        ActionButton({
+          label: '数据统计',
+          icon: $r('app.media.ic_report'),
+          bgColor: '#EAF7EC',
+          iconColor: '#2F9B52',
+          onButtonClick: () => {
+            AppStorage.setOrCreate('main_current_index', 2);
+          }
+        })
+      }
+      .width('100%')
+      .padding({ top: 10, bottom: 10 })
+      .backgroundColor(Color.White)
+      .borderRadius(20)
+    }
+    .width('100%')
+    .margin({ bottom: 14 })
   }
 
   @Builder
   buildStatsSection() {
     Card({
       title: '运营概览',
-      subtitle: this.errorMessage ? this.errorMessage : '今日关键指标一览',
+      subtitle: this.errorMessage ? this.errorMessage : '聚焦机构当前最重要的四项运营指标',
       content: this.buildStatsContent
     })
   }
@@ -187,7 +255,7 @@ export struct AdminHomePage {
           value: this.stats.totalStudents,
           label: '学生总数',
           icon: $r('app.media.ic_user'),
-          iconColor: '#8E24AA'
+          iconColor: '#8E5CF6'
         })
         .layoutWeight(1)
 
@@ -197,7 +265,7 @@ export struct AdminHomePage {
           value: this.stats.activeStudents,
           label: '活跃学生',
           icon: $r('app.media.ic_home'),
-          iconColor: '#43A047'
+          iconColor: '#2F9B52'
         })
         .layoutWeight(1)
       }
@@ -208,7 +276,7 @@ export struct AdminHomePage {
           value: this.stats.todayAttendance,
           label: '今日出勤',
           icon: $r('app.media.ic_attendance'),
-          iconColor: '#2196F3'
+          iconColor: '#4F7CFF'
         })
         .layoutWeight(1)
 
@@ -218,7 +286,7 @@ export struct AdminHomePage {
           value: this.stats.pendingOrders,
           label: '待处理订单',
           icon: $r('app.media.ic_order'),
-          iconColor: '#FB8C00'
+          iconColor: '#F2994A'
         })
         .layoutWeight(1)
       }
@@ -232,6 +300,7 @@ export struct AdminHomePage {
   buildActivityCard() {
     Card({
       title: '最近活动',
+      subtitle: '帮助管理员快速了解学生、订单与请假变动',
       actionText: '查看报表',
       onAction: () => {
         AppStorage.setOrCreate('main_current_index', 2);
@@ -266,10 +335,10 @@ export struct AdminHomePage {
           }
           .width('100%')
           .alignItems(VerticalAlign.Top)
+          .padding({ top: 4, bottom: 4 })
 
           if (index < this.recentActivities.length - 1) {
-            Divider()
-              .margin({ top: 10, bottom: 10 })
+            Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
           }
         })
       }

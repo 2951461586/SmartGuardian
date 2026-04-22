@@ -7,10 +7,10 @@ import { PaymentCreateRequest, PaymentOrder, PaymentCallbackRequest } from '../.
 import { PaymentService } from '../../services/api/payments';
 import { Order } from '../../models/service';
 import { OrderStore } from '../../stores/orderStore';
+import { LogUtil } from '../../utils/LogUtil';
 
 interface RouterParams {
   orderId?: number;
-  amount?: number;
 }
 
 @Entry
@@ -29,8 +29,17 @@ struct ParentPaymentPage {
     const params = this.getUIContext().getRouter().getParams() as RouterParams;
     if (params) {
       this.orderId = params.orderId || 0;
-      this.amount = params.amount || 0;
     }
+
+    const currentOrder = OrderStore.getCurrentOrder();
+    const cachedOrder = currentOrder?.id === this.orderId ? currentOrder : OrderStore.findOrderById(this.orderId);
+    if (cachedOrder) {
+      this.amount = this.getDisplayAmount(cachedOrder);
+      return;
+    }
+
+    this.orderId = 0;
+    this.amount = 0;
   }
 
   aboutToDisappear() {
@@ -44,7 +53,21 @@ struct ParentPaymentPage {
     }
   }
 
+  private getDisplayAmount(order: Order): number {
+    if (order.actualAmount !== undefined) {
+      return order.actualAmount;
+    }
+    if (order.totalAmount !== undefined) {
+      return order.totalAmount - (order.discountAmount || 0);
+    }
+    return order.amount || 0;
+  }
+
   async handlePayment() {
+    if (this.orderId <= 0 || this.amount <= 0) {
+      return;
+    }
+
     this.isPaying = true;
     try {
       const request: PaymentCreateRequest = {
@@ -60,7 +83,7 @@ struct ParentPaymentPage {
         this.startCountdown();
       }
     } catch (error) {
-      console.error('Payment failed:', String(error));
+      LogUtil.error('ParentPaymentPage', 'Payment failed');
     } finally {
       this.isPaying = false;
     }
@@ -92,7 +115,7 @@ struct ParentPaymentPage {
       }
       this.syncLocalOrderStatus();
     } catch (error) {
-      console.error('Payment callback failed:', String(error));
+      LogUtil.error('ParentPaymentPage', 'Payment callback failed');
       this.syncLocalOrderStatus();
     }
 
@@ -104,7 +127,7 @@ struct ParentPaymentPage {
         }
       });
     } catch (error) {
-      console.error('ParentPaymentPage navigate to order detail failed:', String(error));
+      LogUtil.error('ParentPaymentPage', 'Navigate to order detail failed');
     }
   }
 
@@ -115,7 +138,7 @@ struct ParentPaymentPage {
     }
 
     const paidTime = new Date().toISOString();
-    const paidAmount = this.amount > 0 ? this.amount : cachedOrder.paidAmount;
+    const paidAmount = this.amount > 0 ? this.amount : this.getDisplayAmount(cachedOrder);
     const updatedOrder: Order = {
       id: cachedOrder.id,
       orderNo: cachedOrder.orderNo,

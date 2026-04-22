@@ -25,7 +25,7 @@ export class ApiConfig {
   /**
    * 测试环境后端地址。
    *
-   * @description 请替换为实际联调地址，例如 http://192.168.1.100:8080
+   * @description 请在外部配置实际联调地址，例如 https://api.example.com
    */
   static readonly TEST_BASE_URL: string = '';
 

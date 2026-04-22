@@ -1,7 +1,7 @@
 /**
  * SmartGuardian - Parent Messages Page
- * Enhanced message center with filtering
- * 
+ * Enhanced message center with unified visual system
+ *
  * @optimized Using MessageStore for state management
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
@@ -10,31 +10,23 @@ import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
-import { ErrorMessages } from '../../constants/ErrorMessages';
-import { MessageQueryParams } from '../../models/common';
-// Common Components
-import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, TabItem, HeaderTheme, MessageListItem } from '../../components/common';
+import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem } from '../../components/common';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
 @Component
 export struct ParentMessagesPage {
-  // 使用 Store 管理消息数据（缓存优先）
   @StorageLink('message_list') messages: MessageRecord[] = [];
   @StorageLink('unread_count') unreadCount: number = 0;
-  
-  // 本地 UI 状态
+
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
   @State selectedTab: MessageTab = 'ALL';
   @State statistics: MessageStatistics | null = null;
   @State filteredMessages: MessageRecord[] = [];
-  
-  // 缓存时间戳
-  private lastLoadTime: number = 0;
-  private readonly CACHE_DURATION: number = 2 * 60 * 1000; // 2分钟缓存
 
-  // Tab配置
+  private lastLoadTime: number = 0;
+  private readonly CACHE_DURATION: number = 2 * 60 * 1000;
   private tabs: string[] = ['全部', '系统', '考勤', '作业', '订单'];
   private tabTypes: MessageTab[] = ['ALL', 'SYSTEM', 'ATTENDANCE', 'HOMEWORK', 'ORDER'];
 
@@ -43,23 +35,19 @@ export struct ParentMessagesPage {
     this.loadStatistics();
   }
 
-  /**
-   * 带缓存的消息加载策略
-   */
   async loadMessagesWithCache() {
     const cachedMessages = MessageStore.getMessageList();
     const cachedUnread = MessageStore.getUnreadCount();
-    
+
     if (cachedMessages.length > 0) {
       this.messages = cachedMessages;
       this.unreadCount = cachedUnread;
       this.filterMessages();
       LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items`);
     }
-    
+
     const now = Date.now();
     const shouldRefresh = (now - this.lastLoadTime) > this.CACHE_DURATION;
-    
     if (shouldRefresh || cachedMessages.length === 0) {
       await this.loadMessages();
     }
@@ -67,38 +55,31 @@ export struct ParentMessagesPage {
 
   async loadMessages() {
     this.isLoading = true;
+
     try {
-      // 使用统一的查询参数类型
-      const params: MessageQueryParams = {
+      const resp = await MessageService.getMessages({
         pageNum: 1,
         pageSize: 50
-      };
+      });
 
-      const resp = await MessageService.getMessages(params);
       if (resp.code === 0 && resp.data) {
         const messageList = resp.data.list || [];
-        
+        const unread = messageList.filter((message: MessageRecord) => !message.readStatus).length;
+
         MessageStore.setMessageList(messageList);
-        
-        const unread = messageList.filter((m: MessageRecord) => !m.readStatus).length;
         MessageStore.setUnreadCount(unread);
-        
+
         this.messages = messageList;
         this.unreadCount = unread;
         this.lastLoadTime = Date.now();
         this.filterMessages();
-        
         LogUtil.info('ParentMessagesPage', `Loaded ${messageList.length} messages, unread: ${unread}`);
       } else {
-        this.messages = this.getMockMessages();
-        this.filterMessages();
-        MessageStore.setMessageList(this.messages);
+        this.applyFallbackMessages();
       }
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', `Load failed: ${JSON.stringify(error)}`);
-      this.messages = this.getMockMessages();
-      this.filterMessages();
-      MessageStore.setMessageList(this.messages);
+      LogUtil.error('ParentMessagesPage', 'Load messages failed');
+      this.applyFallbackMessages();
     } finally {
       this.isLoading = false;
     }
@@ -125,96 +106,133 @@ export struct ParentMessagesPage {
       this.loadStatistics();
       LogUtil.info('ParentMessagesPage', `Marked message ${messageId} as read`);
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', `Mark as read failed: ${JSON.stringify(error)}`);
+      LogUtil.error('ParentMessagesPage', 'Mark message as read failed');
     }
   }
 
   async markAllAsRead() {
     try {
       await MessageService.markAllAsRead();
-      const messages = MessageStore.getMessageList();
-      messages.forEach((m: MessageRecord) => m.readStatus = true);
-      MessageStore.setMessageList(messages);
+
+      const updatedMessages = MessageStore.getMessageList().map((message: MessageRecord): MessageRecord => {
+        return {
+          id: message.id,
+          userId: message.userId,
+          msgType: message.msgType,
+          title: message.title,
+          content: message.content,
+          bizType: message.bizType,
+          bizId: message.bizId,
+          readStatus: true,
+          readAt: message.readAt,
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt
+        };
+      });
+
+      MessageStore.setMessageList(updatedMessages);
       MessageStore.setUnreadCount(0);
-      this.loadMessagesWithCache();
+
+      this.messages = updatedMessages;
+      this.unreadCount = 0;
+      this.filterMessages();
       this.loadStatistics();
       LogUtil.info('ParentMessagesPage', 'Marked all messages as read');
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', `Mark all as read failed: ${JSON.stringify(error)}`);
+      LogUtil.error('ParentMessagesPage', 'Mark all messages as read failed');
     }
   }
 
-  /**
-   * 处理Tab切换 - 真正的筛选功能
-   */
+  private applyFallbackMessages(): void {
+    const fallbackMessages = this.getMockMessages();
+    const unread = fallbackMessages.filter((message: MessageRecord) => !message.readStatus).length;
+
+    this.messages = fallbackMessages;
+    this.unreadCount = unread;
+    this.filterMessages();
+
+    MessageStore.setMessageList(fallbackMessages);
+    MessageStore.setUnreadCount(unread);
+  }
+
   private handleTabChange(index: number): void {
     this.currentTab = index;
     this.selectedTab = this.tabTypes[index];
     this.filterMessages();
   }
 
-  /**
-   * 根据选中的Tab筛选消息
-   */
   private filterMessages(): void {
     if (this.selectedTab === 'ALL') {
       this.filteredMessages = this.messages;
-    } else {
-      this.filteredMessages = this.messages.filter((msg: MessageRecord) => msg.msgType === this.selectedTab);
+      return;
     }
+
+    this.filteredMessages = this.messages.filter((message: MessageRecord) => message.msgType === this.selectedTab);
   }
 
-  /**
-   * 打开消息详情
-   */
+  private getTotalCount(): number {
+    return this.statistics?.total ?? this.messages.length;
+  }
+
+  private getUnreadStatCount(): number {
+    return this.statistics?.unread ?? this.unreadCount;
+  }
+
+  private getCurrentTabCount(): number {
+    return this.filteredMessages.length;
+  }
+
+  private getCurrentTabLabel(): string {
+    return this.tabs[this.currentTab] ?? '全部';
+  }
+
+  private getEmptyDescription(): string {
+    if (this.selectedTab === 'ALL') {
+      return '暂时没有新的家校消息，可稍后刷新查看';
+    }
+    return `${this.getCurrentTabLabel()}分类下暂无消息记录`;
+  }
+
   private openMessageDetail(message: MessageRecord): void {
-    // 标记为已读
     if (!message.readStatus) {
       this.markAsRead(message.id);
     }
 
-    // 跳转到消息详情页
+    MessageStore.setCurrentMessage(message);
+
     try {
       this.getUIContext().getRouter().pushUrl({
         url: 'pages/parent/ParentMessageDetailPage',
         params: {
-          messageId: message.id,
-          message: message
+          messageId: message.id
         }
       });
     } catch (error) {
-      LogUtil.error('ParentMessagesPage', `Open message detail failed: ${String(error)}`);
+      LogUtil.error('ParentMessagesPage', 'Open message detail failed');
     }
   }
 
   build() {
     Column() {
-      // 使用通用PageHeader（带返回和操作按钮）
       PageHeader({
         title: '消息中心',
-        showBack: true,
-        onBackClick: () => this.getUIContext().getRouter().back(),
-        theme: HeaderTheme.PRIMARY
+        subtitle: '跟进系统通知、考勤提醒与作业反馈',
+        theme: HeaderTheme.WHITE
       }) {
-        // 右侧操作按钮
         if (this.unreadCount > 0) {
           Button('全部已读')
-            .fontSize(12)
-            .fontColor(Color.White)
-            .backgroundColor('#4CAF50')
             .height(32)
+            .fontSize(12)
+            .fontColor($r('app.color.primary'))
+            .backgroundColor('#EAF2FF')
+            .borderRadius(16)
+            .padding({ left: 12, right: 12 })
             .onClick(() => this.markAllAsRead())
         }
       }
 
-      // 使用通用TabBar，带筛选功能
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: (index: number) => this.handleTabChange(index)
-      })
-
-      // 内容区域
+      this.buildOverviewPanel()
+      this.buildTabSection()
       this.buildContent()
     }
     .width('100%')
@@ -223,17 +241,71 @@ export struct ParentMessagesPage {
   }
 
   @Builder
+  buildOverviewPanel() {
+    Row() {
+      this.buildOverviewMetric('全部消息', `${this.getTotalCount()}`, '#4F7CFF', '#EAF2FF')
+      Blank().width(10)
+      this.buildOverviewMetric('未读消息', `${this.getUnreadStatCount()}`, '#F2994A', '#FFF4E8')
+      Blank().width(10)
+      this.buildOverviewMetric(this.getCurrentTabLabel(), `${this.getCurrentTabCount()}`, '#2F9B52', '#EAF7EC')
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 12 })
+  }
+
+  @Builder
+  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
+    Column() {
+      Text(title)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+
+      Text(value)
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(valueColor)
+        .margin({ top: 6 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
+    .backgroundColor(bgColor)
+    .borderRadius(18)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  buildTabSection() {
+    Column() {
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: $currentTab,
+        onTabChange: (index: number) => this.handleTabChange(index)
+      })
+    }
+    .width('100%')
+    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+    .backgroundColor(Color.White)
+    .borderRadius(18)
+    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  }
+
+  @Builder
   buildContent() {
-    if (this.isLoading) {
-      LoadingState({ 
+    if (this.isLoading && this.filteredMessages.length === 0) {
+      LoadingState({
         loadingSize: LoadingSize.LARGE,
-        fullscreen: false 
+        fullscreen: false,
+        message: '正在加载消息...'
       })
     } else if (this.filteredMessages.length === 0) {
-      EmptyState({ 
+      EmptyState({
         type: EmptyType.NO_MESSAGE,
+        customDescription: this.getEmptyDescription(),
         actionText: '刷新',
-        onAction: () => { this.loadMessages(); }
+        onAction: () => {
+          this.loadMessages();
+          this.loadStatistics();
+        }
       })
     } else {
       this.buildMessageList()
@@ -251,14 +323,13 @@ export struct ParentMessagesPage {
               this.markAsRead(message.id);
             },
             onItemClick: () => {
-              // 添加点击事件，跳转到详情
               this.openMessageDetail(message);
             }
           })
         })
       }
       .width('100%')
-      .padding($r('app.float.page_padding'))
+      .padding({ left: 16, right: 16, bottom: 20 })
     }
     .width('100%')
     .layoutWeight(1)

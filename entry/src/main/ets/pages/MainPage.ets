@@ -8,7 +8,6 @@ import { UserStore } from '../stores/userStore';
 import { UserRole } from '../models/common';
 import { getToken } from '../utils/request';
 
-// Import page components
 import { ParentHomePage } from './parent/ParentHomePage';
 import { ParentOrdersPage } from './parent/ParentOrdersPage';
 import { ParentMessagesPage } from './parent/ParentMessagesPage';
@@ -19,6 +18,11 @@ import { TeacherHomeworkPage } from './teacher/TeacherHomeworkPage';
 import { AdminHomePage } from './admin/AdminHomePage';
 import { AdminOrdersPage } from './admin/AdminOrdersPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
+
+interface NavItem {
+  label: ResourceStr;
+  icon: Resource;
+}
 
 @Entry
 @Component
@@ -94,10 +98,6 @@ struct MainPage {
     this.ensureValidCurrentIndex();
   }
 
-  getNavItemWidth(): string {
-    return this.currentRole === UserRole.PARENT ? '25%' : '33.33%';
-  }
-
   ensureValidCurrentIndex(): void {
     const maxIndex = this.currentRole === UserRole.PARENT ? 3 : 2;
     if (this.currentIndex > maxIndex) {
@@ -105,31 +105,37 @@ struct MainPage {
     }
   }
 
+  private getNavItems(): NavItem[] {
+    if (this.currentRole === UserRole.PARENT) {
+      return [
+        { label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
+        { label: $r('app.string.nav_orders'), icon: $r('app.media.ic_order') },
+        { label: $r('app.string.nav_messages'), icon: $r('app.media.ic_message') },
+        { label: $r('app.string.nav_profile'), icon: $r('app.media.ic_profile') }
+      ];
+    }
+
+    if (this.currentRole === UserRole.TEACHER) {
+      return [
+        { label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
+        { label: $r('app.string.nav_attendance'), icon: $r('app.media.ic_attendance') },
+        { label: $r('app.string.nav_homework'), icon: $r('app.media.ic_homework') }
+      ];
+    }
+
+    return [
+      { label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
+      { label: $r('app.string.nav_orders'), icon: $r('app.media.ic_order') },
+      { label: $r('app.string.nav_reports'), icon: $r('app.media.ic_report') }
+    ];
+  }
+
   build() {
     Column() {
       if (this.isInitializing) {
-        Column() {
-          LoadingProgress()
-            .color($r('app.color.primary'))
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
+        this.buildInitializingState()
       } else if (this.authLocked) {
-        Column({ space: 12 }) {
-          Text('登录状态已失效')
-            .fontSize(18)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-
-          Text('请重新登录以继续使用')
-            .fontSize(14)
-            .fontColor($r('app.color.text_secondary'))
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
+        this.buildAuthLockedState()
       } else {
         this.buildContent()
         this.buildBottomNav()
@@ -141,86 +147,133 @@ struct MainPage {
   }
 
   @Builder
+  buildInitializingState() {
+    Column() {
+      LoadingProgress()
+        .color($r('app.color.primary'))
+        .width(36)
+        .height(36)
+
+      Text('正在准备你的工作台...')
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 14 })
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  buildAuthLockedState() {
+    Column() {
+      Column() {
+        Text('登录状态已失效')
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+
+        Text('请重新登录以继续使用智慧托管')
+          .fontSize(14)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 10 })
+      }
+      .padding(24)
+      .backgroundColor(Color.White)
+      .borderRadius(20)
+      .margin({ left: 24, right: 24 })
+      .shadow({
+        radius: 16,
+        color: '#12000000',
+        offsetX: 0,
+        offsetY: 8
+      })
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
   buildContent() {
-    if (this.currentRole === UserRole.PARENT) {
-      Stack() {
+    Stack() {
+      if (this.currentRole === UserRole.PARENT) {
         if (this.currentIndex === 0) {
           ParentHomePage()
         } else if (this.currentIndex === 1) {
           ParentOrdersPage()
         } else if (this.currentIndex === 2) {
           ParentMessagesPage()
-        } else if (this.currentIndex === 3) {
+        } else {
           ParentProfilePage()
         }
-      }
-      .layoutWeight(1)
-    } else if (this.currentRole === UserRole.TEACHER) {
-      Stack() {
+      } else if (this.currentRole === UserRole.TEACHER) {
         if (this.currentIndex === 0) {
           TeacherHomePage()
         } else if (this.currentIndex === 1) {
           TeacherAttendancePage()
-        } else if (this.currentIndex === 2) {
+        } else {
           TeacherHomeworkPage()
         }
-      }
-      .layoutWeight(1)
-    } else {
-      Stack() {
+      } else {
         if (this.currentIndex === 0) {
           AdminHomePage()
         } else if (this.currentIndex === 1) {
           AdminOrdersPage()
-        } else if (this.currentIndex === 2) {
+        } else {
           AdminReportsPage()
         }
       }
-      .layoutWeight(1)
     }
+    .width('100%')
+    .layoutWeight(1)
   }
 
   @Builder
   buildBottomNav() {
     Row() {
-      if (this.currentRole === UserRole.PARENT) {
-        this.buildNavItem(0, $r('app.string.nav_home'), $r('app.media.ic_home'))
-        this.buildNavItem(1, $r('app.string.nav_orders'), $r('app.media.ic_order'))
-        this.buildNavItem(2, $r('app.string.nav_messages'), $r('app.media.ic_message'))
-        this.buildNavItem(3, $r('app.string.nav_profile'), $r('app.media.ic_profile'))
-      } else if (this.currentRole === UserRole.TEACHER) {
-        this.buildNavItem(0, $r('app.string.nav_home'), $r('app.media.ic_home'))
-        this.buildNavItem(1, $r('app.string.nav_attendance'), $r('app.media.ic_attendance'))
-        this.buildNavItem(2, $r('app.string.nav_homework'), $r('app.media.ic_homework'))
-      } else {
-        this.buildNavItem(0, $r('app.string.nav_home'), $r('app.media.ic_home'))
-        this.buildNavItem(1, $r('app.string.nav_orders'), $r('app.media.ic_order'))
-        this.buildNavItem(2, $r('app.string.nav_reports'), $r('app.media.ic_report'))
-      }
+      ForEach(this.getNavItems(), (item: NavItem, index: number) => {
+        this.buildNavItem(index, item.label, item.icon)
+      })
     }
     .width('100%')
-    .height($r('app.float.bottom_nav_height'))
-    .backgroundColor($r('app.color.bottom_nav_background'))
-    .padding({ top: $r('app.float.nav_padding') })
+    .padding({ left: 12, right: 12, top: 10, bottom: 14 })
+    .backgroundColor('#FAFCFF')
+    .border({
+      width: { top: 1 },
+      color: { top: '#E9EEF5' },
+      style: BorderStyle.Solid
+    })
   }
 
   @Builder
   buildNavItem(index: number, label: ResourceStr, icon: Resource) {
     Column() {
-      Image(icon)
-        .width($r('app.float.nav_icon_size'))
-        .height($r('app.float.nav_icon_size'))
-        .objectFit(ImageFit.Contain)
-        .fillColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
+      Column() {
+        Image(icon)
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
+      }
+      .width(40)
+      .height(32)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(this.currentIndex === index ? '#EAF2FF' : Color.Transparent)
+      .borderRadius(16)
 
       Text(label)
-        .fontSize($r('app.float.nav_text_size'))
+        .fontSize(11)
+        .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
         .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
-        .margin({ top: $r('app.float.nav_text_margin') })
+        .margin({ top: 6 })
     }
-    .width(this.getNavItemWidth())
-    .height('100%')
+    .layoutWeight(1)
+    .padding({ top: 4, bottom: 2 })
     .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
     .onClick(() => {
       this.currentIndex = index;
     })

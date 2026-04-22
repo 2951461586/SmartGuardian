@@ -3,18 +3,36 @@
  * 显示消息详情
  */
 
-import { MessageRecord } from '../../models/message';
-import { DateUtils } from '../../utils/dateUtils';
+import { MessageDetail, MessageRecord } from '../../models/message';
+import { MessageService } from '../../services/api/message';
+import { MessageStore } from '../../stores/messageStore';
 
 @Entry
 @Component
 struct ParentMessageDetailPage {
-  @State message: MessageRecord | null = null;
+  @State message: MessageRecord | MessageDetail | null = null;
 
-  aboutToAppear() {
+  async aboutToAppear() {
     const params = this.getUIContext().getRouter().getParams() as Record<string, Object>;
-    if (params && params['message']) {
-      this.message = params['message'] as MessageRecord;
+    const messageId = Number(params?.['messageId'] ?? 0);
+    const currentMessage = MessageStore.getCurrentMessage();
+    const cachedMessage = MessageStore.findMessageById(messageId);
+    const targetMessage = currentMessage?.id === messageId ? currentMessage : cachedMessage;
+
+    if (targetMessage) {
+      this.message = targetMessage;
+      await this.loadMessageDetail(messageId);
+    }
+  }
+
+  private async loadMessageDetail(messageId: number): Promise<void> {
+    try {
+      const response = await MessageService.getMessageDetail(messageId);
+      if (response.code === 0 && response.data) {
+        this.message = response.data;
+      }
+    } catch (error) {
+      // 保留当前缓存消息作为兜底展示
     }
   }
 

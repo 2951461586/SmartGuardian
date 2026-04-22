@@ -1,7 +1,7 @@
 /**
  * SmartGuardian - Parent Orders Page
  * Parent can view and manage their orders
- * 
+ *
  * @optimized Using OrderStore for state management
  * @migrated 2026-04-20 - P2 Migration with Common Components
  */
@@ -12,10 +12,17 @@ import { OrderStore } from '../../stores/orderStore';
 import { LogUtil } from '../../utils/LogUtil';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { OrderQueryParams } from '../../models/common';
-// Common Components
-import { SimplePageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, OrderListItem, OrderItemMode } from '../../components/common';
-import { StatusBadge, OrderBadge } from '../../components/StatusBadge';
-import { StatusType, StatusMappingHelper } from '../../constants/StatusMapping';
+import {
+  PageHeader,
+  HeaderTheme,
+  TabBar,
+  EmptyState,
+  LoadingState,
+  EmptyType,
+  LoadingSize,
+  OrderListItem,
+  OrderItemMode
+} from '../../components/common';
 
 @Component
 export struct ParentOrdersPage {
@@ -28,7 +35,6 @@ export struct ParentOrdersPage {
 
   private lastLoadTime: number = 0;
   private readonly CACHE_DURATION: number = 5 * 60 * 1000;
-
   private tabs: string[] = ['全部', '待审核', '进行中', '已完成'];
 
   aboutToAppear() {
@@ -53,15 +59,13 @@ export struct ParentOrdersPage {
   async loadOrders() {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     try {
-      // 使用统一的查询参数类型
       const params: OrderQueryParams = {
         pageNum: 1,
         pageSize: 20
       };
 
-      // 根据Tab设置状态过滤
       if (this.currentTab === 1) {
         params.orderStatus = 'PENDING';
       } else if (this.currentTab === 2) {
@@ -78,10 +82,12 @@ export struct ParentOrdersPage {
         this.orders = rawOrders;
         this.lastLoadTime = Date.now();
         LogUtil.info('ParentOrdersPage', `Loaded and cached ${this.orders.length} orders`);
+      } else {
+        this.errorMessage = resp.message || ErrorMessages.ORDER_LOAD_FAILED;
       }
     } catch (error) {
       this.errorMessage = ErrorMessages.ORDER_LOAD_FAILED;
-      LogUtil.error('ParentOrdersPage', `Load failed: ${JSON.stringify(error)}`);
+      LogUtil.error('ParentOrdersPage', 'Load orders failed');
     } finally {
       this.isLoading = false;
     }
@@ -101,19 +107,30 @@ export struct ParentOrdersPage {
     return order.orderStatus === 'APPROVED' && order.payStatus === 'UNPAID';
   }
 
+  getPendingCount(): number {
+    return this.orders.filter((order: Order) => order.orderStatus === 'PENDING').length;
+  }
+
+  getPayableCount(): number {
+    return this.orders.filter((order: Order) => this.canPay(order)).length;
+  }
+
+  getCompletedCount(): number {
+    return this.orders.filter((order: Order) => order.orderStatus === 'COMPLETED').length;
+  }
+
   async handlePayOrder(order: Order) {
     this.payingOrderId = order.id;
     try {
+      OrderStore.setCurrentOrder(order);
       this.getUIContext().getRouter().pushUrl({
         url: 'pages/parent/ParentPaymentPage',
         params: {
-          orderId: order.id,
-          orderNo: order.orderNo,
-          amount: this.getDisplayAmount(order)
+          orderId: order.id
         }
       });
     } catch (error) {
-      LogUtil.error('ParentOrdersPage', `Navigate to payment failed: ${JSON.stringify(error)}`);
+      LogUtil.error('ParentOrdersPage', 'Navigate to payment failed');
     } finally {
       this.payingOrderId = 0;
     }
@@ -130,25 +147,20 @@ export struct ParentOrdersPage {
         }
       });
     } catch (error) {
-      LogUtil.error('ParentOrdersPage', `Open order detail failed: ${String(error)}`);
+      LogUtil.error('ParentOrdersPage', 'Open order detail failed');
     }
   }
 
   build() {
     Column() {
-      // 使用通用PageHeader
-      SimplePageHeader({ title: '我的订单' })
-
-      // 使用通用TabBar
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: $currentTab,
-        onTabChange: () => {
-          this.loadOrders();
-        }
+      PageHeader({
+        title: '我的订单',
+        subtitle: '管理报名、支付与服务进度',
+        theme: HeaderTheme.WHITE
       })
 
-      // 内容区域
+      this.buildOverviewPanel()
+      this.buildTabSection()
       this.buildContent()
     }
     .width('100%')
@@ -157,19 +169,72 @@ export struct ParentOrdersPage {
   }
 
   @Builder
+  buildOverviewPanel() {
+    Row() {
+      this.buildOverviewMetric('当前列表', `${this.orders.length}`, '#4F7CFF', '#EAF2FF')
+      Blank().width(10)
+      this.buildOverviewMetric('待审核', `${this.getPendingCount()}`, '#F2994A', '#FFF4E8')
+      Blank().width(10)
+      this.buildOverviewMetric('待支付', `${this.getPayableCount()}`, '#2F9B52', '#EAF7EC')
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 12 })
+  }
+
+  @Builder
+  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
+    Column() {
+      Text(title)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+
+      Text(value)
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(valueColor)
+        .margin({ top: 6 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 14, right: 14, top: 16, bottom: 16 })
+    .backgroundColor(bgColor)
+    .borderRadius(18)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  buildTabSection() {
+    Column() {
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: $currentTab,
+        onTabChange: () => {
+          this.loadOrders();
+        }
+      })
+    }
+    .width('100%')
+    .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+    .backgroundColor(Color.White)
+    .borderRadius(18)
+    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
+  }
+
+  @Builder
   buildContent() {
     if (this.isLoading && this.orders.length === 0) {
-      // 使用通用LoadingState
-      LoadingState({ 
+      LoadingState({
         loadingSize: LoadingSize.LARGE,
-        fullscreen: false 
+        fullscreen: false,
+        message: '正在加载订单...'
       })
     } else if (this.orders.length === 0) {
-      // 使用通用EmptyState
-      EmptyState({ 
+      EmptyState({
         type: EmptyType.NO_ORDER,
+        customDescription: this.errorMessage || '当前筛选条件下暂无订单记录',
         actionText: '刷新',
-        onAction: () => { this.loadOrders(); }
+        onAction: () => {
+          this.loadOrders();
+        }
       })
     } else {
       this.buildOrderList()
@@ -182,7 +247,6 @@ export struct ParentOrdersPage {
       Column() {
         ForEach(this.orders, (order: Order) => {
           Column() {
-            // 订单卡片
             OrderListItem({
               order: order,
               mode: OrderItemMode.SIMPLE,
@@ -191,31 +255,38 @@ export struct ParentOrdersPage {
               }
             })
 
-            // 立即支付按钮（仅针对已审核未支付的订单）
             if (this.canPay(order)) {
-              Button('立即支付')
+              Button(this.payingOrderId === order.id ? '处理中...' : '立即支付')
                 .width('100%')
-                .height(44)
-                .fontSize(16)
+                .height(46)
+                .fontSize(15)
+                .fontWeight(FontWeight.Medium)
                 .fontColor(Color.White)
                 .backgroundColor($r('app.color.primary'))
-                .borderRadius(22)
-                .margin({ top: 12 })
+                .borderRadius(14)
+                .margin({ top: 10 })
                 .enabled(this.payingOrderId !== order.id)
+                .opacity(this.payingOrderId === order.id ? 0.75 : 1)
                 .onClick(() => {
                   this.handlePayOrder(order);
                 })
             }
           }
           .width('100%')
-          .padding(16)
+          .padding(18)
           .backgroundColor(Color.White)
-          .borderRadius(12)
+          .borderRadius(20)
           .margin({ bottom: 12 })
+          .shadow({
+            radius: 12,
+            color: '#0F000000',
+            offsetX: 0,
+            offsetY: 4
+          })
         })
       }
       .width('100%')
-      .padding($r('app.float.page_padding'))
+      .padding({ left: 16, right: 16, bottom: 20 })
     }
     .width('100%')
     .layoutWeight(1)

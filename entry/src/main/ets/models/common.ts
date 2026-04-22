@@ -363,6 +363,7 @@ export class QueryParamsHelper {
 export enum UserRole {
   PARENT = 'PARENT',       // 家长
   TEACHER = 'TEACHER',     // 教师/看护老师
+  ADMIN = 'ADMIN',         // 管理员
   ORG_ADMIN = 'ORG_ADMIN', // 机构管理员
   SCHOOL_ADMIN = 'SCHOOL_ADMIN', // 学校管理员
   PLATFORM_ADMIN = 'PLATFORM_ADMIN' // 平台管理员

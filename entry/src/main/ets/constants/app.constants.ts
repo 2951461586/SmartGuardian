@@ -116,6 +116,7 @@ export class RoleRoutes {
   static readonly DEFAULT_ROUTE: Record<string, string> = {
     'PARENT': RouteUrls.PARENT_HOME,
     'TEACHER': RouteUrls.TEACHER_HOME,
+    'ADMIN': RouteUrls.ADMIN_HOME,
     'ORG_ADMIN': RouteUrls.ADMIN_HOME,
     'SCHOOL_ADMIN': RouteUrls.ADMIN_HOME,
     'PLATFORM_ADMIN': RouteUrls.ADMIN_HOME

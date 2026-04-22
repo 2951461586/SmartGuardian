@@ -1,12 +1,11 @@
 /**
  * SmartGuardian - Login Page
  * User login with account and password
- * Features: Privacy agreement, password encryption, secure transmission
+ * Features: Privacy agreement, secure transmission
  */
 
 import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
-import { UserRole } from '../models/common';
 import { LoginRequest } from '../models/user';
 import { setToken } from '../utils/request';
 import { PrivacyDialog, isPrivacyAgreed } from '../components/PrivacyDialog';
@@ -26,15 +25,12 @@ struct LoginPage {
   privacyDialogController: CustomDialogController = new CustomDialogController({
     builder: PrivacyDialog({
       onAgree: () => {
-        // 用户同意隐私协议
         this.isPrivacyChecked = true;
         LogUtil.info('LoginPage', 'User agreed to privacy policy');
       },
       onDisagree: () => {
-        // 用户拒绝隐私协议
         this.isPrivacyChecked = false;
         LogUtil.info('LoginPage', 'User disagreed to privacy policy');
-        // 无法登录，显示提示
         this.errorMessage = '需要同意隐私协议才能使用本应用';
       }
     }),
@@ -44,27 +40,20 @@ struct LoginPage {
   });
 
   aboutToAppear() {
-    // 检查是否已经同意过隐私协议
     const agreed = isPrivacyAgreed();
     this.isPrivacyChecked = agreed;
-    
+
     if (!agreed) {
-      // 未同意过，显示隐私协议弹窗
       this.privacyDialogController.open();
     }
   }
 
-  /**
-   * Handle login
-   */
   async handleLogin() {
-    // 验证输入
     if (!this.username || !this.password) {
       this.errorMessage = '请输入账号和密码';
       return;
     }
 
-    // 检查隐私协议
     if (!this.isPrivacyChecked && !isPrivacyAgreed()) {
       this.privacyDialogController.open();
       return;
@@ -74,12 +63,9 @@ struct LoginPage {
     this.errorMessage = '';
 
     try {
-      // 使用加密工具哈希密码（增强安全性）
-      const hashedPassword = await CryptoUtil.hashPassword(this.password);
-      
       const request: LoginRequest = {
         username: this.username,
-        password: hashedPassword // 传输哈希后的密码
+        password: this.password
       };
 
       LogUtil.info('LoginPage', `Attempting login for user: ${CryptoUtil.encryptSimple(this.username)}`);
@@ -87,13 +73,9 @@ struct LoginPage {
       const resp = await AuthService.login(request);
 
       if (resp.code === 0 && resp.data) {
-        // Save token and user info
         setToken(resp.data.token);
         UserStore.setUserInfo(resp.data.userInfo);
-        
         LogUtil.info('LoginPage', `Login successful for role: ${resp.data.userInfo.roleType}`);
-        
-        // Navigate to main page
         this.getUIContext().getRouter().replaceUrl({ url: 'pages/MainPage' });
       } else {
         this.errorMessage = resp.message || '登录失败，请检查账号密码';
@@ -107,249 +89,291 @@ struct LoginPage {
     }
   }
 
-  /**
-   * Handle privacy agreement click
-   */
   handlePrivacyLink() {
     this.privacyDialogController.open();
   }
 
   build() {
-    Column() {
-      // Logo and title area
+    Scroll() {
       Column() {
-        Image($r('app.media.ic_logo'))
-          .width(80)
-          .height(80)
-          .objectFit(ImageFit.Contain)
-          .margin({ bottom: 24 })
-
-        Text('智慧托管')
-          .fontSize(28)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.primary'))
-
-        Text('让托管更智能，让家长更安心')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
+        this.buildHeroSection()
+        this.buildLoginCard()
+        this.buildDemoPanel()
       }
       .width('100%')
-      .padding({ top: 80, bottom: 60 })
-
-      // Login form
-      Column() {
-        // Account input
-        Column() {
-          Row() {
-            Image($r('app.media.ic_user'))
-              .width(20)
-              .height(20)
-              .objectFit(ImageFit.Contain)
-              .fillColor($r('app.color.text_tertiary'))
-
-            TextInput({
-              placeholder: '请输入账号',
-              text: this.username
-            })
-              .fontSize($r('app.float.text_primary_size'))
-              .backgroundColor(Color.Transparent)
-              .flexGrow(1)
-              .margin({ left: 12 })
-              .onChange((value: string) => {
-                this.username = value;
-              })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-        }
-        .width('100%')
-        .backgroundColor(Color.White)
-        .borderRadius($r('app.float.card_border_radius'))
-        .margin({ bottom: 16 })
-
-        // Password input
-        Column() {
-          Row() {
-            Image($r('app.media.ic_lock'))
-              .width(20)
-              .height(20)
-              .objectFit(ImageFit.Contain)
-              .fillColor($r('app.color.text_tertiary'))
-
-            if (this.showPassword) {
-              TextInput({
-                placeholder: '请输入密码',
-                text: this.password
-              })
-                .fontSize($r('app.float.text_primary_size'))
-                .backgroundColor(Color.Transparent)
-                .flexGrow(1)
-                .margin({ left: 12 })
-                .onChange((value: string) => {
-                  this.password = value;
-                })
-            } else {
-              TextInput({
-                placeholder: '请输入密码',
-                text: this.password
-              })
-                .fontSize($r('app.float.text_primary_size'))
-                .backgroundColor(Color.Transparent)
-                .flexGrow(1)
-                .margin({ left: 12 })
-                .type(InputType.Password)
-                .onChange((value: string) => {
-                  this.password = value;
-                })
-            }
-
-            Image(this.showPassword ? $r('app.media.ic_eye_open') : $r('app.media.ic_eye_close'))
-              .width(20)
-              .height(20)
-              .objectFit(ImageFit.Contain)
-              .fillColor($r('app.color.text_tertiary'))
-              .onClick(() => {
-                this.showPassword = !this.showPassword;
-              })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-        }
-        .width('100%')
-        .backgroundColor(Color.White)
-        .borderRadius($r('app.float.card_border_radius'))
-        .margin({ bottom: 16 })
-
-        // Privacy agreement checkbox
-        Row() {
-          Checkbox()
-            .select(this.isPrivacyChecked)
-            .selectedColor($r('app.color.primary'))
-            .shape(CheckBoxShape.CIRCLE)
-            .width(16)
-            .height(16)
-            .onChange((isChecked: boolean) => {
-              this.isPrivacyChecked = isChecked;
-              if (isChecked) {
-                // 如果勾选，存储同意状态
-                AppStorage.setOrCreate('privacy_agreed', true);
-              }
-            })
-          
-          Text('我已阅读并同意')
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ left: 8 })
-          
-          Text('《用户隐私协议》')
-            .fontSize(12)
-            .fontColor($r('app.color.primary'))
-            .onClick(() => this.handlePrivacyLink())
-        }
-        .width('100%')
-        .margin({ bottom: 16 })
-
-        // Error message
-        if (this.errorMessage) {
-          Row() {
-            Image($r('app.media.ic_warning'))
-              .width(16)
-              .height(16)
-              .fillColor($r('app.color.error'))
-              .margin({ right: 8 })
-            
-            Text(this.errorMessage)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.error'))
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.Center)
-          .margin({ bottom: 16 })
-        }
-
-        // Login button
-        Button('登录')
-          .width('100%')
-          .height(48)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor(Color.White)
-          .backgroundColor($r('app.color.primary'))
-          .borderRadius($r('app.float.button_radius'))
-          .enabled(!this.isLoading)
-          .opacity(this.isLoading ? 0.6 : 1)
-          .onClick(() => {
-            this.handleLogin();
-          })
-
-        if (this.isLoading) {
-          Row() {
-            LoadingProgress()
-              .color(Color.White)
-              .width(20)
-              .height(20)
-            
-            Text('登录中...')
-              .fontSize(14)
-              .fontColor(Color.White)
-              .margin({ left: 8 })
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.Center)
-          .position({ x: 0, y: 14 })
-        }
-
-        // Bottom links
-        Row() {
-          Text('忘记密码?')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_secondary'))
-            .onClick(() => {
-              // TODO: Navigate to reset password
-              this.showError('功能开发中');
-            })
-
-          Blank()
-
-          Text('注册账号')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.primary'))
-            .onClick(() => {
-              // TODO: Navigate to register
-              this.showError('功能开发中');
-            })
-        }
-        .width('100%')
-        .margin({ top: 24 })
-      }
-      .width('100%')
-      .padding({ left: 24, right: 24 })
-
-      // Demo login hint
-      Column() {
-        Row() {
-          Image($r('app.media.ic_info'))
-            .width(14)
-            .height(14)
-            .fillColor($r('app.color.text_tertiary'))
-          
-          Text(' 演示账号: 13800000000 / 密码: 123456')
-            .fontSize(12)
-            .fontColor($r('app.color.text_tertiary'))
-        }
-        .margin({ bottom: 8 })
-
-        Text('点击登录直接进入演示模式')
-          .fontSize($r('app.float.text_tiny_size'))
-          .fontColor($r('app.color.text_tertiary'))
-      }
-      .width('100%')
-      .padding({ bottom: 40 })
-      .alignItems(HorizontalAlign.Center)
+      .padding({ bottom: 28 })
     }
     .width('100%')
     .height('100%')
+    .scrollBar(BarState.Off)
     .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  buildHeroSection() {
+    Column() {
+      Column() {
+        Image($r('app.media.ic_logo'))
+          .width(72)
+          .height(72)
+          .objectFit(ImageFit.Contain)
+      }
+      .width(96)
+      .height(96)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(Color.White)
+      .borderRadius(28)
+      .shadow({
+        radius: 18,
+        color: '#14000000',
+        offsetX: 0,
+        offsetY: 8
+      })
+
+      Text('智慧托管')
+        .fontSize(30)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 20 })
+
+      Text('家长、教师、管理端统一协同的学生智慧托管系统')
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.text_secondary'))
+        .textAlign(TextAlign.Center)
+        .margin({ top: 10, left: 8, right: 8 })
+
+      Row() {
+        this.buildRoleTag('家长端')
+        this.buildRoleTag('教师端')
+        this.buildRoleTag('管理端')
+      }
+      .margin({ top: 18 })
+    }
+    .width('100%')
+    .padding({ left: 24, right: 24, top: 72, bottom: 28 })
+    .linearGradient({
+      angle: 180,
+      colors: [['#F2F7FF', 0], ['#F8FAFD', 1]]
+    })
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  buildRoleTag(label: string) {
+    Text(label)
+      .fontSize(12)
+      .fontColor($r('app.color.primary'))
+      .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+      .backgroundColor(Color.White)
+      .borderRadius(14)
+      .margin({ left: 4, right: 4 })
+  }
+
+  @Builder
+  buildLoginCard() {
+    Column() {
+      Text('账号登录')
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      Text('请输入账号与密码，进入你的专属工作台')
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 8, bottom: 20 })
+
+      Column() {
+        Row() {
+          Image($r('app.media.ic_user'))
+            .width(20)
+            .height(20)
+            .objectFit(ImageFit.Contain)
+            .fillColor($r('app.color.text_tertiary'))
+
+          TextInput({
+            placeholder: '请输入账号',
+            text: this.username
+          })
+            .fontSize($r('app.float.text_primary_size'))
+            .backgroundColor(Color.Transparent)
+            .flexGrow(1)
+            .margin({ left: 12 })
+            .onChange((value: string) => {
+              this.username = value;
+            })
+        }
+        .width('100%')
+        .height(52)
+        .padding({ left: 16, right: 16 })
+      }
+      .width('100%')
+      .backgroundColor('#F7F9FC')
+      .borderRadius(14)
+
+      Column() {
+        Row() {
+          Image($r('app.media.ic_lock'))
+            .width(20)
+            .height(20)
+            .objectFit(ImageFit.Contain)
+            .fillColor($r('app.color.text_tertiary'))
+
+          TextInput({
+            placeholder: '请输入密码',
+            text: this.password
+          })
+            .fontSize($r('app.float.text_primary_size'))
+            .backgroundColor(Color.Transparent)
+            .flexGrow(1)
+            .margin({ left: 12 })
+            .type(this.showPassword ? InputType.Normal : InputType.Password)
+            .onChange((value: string) => {
+              this.password = value;
+            })
+
+          Image(this.showPassword ? $r('app.media.ic_eye_open') : $r('app.media.ic_eye_close'))
+            .width(20)
+            .height(20)
+            .objectFit(ImageFit.Contain)
+            .fillColor($r('app.color.text_tertiary'))
+            .onClick(() => {
+              this.showPassword = !this.showPassword;
+            })
+        }
+        .width('100%')
+        .height(52)
+        .padding({ left: 16, right: 16 })
+      }
+      .width('100%')
+      .backgroundColor('#F7F9FC')
+      .borderRadius(14)
+      .margin({ top: 14 })
+
+      Row() {
+        Checkbox()
+          .select(this.isPrivacyChecked)
+          .selectedColor($r('app.color.primary'))
+          .shape(CheckBoxShape.CIRCLE)
+          .width(18)
+          .height(18)
+          .onChange((isChecked: boolean) => {
+            this.isPrivacyChecked = isChecked;
+            if (isChecked) {
+              AppStorage.setOrCreate('privacy_agreed', true);
+            }
+          })
+
+        Text('我已阅读并同意')
+          .fontSize(12)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ left: 8 })
+
+        Text('《用户隐私协议》')
+          .fontSize(12)
+          .fontColor($r('app.color.primary'))
+          .onClick(() => this.handlePrivacyLink())
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      .margin({ top: 18 })
+
+      if (this.errorMessage) {
+        Row() {
+          Image($r('app.media.ic_warning'))
+            .width(16)
+            .height(16)
+            .fillColor($r('app.color.error'))
+            .margin({ right: 8 })
+
+          Text(this.errorMessage)
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.error'))
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+        .backgroundColor('#FFF3F1')
+        .borderRadius(12)
+        .margin({ top: 18 })
+      }
+
+      Button(this.isLoading ? '登录中...' : '登录')
+        .width('100%')
+        .height(52)
+        .fontSize($r('app.float.text_primary_size'))
+        .fontWeight(FontWeight.Medium)
+        .fontColor(Color.White)
+        .backgroundColor($r('app.color.primary'))
+        .borderRadius(16)
+        .enabled(!this.isLoading)
+        .opacity(this.isLoading ? 0.75 : 1)
+        .margin({ top: 22 })
+        .onClick(() => {
+          this.handleLogin();
+        })
+
+      Row() {
+        Text('忘记密码?')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .onClick(() => {
+            this.showError('功能开发中');
+          })
+
+        Blank()
+
+        Text('注册账号')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.primary'))
+          .onClick(() => {
+            this.showError('功能开发中');
+          })
+      }
+      .width('100%')
+      .margin({ top: 18 })
+    }
+    .width('100%')
+    .padding(20)
+    .backgroundColor(Color.White)
+    .borderRadius(22)
+    .margin({ left: 16, right: 16, top: 16 })
+    .shadow({
+      radius: 18,
+      color: '#12000000',
+      offsetX: 0,
+      offsetY: 8
+    })
+  }
+
+  @Builder
+  buildDemoPanel() {
+    Column() {
+      Text('演示环境')
+        .fontSize(15)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+
+      Text('账号：13800000000')
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 10 })
+
+      Text('密码：123456')
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 4 })
+
+      Text('登录后将根据角色自动进入对应工作台')
+        .fontSize(12)
+        .fontColor($r('app.color.text_tertiary'))
+        .margin({ top: 10 })
+    }
+    .width('100%')
+    .padding(18)
+    .backgroundColor('#F7FAFF')
+    .borderRadius(18)
+    .margin({ left: 16, right: 16, top: 14 })
+    .alignItems(HorizontalAlign.Start)
   }
 
   private showError(message: string) {

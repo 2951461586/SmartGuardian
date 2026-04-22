@@ -150,7 +150,7 @@ export class UserStore extends ReactiveStore {
    */
   static isAdmin(): boolean {
     const role = this.getUserRole();
-    return role === UserRole.ORG_ADMIN || role === UserRole.SCHOOL_ADMIN || role === UserRole.PLATFORM_ADMIN;
+    return role === UserRole.ADMIN || role === UserRole.ORG_ADMIN || role === UserRole.SCHOOL_ADMIN || role === UserRole.PLATFORM_ADMIN;
   }
   
   /**
