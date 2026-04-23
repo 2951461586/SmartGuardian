@@ -8,7 +8,7 @@ import { Student } from '../../models/user';
 import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
 import { LogUtil } from '../../utils/LogUtil';
-import { Card, EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, SectionHeader, StatCard } from '../../components/common';
+import { Card, EmptyState, EmptyType, HeaderTheme, IconActionButton, LoadingSize, LoadingState, PageHeader, SectionHeader, StatCard } from '../../components/common';
 
 interface StudentWithGuardian extends Student {
   guardianName?: string;
@@ -126,6 +126,25 @@ struct AdminStudentsPage {
     this.studentList = filtered.slice(start, start + this.pageSize);
   }
 
+  private getFilteredTotal(): number {
+    return this.allStudents.filter((student: StudentWithGuardian) => {
+      if (this.selectedGrade === 'ALL') {
+        return true;
+      }
+
+      const gradeText = student.grade ? String(student.grade) : '';
+      return gradeText === this.selectedGrade || gradeText.includes(this.selectedGrade);
+    }).length;
+  }
+
+  private getExecutiveTitle(): string {
+    return '学生档案控制台';
+  }
+
+  private getExecutiveSubtitle(): string {
+    return '先定位年级和关键词，再进入档案列表进行查看与编辑';
+  }
+
   build() {
     Column() {
       PageHeader({
@@ -139,9 +158,9 @@ struct AdminStudentsPage {
 
       Scroll() {
         Column() {
+          this.buildExecutivePanel()
           this.buildOverviewPanel()
-          this.buildSearchBar()
-          this.buildGradeFilter()
+          this.buildControlDeck()
           this.buildStudentList()
         }
         .width('100%')
@@ -158,26 +177,84 @@ struct AdminStudentsPage {
 
   @Builder
   buildHeaderAction() {
+    IconActionButton({
+      icon: $r('app.media.ic_add'),
+      iconColor: Color.White,
+      boxBgColor: '#FFFFFF1F',
+      boxBorderColor: '#FFFFFF29',
+      boxSize: 42,
+      iconSize: 22,
+      onButtonClick: () => {
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
+      }
+    })
+  }
+
+  @Builder
+  buildExecutivePanel() {
+    Card({
+      title: this.getExecutiveTitle(),
+      subtitle: this.getExecutiveSubtitle(),
+      customPadding: 18,
+      content: this.buildExecutiveContent
+    })
+    .margin({ bottom: 14 })
+  }
+
+  @Builder
+  buildExecutiveContent() {
     Row() {
-      Image($r('app.media.ic_add'))
-        .width(22)
-        .height(22)
-        .fillColor(Color.White)
+      Column() {
+        Text('档案范围')
+          .fontSize(11)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.primary'))
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#EAF2FF')
+          .borderRadius(999)
+
+        Text(`${this.getFilteredTotal()}`)
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .margin({ top: 14 })
+
+        Text('当前筛选范围内的学生档案数')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 8 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Column() {
+        this.buildExecutiveMetric('年级', this.getSelectedGradeText(), '#15803D')
+        this.buildExecutiveMetric('页码', `${this.currentPage}/${this.totalPages}`, '#1F5EFF')
+      }
+      .width(128)
     }
-    .width(42)
-    .height(42)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#FFFFFF1F')
+    .width('100%')
+  }
+
+  @Builder
+  buildExecutiveMetric(label: string, value: string, valueColor: string) {
+    Column() {
+      Text(label)
+        .fontSize(11)
+        .fontColor($r('app.color.text_secondary'))
+
+      Text(value)
+        .fontSize(15)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(valueColor)
+        .margin({ top: 6 })
+    }
+    .width('100%')
+    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+    .backgroundColor('#F7FAFF')
     .borderRadius(16)
-    .border({
-      width: 1,
-      color: '#FFFFFF29',
-      radius: 16,
-      style: BorderStyle.Solid
-    })
-    .onClick(() => {
-      this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
-    })
+    .alignItems(HorizontalAlign.Start)
+    .margin({ bottom: 10 })
   }
 
   @Builder
@@ -211,6 +288,33 @@ struct AdminStudentsPage {
     .width('100%')
     .alignItems(VerticalAlign.Top)
     .margin({ bottom: 12 })
+  }
+
+  @Builder
+  buildControlDeck() {
+    Card({
+      title: '检索控制台',
+      subtitle: '统一控制关键词搜索和年级切换，再进入档案列表',
+      customPadding: 14,
+      content: this.buildControlDeckContent
+    })
+    .margin({ bottom: 12 })
+  }
+
+  @Builder
+  buildControlDeckContent() {
+    Column() {
+      this.buildSearchBarContent()
+
+      SectionHeader({
+        title: '年级筛选',
+        subtitle: '快速限定当前档案池'
+      })
+      .margin({ top: 14 })
+
+      this.buildGradeFilterContent()
+    }
+    .width('100%')
   }
 
   @Builder
@@ -311,6 +415,12 @@ struct AdminStudentsPage {
           subtitle: `第 ${this.currentPage} 页，共 ${this.totalPages} 页`
         })
 
+        Card({
+          customPadding: 14,
+          customBgColor: '#F8FBFF',
+          content: this.buildListSummary
+        })
+
         Column() {
           ForEach(this.studentList, (student: StudentWithGuardian) => {
             this.buildStudentCard(student)
@@ -322,6 +432,18 @@ struct AdminStudentsPage {
       }
       .width('100%')
     }
+  }
+
+  @Builder
+  buildListSummary() {
+    Row() {
+      this.buildExecutiveMetric('当前页', `${this.studentList.length}`, '#1F5EFF')
+      Blank().width(10)
+      this.buildExecutiveMetric('筛选总量', `${this.getFilteredTotal()}`, '#D97706')
+      Blank().width(10)
+      this.buildExecutiveMetric('检索词', this.searchKeyword || '未输入', '#10203A')
+    }
+    .width('100%')
   }
 
   @Builder

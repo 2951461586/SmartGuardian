@@ -3,7 +3,12 @@
  * 账户设置页面
  */
 
+import { AttendanceStore } from '../../stores/attendanceStore';
+import { MessageStore } from '../../stores/messageStore';
+import { OrderStore } from '../../stores/orderStore';
+import { StudentStore } from '../../stores/studentStore';
 import { UserStore } from '../../stores/userStore';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 
 @Entry
 @Component
@@ -11,6 +16,49 @@ struct ParentSettingsPage {
   @State notificationEnabled: boolean = true;
   @State autoSignReminder: boolean = true;
   @State language: string = '简体中文';
+  private readonly languageOptions: string[] = ['简体中文', 'English'];
+
+  aboutToAppear() {
+    this.loadPreferences();
+  }
+
+  private loadPreferences(): void {
+    const preferences = UserStore.getUserPreferences();
+    this.notificationEnabled = preferences.enableNotifications !== false;
+    this.autoSignReminder = preferences.enableAttendanceReminder !== false;
+    this.language = preferences.language === 'en_US' ? 'English' : '简体中文';
+  }
+
+  private updateNotificationPreference(enabled: boolean): void {
+    this.notificationEnabled = enabled;
+    UserStore.updateUserPreferences({ enableNotifications: enabled });
+  }
+
+  private updateAttendanceReminder(enabled: boolean): void {
+    this.autoSignReminder = enabled;
+    UserStore.updateUserPreferences({ enableAttendanceReminder: enabled });
+  }
+
+  private switchLanguage(): void {
+    const currentIndex = this.languageOptions.indexOf(this.language);
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % this.languageOptions.length : 0;
+    const nextLanguage = this.languageOptions[nextIndex];
+
+    this.language = nextLanguage;
+    UserStore.updateUserPreferences({
+      language: nextLanguage === 'English' ? 'en_US' : 'zh_CN'
+    });
+    ErrorHandlerUtil.showSuccessToast(`语言已切换为${nextLanguage}`);
+  }
+
+  private clearLocalCache(): void {
+    StudentStore.clearStudentList();
+    OrderStore.clearOrderList();
+    MessageStore.clearMessages();
+    AttendanceStore.clearTodayAttendance();
+    AttendanceStore.clearCurrentSession();
+    ErrorHandlerUtil.showSuccessToast('本地缓存已清除');
+  }
 
   build() {
     Column() {
@@ -56,7 +104,7 @@ struct ParentSettingsPage {
 
               Toggle({ type: ToggleType.Switch, isOn: this.notificationEnabled })
                 .onChange((isOn: boolean) => {
-                  this.notificationEnabled = isOn;
+                  this.updateNotificationPreference(isOn);
                 })
             }
             .width('100%')
@@ -85,7 +133,7 @@ struct ParentSettingsPage {
 
               Toggle({ type: ToggleType.Switch, isOn: this.autoSignReminder })
                 .onChange((isOn: boolean) => {
-                  this.autoSignReminder = isOn;
+                  this.updateAttendanceReminder(isOn);
                 })
             }
             .width('100%')
@@ -119,7 +167,7 @@ struct ParentSettingsPage {
           .backgroundColor(Color.White)
           .borderRadius(12)
           .onClick(() => {
-            // TODO: 显示语言选择对话框
+            this.switchLanguage();
           })
 
           // 清除缓存
@@ -141,7 +189,7 @@ struct ParentSettingsPage {
           .borderRadius(12)
           .margin({ top: 12 })
           .onClick(() => {
-            // TODO: 清除缓存
+            this.clearLocalCache();
           })
         }
         .width('100%')

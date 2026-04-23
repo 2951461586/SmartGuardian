@@ -14,5 +14,5 @@ export class ApiEnvironment {
 
 export class ApiConfigExample {
   static readonly CURRENT_ENV: string = ApiEnvironment.TEST_REAL;
-  static readonly TEST_BASE_URL: string = 'http://192.168.1.100:8080';
+  static readonly TEST_BASE_URL: string = 'http://127.0.0.1:8080';
 }

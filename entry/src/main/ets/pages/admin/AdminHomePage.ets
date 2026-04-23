@@ -10,6 +10,7 @@ import {
   LoadingSize,
   Card,
   ActionButton,
+  IconActionButton,
   StatCard,
   SectionHeader,
   EmptyState,
@@ -116,6 +117,21 @@ export struct AdminHomePage {
     }
   }
 
+  private getExecutiveTitle(): string {
+    return '管理驾驶舱';
+  }
+
+  private getExecutiveSubtitle(): string {
+    if (this.errorMessage) {
+      return this.errorMessage;
+    }
+    return '聚焦学生规模、订单流转与经营收入的核心信号';
+  }
+
+  private getExecutiveValue(): string {
+    return `¥${this.stats.netIncome.toFixed(0)}`;
+  }
+
   build() {
     Column() {
       GreetingHeader({
@@ -144,37 +160,14 @@ export struct AdminHomePage {
 
   @Builder
   buildMessageEntry() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Column() {
-        Image($r('app.media.ic_notification'))
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor('#12305F')
+    IconActionButton({
+      icon: $r('app.media.ic_notification'),
+      badgeCount: this.stats.unreadMessages,
+      boxBgColor: '#FFFDF8',
+      boxBorderColor: '#E8DDCD',
+      onButtonClick: () => {
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
       }
-      .width(46)
-      .height(46)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor('#FFFFFF')
-      .borderRadius(18)
-      .border({
-        width: 1,
-        color: '#E5EEF9',
-        radius: 18,
-        style: BorderStyle.Solid
-      })
-
-      if (this.stats.unreadMessages > 0) {
-        Text(this.stats.unreadMessages > 99 ? '99+' : `${this.stats.unreadMessages}`)
-          .fontSize(10)
-          .fontColor(Color.White)
-          .backgroundColor($r('app.color.error'))
-          .borderRadius(9)
-          .padding({ left: 5, right: 5, top: 1, bottom: 1 })
-      }
-    }
-    .onClick(() => {
-      this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
     })
   }
 
@@ -182,8 +175,9 @@ export struct AdminHomePage {
   buildContent() {
     Scroll() {
       Column() {
+        this.buildExecutivePanel()
         this.buildOverviewPanel()
-        this.buildQuickActions()
+        this.buildControlDeck()
         this.buildStatsSection()
         this.buildActivityCard()
       }
@@ -193,6 +187,52 @@ export struct AdminHomePage {
     .width('100%')
     .layoutWeight(1)
     .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  buildExecutivePanel() {
+    Card({
+      title: this.getExecutiveTitle(),
+      subtitle: this.getExecutiveSubtitle(),
+      customPadding: 18,
+      content: this.buildExecutiveContent
+    })
+    .margin({ bottom: 14 })
+  }
+
+  @Builder
+  buildExecutiveContent() {
+    Row() {
+      Column() {
+        Text('今日摘要')
+          .fontSize(11)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.primary'))
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#F2EBDD')
+          .borderRadius(999)
+
+        Text(this.getExecutiveValue())
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .margin({ top: 14 })
+
+        Text('当前统计周期净收入')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 8 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Column() {
+        this.buildOverviewMetric('出勤率', `${this.stats.attendanceRate}%`, '#16A34A', '#F7F1E7')
+        this.buildOverviewMetric('待处理订单', `${this.stats.pendingOrders}`, '#D97706', '#F7F1E7')
+      }
+      .width(128)
+    }
+    .width('100%')
   }
 
   @Builder
@@ -266,13 +306,19 @@ export struct AdminHomePage {
   }
 
   @Builder
+  buildControlDeck() {
+    Card({
+      title: '控制台入口',
+      subtitle: '从学生、消息、订单和报表四个高频动作进入管理流程',
+      customPadding: 12,
+      content: this.buildQuickActions
+    })
+    .margin({ bottom: 14 })
+  }
+
+  @Builder
   buildQuickActions() {
     Column() {
-      SectionHeader({
-        title: '快捷入口',
-        subtitle: '把核心运营操作收拢到一个工作台'
-      })
-
       Row() {
         ActionButton({
           label: '学生档案',
@@ -323,9 +369,60 @@ export struct AdminHomePage {
       }
       .width('100%')
       .margin({ top: 10 })
+
+      Row() {
+        ActionButton({
+          label: '服务产品',
+          icon: $r('app.media.ic_service'),
+          bgColor: '#EEF6FF',
+          iconColor: '#2563EB',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminServicesPage' });
+          }
+        })
+
+        Blank().width(10)
+
+        ActionButton({
+          label: '班次排期',
+          icon: $r('app.media.ic_session'),
+          bgColor: '#F5F3FF',
+          iconColor: '#7C3AED',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminSessionsPage' });
+          }
+        })
+      }
+      .width('100%')
+      .margin({ top: 10 })
+
+      Row() {
+        ActionButton({
+          label: '告警中心',
+          icon: $r('app.media.ic_alert_center'),
+          bgColor: '#FFF7ED',
+          iconColor: '#EA580C',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminAlertsPage' });
+          }
+        })
+
+        Blank().width(10)
+
+        ActionButton({
+          label: '退款管理',
+          icon: $r('app.media.ic_refund'),
+          bgColor: '#ECFDF5',
+          iconColor: '#15803D',
+          onButtonClick: () => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminRefundsPage' });
+          }
+        })
+      }
+      .width('100%')
+      .margin({ top: 10 })
     }
     .width('100%')
-    .margin({ bottom: 14 })
   }
 
   @Builder
@@ -429,7 +526,7 @@ export struct AdminHomePage {
           .padding({ top: 4, bottom: 4 })
 
           if (index < this.recentActivities.length - 1) {
-            Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
+            Divider().color('#E5DBCC').margin({ top: 10, bottom: 10 })
           }
         })
       }

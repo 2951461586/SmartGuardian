@@ -4,7 +4,7 @@
  */
 
 import { ReportsService, AttendanceReport, FinanceReport, TeacherPerformance } from '../../services/api/reports';
-import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader, TabBar, Card, SectionHeader, StatCard } from '../../components/common';
+import { EmptyState, EmptyType, HeaderTheme, IconActionButton, LoadingSize, LoadingState, PageHeader, TabBar, Card, SectionHeader, StatCard } from '../../components/common';
 import { formatDate } from '../../utils/date';
 
 class AttendanceDailyStat {
@@ -152,17 +152,68 @@ export struct AdminReportsPage {
     return this.teacherPerformance.length > 0;
   }
 
+  private getCurrentReportTitle(): string {
+    if (this.currentTab === 0) {
+      return '考勤运营观察';
+    }
+    if (this.currentTab === 1) {
+      return '财务结算视图';
+    }
+    return '教师绩效雷达';
+  }
+
+  private getCurrentReportSubtitle(): string {
+    if (this.currentTab === 0) {
+      return '关注到校率、迟到波动和缺勤变化，快速识别异常时段';
+    }
+    if (this.currentTab === 1) {
+      return '对齐收入、退款和净收入，判断当前经营节奏是否健康';
+    }
+    return '从课程量、学生覆盖和作业完成情况查看教师队伍状态';
+  }
+
+  private getExecutiveValue(): string {
+    if (this.currentTab === 0) {
+      return this.getAttendanceOverviewValue('rate');
+    }
+    if (this.currentTab === 1) {
+      return this.getFinanceOverviewValue('net');
+    }
+    return this.getPerformanceOverviewValue('rate');
+  }
+
+  private getExecutiveLabel(): string {
+    if (this.currentTab === 0) {
+      return '核心出勤率';
+    }
+    if (this.currentTab === 1) {
+      return '净收入';
+    }
+    return '平均出勤率';
+  }
+
+  private getExecutiveBadge(): string {
+    if (this.currentTab === 0) {
+      return '出勤监控';
+    }
+    if (this.currentTab === 1) {
+      return '财务结算';
+    }
+    return '绩效评估';
+  }
+
   build() {
     Column() {
       PageHeader({
         title: '数据统计',
         subtitle: '从考勤、财务与教师绩效三方面查看机构运营状态',
-        theme: HeaderTheme.WHITE
+        theme: HeaderTheme.WHITE,
+        rightContent: this.buildHeaderAction
       })
 
+      this.buildExecutivePanel()
       this.buildOverviewPanel()
-      this.buildRangeSection()
-      this.buildTabSection()
+      this.buildControlDeck()
       this.buildReportContent()
     }
     .width('100%')
@@ -171,7 +222,77 @@ export struct AdminReportsPage {
   }
 
   @Builder
+  buildHeaderAction() {
+    IconActionButton({
+      icon: $r('app.media.ic_refresh'),
+      iconColor: '#1F5EFF',
+      boxBgColor: Color.White,
+      boxBorderColor: '#E5EDF6',
+      onButtonClick: (): void => {
+        this.loadReportData();
+      }
+    })
+  }
+
+  @Builder
+  buildExecutivePanel() {
+    Card({
+      title: this.getCurrentReportTitle(),
+      subtitle: this.getCurrentReportSubtitle(),
+      customPadding: 18,
+      content: this.buildExecutiveContent
+    })
+    .margin({ left: 16, right: 16, top: 12 })
+  }
+
+  @Builder
+  buildExecutiveContent() {
+    Row() {
+      Column() {
+        Text(this.getExecutiveBadge())
+          .fontSize(11)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.primary'))
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#EAF2FF')
+          .borderRadius(999)
+
+        Text(this.getExecutiveValue())
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .margin({ top: 14 })
+
+        Text(this.getExecutiveLabel())
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 8 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Column() {
+        this.buildCompactMetric('统计周期', this.dateRange, '#1F5EFF')
+        this.buildCompactMetric('报告类型', this.tabs[this.currentTab], '#10203A')
+      }
+      .width(124)
+    }
+    .width('100%')
+  }
+
+  @Builder
   buildOverviewPanel() {
+    Card({
+      title: '关键指标',
+      subtitle: '用同一套指标视角快速理解当前报表状态',
+      customPadding: 12,
+      content: this.buildOverviewMetricsContent
+    })
+    .margin({ left: 16, right: 16, top: 12 })
+  }
+
+  @Builder
+  buildOverviewMetricsContent() {
     if (this.currentTab === 0) {
       Row() {
         StatCard({
@@ -203,7 +324,6 @@ export struct AdminReportsPage {
         .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12 })
     } else if (this.currentTab === 1) {
       Row() {
         StatCard({
@@ -235,7 +355,6 @@ export struct AdminReportsPage {
         .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12 })
     } else {
       Row() {
         StatCard({
@@ -267,59 +386,47 @@ export struct AdminReportsPage {
         .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 12 })
     }
   }
 
   @Builder
-  buildRangeSection() {
+  buildControlDeck() {
     Card({
-      title: '时间范围',
-      subtitle: '切换报表统计周期',
+      title: '报告控制台',
+      subtitle: '统一控制统计周期和分析维度，再进入数据明细',
       customPadding: 12,
-      content: this.buildRangeSectionContent
-    })
-    .margin({ left: 16, right: 16, top: 14 })
-  }
-
-  @Builder
-  buildRangeSectionContent() {
-    Row() {
-      ForEach(this.rangeOptions, (range: string) => {
-        Text(range)
-          .fontSize(13)
-          .fontWeight(this.dateRange === range ? FontWeight.Medium : FontWeight.Normal)
-          .fontColor(this.dateRange === range ? $r('app.color.primary') : $r('app.color.text_secondary'))
-          .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-          .backgroundColor(this.dateRange === range ? '#EAF2FF' : '#F7FAFF')
-          .borderRadius(16)
-          .margin({ right: range === this.rangeOptions[this.rangeOptions.length - 1] ? 0 : 10 })
-          .onClick(() => {
-            this.handleRangeChange(range);
-          })
-      })
-    }
-    .width('100%')
-  }
-
-  @Builder
-  buildTabSection() {
-    Card({
-      title: '报表类型',
-      subtitle: '在考勤、财务、绩效之间切换分析视图',
-      customPadding: 12,
-      content: this.buildTabSectionContent
+      content: this.buildControlDeckContent
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
 
   @Builder
-  buildTabSectionContent() {
-    TabBar({
-      tabs: this.tabs,
-      currentIndex: $currentTab,
-      onTabChange: (index: number) => this.handleTabChange(index)
-    })
+  buildControlDeckContent() {
+    Column() {
+      Row() {
+        ForEach(this.rangeOptions, (range: string) => {
+          Text(range)
+            .fontSize(13)
+            .fontWeight(this.dateRange === range ? FontWeight.Medium : FontWeight.Normal)
+            .fontColor(this.dateRange === range ? $r('app.color.primary') : $r('app.color.text_secondary'))
+            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+            .backgroundColor(this.dateRange === range ? '#EAF2FF' : '#F7FAFF')
+            .borderRadius(16)
+            .margin({ right: range === this.rangeOptions[this.rangeOptions.length - 1] ? 0 : 10 })
+            .onClick(() => {
+              this.handleRangeChange(range);
+            })
+        })
+      }
+      .width('100%')
+
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: this.currentTab,
+        onTabChange: (index: number) => this.handleTabChange(index)
+      })
+      .margin({ top: 14 })
+    }
   }
 
   @Builder

@@ -17,19 +17,26 @@ export class ApiEnvironment {
 export class ApiConfig {
   static readonly API_ENV_STORAGE_KEY: string = 'smart_guardian_api_env';
   static readonly API_BASE_URL_STORAGE_KEY: string = 'smart_guardian_api_base_url';
+  static readonly API_CONFIG_VERSION_STORAGE_KEY: string = 'smart_guardian_api_config_version';
+  private static readonly API_CONFIG_VERSION: number = 3;
+  private static readonly LEGACY_REAL_BASE_URLS: string[] = [
+    'http://106.12.35.30',
+    'http://106.12.35.30:8080'
+  ];
 
   /**
    * Default environment for fresh installs.
    * Keep mock as the baseline and let runtime config switch to real services.
    */
-  static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
+  static readonly CURRENT_ENV: string = ApiEnvironment.TEST_REAL;
 
   /**
    * Default real backend base URL. Can be overridden at runtime.
    */
-  static readonly TEST_BASE_URL: string = '';
+  static readonly TEST_BASE_URL: string = 'http://127.0.0.1:8080';
 
   static getCurrentEnv(): string {
+    ApiConfig.ensureRuntimeConfigReady();
     return AppStorage.get<string>(ApiConfig.API_ENV_STORAGE_KEY) ?? ApiConfig.CURRENT_ENV;
   }
 
@@ -38,6 +45,7 @@ export class ApiConfig {
   }
 
   static getConfiguredBaseUrl(): string {
+    ApiConfig.ensureRuntimeConfigReady();
     const runtimeUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY) ?? ApiConfig.TEST_BASE_URL;
     return ApiConfig.normalizeBaseUrl(runtimeUrl);
   }
@@ -56,6 +64,7 @@ export class ApiConfig {
   static clearRuntimeConfig(): void {
     AppStorage.delete(ApiConfig.API_ENV_STORAGE_KEY);
     AppStorage.delete(ApiConfig.API_BASE_URL_STORAGE_KEY);
+    AppStorage.delete(ApiConfig.API_CONFIG_VERSION_STORAGE_KEY);
   }
 
   static getEnvironmentLabel(): string {
@@ -79,8 +88,51 @@ export class ApiConfig {
     return '';
   }
 
+  static describeRuntimeConfig(): string {
+    const env = ApiConfig.getCurrentEnv();
+    const baseUrl = env === ApiEnvironment.TEST_REAL ? ApiConfig.getConfiguredBaseUrl() : '(mock mode)';
+    return `env=${env}, mock=${ApiConfig.isMockEnabled()}, baseUrl=${baseUrl}`;
+  }
+
+  static ensureRuntimeConfigReady(): void {
+    const storedVersion = AppStorage.get<number>(ApiConfig.API_CONFIG_VERSION_STORAGE_KEY) ?? 0;
+    const storedEnv = AppStorage.get<string>(ApiConfig.API_ENV_STORAGE_KEY);
+    const storedBaseUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY);
+
+    let nextEnv = ApiConfig.normalizeEnv(storedEnv);
+    let nextBaseUrl = ApiConfig.normalizeBaseUrl(storedBaseUrl ?? ApiConfig.TEST_BASE_URL);
+
+    if (!storedBaseUrl || ApiConfig.LEGACY_REAL_BASE_URLS.includes(nextBaseUrl)) {
+      nextBaseUrl = ApiConfig.TEST_BASE_URL;
+    }
+
+    if (storedVersion < ApiConfig.API_CONFIG_VERSION) {
+      if (nextEnv === ApiEnvironment.DEV_MOCK) {
+        nextEnv = ApiEnvironment.TEST_REAL;
+      }
+      AppStorage.setOrCreate(ApiConfig.API_ENV_STORAGE_KEY, nextEnv);
+      AppStorage.setOrCreate(ApiConfig.API_BASE_URL_STORAGE_KEY, nextBaseUrl);
+      AppStorage.setOrCreate(ApiConfig.API_CONFIG_VERSION_STORAGE_KEY, ApiConfig.API_CONFIG_VERSION);
+      return;
+    }
+
+    if (storedEnv !== nextEnv) {
+      AppStorage.setOrCreate(ApiConfig.API_ENV_STORAGE_KEY, nextEnv);
+    }
+    if (storedBaseUrl !== nextBaseUrl) {
+      AppStorage.setOrCreate(ApiConfig.API_BASE_URL_STORAGE_KEY, nextBaseUrl);
+    }
+  }
+
   private static normalizeBaseUrl(url: string): string {
     return url.trim().replace(/\/+$/, '');
+  }
+
+  private static normalizeEnv(env?: string | null): string {
+    if (env === ApiEnvironment.DEV_MOCK || env === ApiEnvironment.TEST_REAL) {
+      return env;
+    }
+    return ApiConfig.CURRENT_ENV;
   }
 
   /**

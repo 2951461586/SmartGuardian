@@ -2,43 +2,43 @@
   "color": [
     {
       "name": "primary",
-      "value": "#1F5EFF"
+      "value": "#3F7DFF"
     },
     {
       "name": "primary_light",
-      "value": "#EAF1FF"
+      "value": "#EAF2FF"
     },
     {
       "name": "secondary",
-      "value": "#14B8A6"
+      "value": "#63C7C1"
     },
     {
       "name": "success",
-      "value": "#16A34A"
+      "value": "#34C759"
     },
     {
       "name": "warning",
-      "value": "#F59E0B"
+      "value": "#FFB74D"
     },
     {
       "name": "error",
-      "value": "#E5484D"
+      "value": "#FF5D73"
     },
     {
       "name": "text_primary",
-      "value": "#10203A"
+      "value": "#1F2D4D"
     },
     {
       "name": "text_secondary",
-      "value": "#5F6C80"
+      "value": "#7E8EAB"
     },
     {
       "name": "text_tertiary",
-      "value": "#8B98AB"
+      "value": "#A9B6CC"
     },
     {
       "name": "page_background",
-      "value": "#F4F8FC"
+      "value": "#F3F7FF"
     },
     {
       "name": "card_background",
@@ -46,27 +46,27 @@
     },
     {
       "name": "divider",
-      "value": "#E5EDF6"
+      "value": "#E3EBFA"
     },
     {
       "name": "bottom_nav_background",
-      "value": "#F9FBFE"
+      "value": "#FFFFFF"
     },
     {
       "name": "nav_icon_inactive",
-      "value": "#7A879A"
+      "value": "#9AA8C2"
     },
     {
       "name": "start_window_background",
-      "value": "#007AFF"
+      "value": "#3F7DFF"
     },
     {
       "name": "price",
-      "value": "#FF5722"
+      "value": "#FF8A4D"
     },
     {
       "name": "text_hint",
-      "value": "#BDBDBD"
+      "value": "#C2CBDA"
     },
     {
       "name": "scan_page_background",
@@ -102,35 +102,35 @@
     },
     {
       "name": "status_pending",
-      "value": "#FF9800"
+      "value": "#FF9F43"
     },
     {
       "name": "status_pending_bg",
-      "value": "#FFF3E0"
+      "value": "#FFF3E5"
     },
     {
       "name": "status_in_progress",
-      "value": "#2196F3"
+      "value": "#3F7DFF"
     },
     {
       "name": "status_in_progress_bg",
-      "value": "#E3F2FD"
+      "value": "#EAF2FF"
     },
     {
       "name": "status_completed",
-      "value": "#4CAF50"
+      "value": "#34C759"
     },
     {
       "name": "status_completed_bg",
-      "value": "#E8F5E9"
+      "value": "#EAF9EF"
     },
     {
       "name": "status_confirmed",
-      "value": "#9C27B0"
+      "value": "#8B6CF6"
     },
     {
       "name": "status_confirmed_bg",
-      "value": "#F3E5F5"
+      "value": "#F2EEFF"
     },
     {
       "name": "homework_tab_background",

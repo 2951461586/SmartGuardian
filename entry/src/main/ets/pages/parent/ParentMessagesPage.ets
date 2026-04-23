@@ -5,9 +5,9 @@
 
 import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
+import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem, Card, SectionHeader, StatCard, TabItem } from '../../components/common';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
-import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem, Card, SectionHeader, StatCard } from '../../components/common';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
@@ -24,7 +24,7 @@ export struct ParentMessagesPage {
 
   private lastLoadTime: number = 0;
   private readonly CACHE_DURATION: number = 2 * 60 * 1000;
-  private tabs: string[] = ['全部', '系统', '考勤', '作业', '订单'];
+  private tabs: string[] = ['\u5168\u90e8', '\u7cfb\u7edf', '\u8003\u52e4', '\u4f5c\u4e1a', '\u8ba2\u5355'];
   private tabTypes: MessageTab[] = ['ALL', 'SYSTEM', 'ATTENDANCE', 'HOMEWORK', 'ORDER'];
 
   aboutToAppear() {
@@ -176,15 +176,33 @@ export struct ParentMessagesPage {
     return this.filteredMessages.length;
   }
 
+  private getTabItems(): TabItem[] {
+    return this.tabs.map((tab: string, index: number): TabItem => {
+      const type = this.tabTypes[index];
+      const badge = this.messages.filter((message: MessageRecord) => {
+        if (message.readStatus) {
+          return false;
+        }
+        return type === 'ALL' ? true : message.msgType === type;
+      }).length;
+
+      return {
+        id: type,
+        text: tab,
+        badge: badge > 0 ? badge : undefined
+      };
+    });
+  }
+
   private getCurrentTabLabel(): string {
-    return this.tabs[this.currentTab] ?? '全部';
+    return this.tabs[this.currentTab] ?? '\u5168\u90e8';
   }
 
   private getEmptyDescription(): string {
     if (this.selectedTab === 'ALL') {
-      return '暂无新的家校消息，可稍后刷新查看';
+      return '\u6682\u65e0\u65b0\u7684\u5bb6\u6821\u6d88\u606f\uff0c\u53ef\u7a0d\u540e\u5237\u65b0\u67e5\u770b';
     }
-    return `${this.getCurrentTabLabel()}分类下暂无消息记录`;
+    return `${this.getCurrentTabLabel()}\u5206\u7c7b\u4e0b\u6682\u65e0\u6d88\u606f\u8bb0\u5f55`;
   }
 
   private openMessageDetail(message: MessageRecord): void {
@@ -209,12 +227,12 @@ export struct ParentMessagesPage {
   build() {
     Column() {
       PageHeader({
-        title: '消息中心',
-        subtitle: '集中处理系统通知、考勤提醒与作业反馈',
+        title: '\u6d88\u606f\u4e2d\u5fc3',
+        subtitle: '\u96c6\u4e2d\u5904\u7406\u7cfb\u7edf\u901a\u77e5\u3001\u8003\u52e4\u63d0\u9192\u4e0e\u4f5c\u4e1a\u53cd\u9988',
         theme: HeaderTheme.WHITE
       }) {
         if (this.unreadCount > 0) {
-          Button('全部已读')
+          Button('\u5168\u90e8\u5df2\u8bfb')
             .height(32)
             .fontSize(12)
             .fontColor($r('app.color.primary'))
@@ -239,7 +257,7 @@ export struct ParentMessagesPage {
     Row() {
       StatCard({
         value: `${this.getTotalCount()}`,
-        label: '全部消息',
+        label: '\u5168\u90e8\u6d88\u606f',
         icon: $r('app.media.ic_message'),
         iconColor: '#4F7CFF'
       })
@@ -249,7 +267,7 @@ export struct ParentMessagesPage {
 
       StatCard({
         value: `${this.getUnreadStatCount()}`,
-        label: '未读消息',
+        label: '\u672a\u8bfb\u6d88\u606f',
         icon: $r('app.media.ic_notification'),
         iconColor: '#F2994A'
       })
@@ -272,8 +290,8 @@ export struct ParentMessagesPage {
   @Builder
   buildTabSection() {
     Card({
-      title: '消息分组',
-      subtitle: '按业务类型快速聚焦当前需要处理的消息',
+      title: '\u6d88\u606f\u5206\u7ec4',
+      subtitle: '\u6309\u4e1a\u52a1\u7c7b\u578b\u5feb\u901f\u805a\u7126\u5f53\u524d\u9700\u8981\u5904\u7406\u7684\u6d88\u606f',
       customPadding: 12,
       content: this.buildTabSectionContent
     })
@@ -283,8 +301,8 @@ export struct ParentMessagesPage {
   @Builder
   buildTabSectionContent() {
     TabBar({
-      tabs: this.tabs,
-      currentIndex: $currentTab,
+      tabItems: this.getTabItems(),
+      currentIndex: this.currentTab,
       onTabChange: (index: number) => this.handleTabChange(index)
     })
   }
@@ -295,13 +313,13 @@ export struct ParentMessagesPage {
       LoadingState({
         loadingSize: LoadingSize.LARGE,
         fullscreen: false,
-        message: '正在加载消息...'
+        message: '\u6b63\u5728\u52a0\u8f7d\u6d88\u606f...'
       })
     } else if (this.filteredMessages.length === 0) {
       EmptyState({
         type: EmptyType.NO_MESSAGE,
         customDescription: this.getEmptyDescription(),
-        actionText: '刷新',
+        actionText: '\u5237\u65b0',
         onAction: () => {
           this.loadMessages();
           this.loadStatistics();
@@ -317,8 +335,8 @@ export struct ParentMessagesPage {
     Scroll() {
       Column() {
         SectionHeader({
-          title: '消息列表',
-          subtitle: '点开可查看详情，也可直接标记已读'
+          title: '\u6d88\u606f\u5217\u8868',
+          subtitle: '\u70b9\u5f00\u53ef\u67e5\u770b\u8be6\u60c5\uff0c\u4e5f\u53ef\u76f4\u63a5\u6807\u8bb0\u5df2\u8bfb'
         })
 
         ForEach(this.filteredMessages, (message: MessageRecord) => {

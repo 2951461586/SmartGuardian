@@ -221,8 +221,9 @@ export struct ParentOrdersPage {
   buildTabSectionContent() {
     TabBar({
       tabs: this.tabs,
-      currentIndex: $currentTab,
-      onTabChange: () => {
+      currentIndex: this.currentTab,
+      onTabChange: (index: number) => {
+        this.currentTab = index;
         this.loadOrders();
       }
     })

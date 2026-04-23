@@ -1,0 +1,33 @@
+USAGE: provisionsigner verify [options]
+
+This checks whether the provided Provision will verify passed on HarmonyOS.
+
+
+        OPTIONS
+
+--in                  Provision file to verify.
+
+--out                 Optional, output the provision info into file, in
+                      readable format. By default, the info will print to
+                      the console.
+--config              Config file path that determines that verify config, should be the same as sign config,
+                      and content config. See default config in template directory.
+
+-h, --help            Show help about this command and exit.
+
+
+        EXAMPLES
+
+1. Check whether the Provision's signatures are expected to verify on Harmony, with default config
+   and provide visual info into the file:
+$ provisionsigner verify --in HarmonyAppProvision.p7b --out provisionVerifyResult.json
+
+2. Check whether the Provision's signatures are expected to verify on Harmony,
+   and provide visual on the console:
+$ provisionsigner verify --in HarmonyAppProvision.p7b
+
+3. Check whether the Provision's signatures are expected to verify on Harmony, with custom config
+   and provide visual info into the file:
+$ provisionsigner verify --in HarmonyAppProvision.p7b --out provisionVerifyResult.json
+--config config.json
+

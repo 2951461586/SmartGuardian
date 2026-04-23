@@ -1,14 +1,14 @@
 /**
  * SmartGuardian - ActionButton Component
- * Reusable enterprise quick-action tile
+ * Reusable quick-action tile in the new light campus style
  */
 
 @Component
 export struct ActionButton {
   @Prop label: string = '';
   @Prop icon: Resource | string | PixelMap = '';
-  @Prop bgColor: string = '#EAF1FF';
-  @Prop iconColor: string = '#1F5EFF';
+  @Prop bgColor: string = '#EAF2FF';
+  @Prop iconColor: string = '#3F7DFF';
   onButtonClick?: () => void;
 
   build() {
@@ -21,11 +21,11 @@ export struct ActionButton {
             .objectFit(ImageFit.Contain)
             .fillColor(this.iconColor)
         }
-        .width(44)
-        .height(44)
+        .width(48)
+        .height(48)
         .justifyContent(FlexAlign.Center)
         .backgroundColor(this.bgColor)
-        .borderRadius(16)
+        .borderRadius(18)
 
         Blank()
       }
@@ -40,19 +40,19 @@ export struct ActionButton {
         .margin({ top: 12 })
     }
     .layoutWeight(1)
-    .height(108)
-    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
-    .borderRadius(20)
+    .height(112)
+    .padding({ left: 14, right: 14, top: 14, bottom: 14 })
+    .backgroundColor('#FFFFFF')
+    .borderRadius(22)
     .border({
       width: 1,
-      color: '#EEF3F8',
-      radius: 20,
+      color: '#E4ECFA',
+      radius: 22,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 12,
-      color: '#0F11301A',
+      color: '#2F6BDE0D',
       offsetX: 0,
       offsetY: 6
     })

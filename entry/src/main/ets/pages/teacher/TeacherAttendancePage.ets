@@ -218,7 +218,7 @@ export struct TeacherAttendancePage {
       } else {
         TabBar({
           tabs: this.sessions.map((session: SessionSchedule) => session.serviceProductName ?? '班次'),
-          currentIndex: $currentSessionIndex,
+          currentIndex: this.currentSessionIndex,
           onTabChange: (index: number) => this.handleSessionChange(index)
         })
       }
@@ -240,7 +240,7 @@ export struct TeacherAttendancePage {
   buildTabSectionContent() {
     TabBar({
       tabs: this.tabs,
-      currentIndex: $currentTab,
+      currentIndex: this.currentTab,
       onTabChange: (index: number) => {
         this.currentTab = index;
       }

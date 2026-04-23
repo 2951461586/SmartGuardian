@@ -1,10 +1,16 @@
 /**
  * SmartGuardian - Parent Home Page
- * Parent dashboard with enterprise education style and real data hooks
+ * Parent dashboard refactored into the new light campus style
  */
 
-import { GreetingHeader, Card, LoadingState, LoadingSize, HeaderTheme, ActionButton, HomeworkCard, HomeworkCardMode, SectionHeader, StatCard } from '../../components/common';
-import { AttendanceBadge } from '../../components/StatusBadge';
+import {
+  Card,
+  GreetingHeader,
+  HeaderTheme,
+  IconActionButton,
+  LoadingSize,
+  LoadingState
+} from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { TodayStatusCard } from '../../models/card';
 import { HomeworkQueryParams } from '../../models/common';
@@ -79,19 +85,52 @@ export struct ParentHomePage {
     }
   }
 
+  private getCurrentStudent() {
+    return StudentStore.getCurrentStudent();
+  }
+
+  private getDisplayStudentName(): string {
+    return this.getCurrentStudent()?.name ?? this.todaySummary?.studentName ?? '当前学生';
+  }
+
+  private getDisplayStudentMeta(): string {
+    const student = this.getCurrentStudent();
+    const metaParts: string[] = [];
+    if (student?.grade) {
+      metaParts.push(student.grade);
+    }
+    if (student?.className) {
+      metaParts.push(student.className);
+    }
+    return metaParts.length > 0 ? metaParts.join(' ') : '今日托管安排';
+  }
+
+  private getDisplayStudentNo(): string {
+    return this.getCurrentStudent()?.studentNo ?? '--';
+  }
+
+  private getDisplaySchoolName(): string {
+    return this.getCurrentStudent()?.schoolName ?? '智慧校园';
+  }
+
+  private getNoticeSummary(): string {
+    return this.alertSummary || '关于近期托管服务安排的通知';
+  }
+
+  private getSessionTitle(): string {
+    return this.todaySummary?.sessionName || '今日托管课程';
+  }
+
   build() {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '在一个页面掌握今日托管、作业进度和校园消息。',
+        greeting: '欢迎使用智慧学生管理系统 · 家长端',
         theme: HeaderTheme.WHITE,
-        badgeText: '家长工作台',
-        metaText: this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '',
-        onRightIconClick: () => {
-          AppStorage.setOrCreate('main_current_index', 2);
-        }
+        badgeText: '家长端',
+        metaText: this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排'
       }) {
-        this.buildMessageEntry()
+        this.buildHeaderActions()
       }
 
       if (this.isLoading) {
@@ -106,54 +145,36 @@ export struct ParentHomePage {
   }
 
   @Builder
-  buildMessageEntry() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Column() {
-        Image($r('app.media.ic_notification'))
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor('#12305F')
-      }
-      .width(46)
-      .height(46)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor('#FFFFFF')
-      .borderRadius(18)
-      .border({
-        width: 1,
-        color: '#E5EEF9',
-        radius: 18,
-        style: BorderStyle.Solid
+  private buildHeaderActions() {
+    Row() {
+      IconActionButton({
+        icon: $r('app.media.ic_notification'),
+        badgeCount: this.unreadCount,
+        onButtonClick: () => {
+          AppStorage.setOrCreate('main_current_index', 2);
+        }
       })
 
-      if (this.unreadCount > 0) {
-        Text(this.unreadCount > 99 ? '99+' : `${this.unreadCount}`)
-          .fontSize(10)
-          .fontColor(Color.White)
-          .backgroundColor($r('app.color.error'))
-          .borderRadius(9)
-          .padding({ left: 5, right: 5, top: 1, bottom: 1 })
-      }
+      Blank().width(10)
+
+      IconActionButton({
+        icon: $r('app.media.ic_qrcode'),
+        onButtonClick: () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentQRCodePage' });
+        }
+      })
     }
-    .onClick(() => {
-      AppStorage.setOrCreate('main_current_index', 2);
-    })
   }
 
   @Builder
-  buildContent() {
+  private buildContent() {
     Scroll() {
       Column() {
-        this.buildOverviewPanel()
-
-        if (this.alertSummary) {
-          this.buildAlertBanner()
-        }
-
-        this.buildQuickActions()
-        this.buildTodayStatusCard()
-        this.buildRecentHomework()
+        this.buildStudentHeroCard()
+        this.buildNoticeCard()
+        this.buildQuickActionsCard()
+        this.buildScheduleCard()
+        this.buildHomeworkCard()
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12, bottom: 24 })
@@ -164,335 +185,406 @@ export struct ParentHomePage {
   }
 
   @Builder
-  buildOverviewPanel() {
-    Column() {
-      Row() {
-        StatCard({
-          value: this.getAttendanceText(),
-          label: '考勤状态',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#1F5EFF'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getHomeworkProgressText(),
-          label: '作业进度',
-          icon: $r('app.media.ic_homework'),
-          iconColor: '#14B8A6'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-
-      Row() {
-        StatCard({
-          value: `${this.unreadCount}`,
-          label: '未读消息',
-          icon: $r('app.media.ic_message'),
-          iconColor: '#F59E0B'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.todaySummary?.sessionName || '待安排',
-          label: '托管场次',
-          icon: $r('app.media.ic_calendar'),
-          iconColor: '#8B5CF6'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 10 })
-    }
-    .width('100%')
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  buildStatusMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .maxLines(1)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ top: 8 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(20)
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  buildAlertBanner() {
+  private buildStudentHeroCard() {
     Row() {
-      Column() {
-        Image($r('app.media.ic_warning'))
-          .width(20)
-          .height(20)
-          .fillColor('#F59E0B')
+      Row() {
+        Image($r('app.media.ic_default_avatar'))
+          .width(70)
+          .height(70)
+          .objectFit(ImageFit.Cover)
       }
-      .width(38)
-      .height(38)
+      .width(86)
+      .height(86)
       .justifyContent(FlexAlign.Center)
-      .backgroundColor('#FFF4DE')
-      .borderRadius(14)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(43)
 
       Column() {
-        Text('今日提醒')
-          .fontSize(14)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
+        Row() {
+          Text(this.getDisplayStudentName())
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(Color.White)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text(this.alertSummary)
+          Text(this.getDisplayStudentMeta())
+            .fontSize(11)
+            .fontColor('#3F7DFF')
+            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+            .backgroundColor('#F5F9FF')
+            .borderRadius(999)
+            .margin({ left: 10 })
+        }
+        .width('100%')
+
+        Text(`学号：${this.getDisplayStudentNo()}`)
+          .fontSize(14)
+          .fontColor('#EAF1FF')
+          .margin({ top: 10 })
+
+        Text(`学校：${this.getDisplaySchoolName()}`)
+          .fontSize(14)
+          .fontColor('#EAF1FF')
+          .margin({ top: 6 })
+
+        Text(this.getSessionTitle())
           .fontSize(13)
-          .fontColor($r('app.color.text_secondary'))
-          .lineHeight(19)
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .margin({ top: 4 })
+          .fontColor('#DDE8FF')
+          .margin({ top: 10 })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .margin({ left: 12 })
+      .margin({ left: 14 })
+
+      Image($r('app.media.startIcon'))
+        .width(84)
+        .height(84)
+        .objectFit(ImageFit.Contain)
+        .opacity(0.22)
     }
     .width('100%')
-    .padding(16)
-    .backgroundColor('#FFFDF6')
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#FDE7B0',
-      radius: 20,
-      style: BorderStyle.Solid
+    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
+    .linearGradient({
+      angle: 145,
+      colors: [['#5A96FF', 0], ['#4B85FF', 0.55], ['#3970F5', 1]]
     })
+    .borderRadius(28)
+    .shadow({
+      radius: 18,
+      color: '#2F6BDE18',
+      offsetX: 0,
+      offsetY: 10
+    })
+    .alignItems(VerticalAlign.Center)
     .margin({ bottom: 14 })
   }
 
   @Builder
-  buildQuickActions() {
-    Column() {
-      SectionHeader({
-        title: '快捷操作',
-        subtitle: '一键进入高频业务入口'
-      })
-
-      Row() {
-        ActionButton({
-          label: '请假申请',
-          icon: $r('app.media.ic_leave'),
-          bgColor: '#EAF1FF',
-          iconColor: '#1F5EFF',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentLeavePage' });
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '接送码',
-          icon: $r('app.media.ic_qrcode'),
-          bgColor: '#ECFDF5',
-          iconColor: '#16A34A',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentQRCodePage' });
-          }
-        })
-      }
-      .width('100%')
-
-      Row() {
-        ActionButton({
-          label: '联系老师',
-          icon: $r('app.media.ic_message'),
-          bgColor: '#FFF7E8',
-          iconColor: '#F59E0B',
-          onButtonClick: () => {
-            AppStorage.setOrCreate('main_current_index', 2);
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '托管安排',
-          icon: $r('app.media.ic_calendar'),
-          bgColor: '#F5F0FF',
-          iconColor: '#8B5CF6',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentSessionsPage' });
-          }
-        })
-      }
-      .width('100%')
-      .margin({ top: 10 })
-    }
-    .width('100%')
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  buildTodayStatusCard() {
-    Card({
-      title: '今日托管',
-      subtitle: this.errorMessage ? this.errorMessage : '查看当前场次、考勤状态和老师反馈。',
-      showArrow: true,
-      clickable: true,
-      onCardClick: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
-      },
-      content: this.buildTodayStatusCardContent
-    })
-  }
-
-  @Builder
-  buildTodayStatusCardContent() {
-    if (this.todaySummary) {
+  private buildNoticeCard() {
+    Row() {
       Column() {
-        Row() {
-          Column() {
-            Text(this.todaySummary.sessionName || '托管场次')
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.text_primary'))
+        Text('系统')
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary'))
 
-            Text(this.todaySummary.sessionTime || '--:-- - --:--')
-              .fontSize(13)
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 6 })
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-
-          AttendanceBadge({ status: this.todaySummary.status || 'NOT_SIGNED' })
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Top)
-
-        Row() {
-          this.buildInlineTag('学生', this.todaySummary.studentName || '--')
-          Blank().width(8)
-          this.buildInlineTag('作业', this.getHomeworkProgressText())
-        }
-        .width('100%')
-        .margin({ top: 16 })
-
-        Column() {
-          Text('老师反馈')
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-
-          Text(this.todaySummary.latestDynamic || '老师暂未更新动态。')
-            .fontSize(14)
-            .fontColor($r('app.color.text_primary'))
-            .lineHeight(21)
-            .margin({ top: 8 })
-        }
-        .width('100%')
-        .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-        .backgroundColor('#F7FAFD')
-        .borderRadius(16)
-        .margin({ top: 16 })
-        .alignItems(HorizontalAlign.Start)
+        Text('通知')
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary'))
+          .margin({ top: 2 })
       }
-      .width('100%')
-    } else {
-      Text('今日暂无托管安排。')
-        .fontSize(14)
+      .width(48)
+      .alignItems(HorizontalAlign.Center)
+
+      Column() {
+        Text(this.getNoticeSummary())
+          .fontSize(15)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.text_primary'))
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      .margin({ left: 12, right: 12 })
+
+      Text(this.todaySummary?.date ? this.todaySummary.date.slice(5) : '今日')
+        .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
     }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+    .backgroundColor('#FFFFFF')
+    .borderRadius(22)
+    .border({
+      width: 1,
+      color: '#E4ECFA',
+      radius: 22,
+      style: BorderStyle.Solid
+    })
+    .shadow({
+      radius: 12,
+      color: '#2F6BDE0D',
+      offsetX: 0,
+      offsetY: 6
+    })
+    .margin({ bottom: 14 })
   }
 
   @Builder
-  buildInlineTag(label: string, value: string) {
-    Column() {
-      Text(label)
-        .fontSize(11)
-        .fontColor($r('app.color.text_tertiary'))
+  private buildQuickActionsCard() {
+    Card({
+      title: '常用功能',
+      actionText: '全部功能',
+      onAction: () => {
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentServicesPage' });
+      },
+      content: this.buildQuickActionsContent
+    })
+  }
 
-      Text(value)
-        .fontSize(14)
+  @Builder
+  private buildQuickActionsContent() {
+    Column() {
+      Row() {
+        this.buildFeatureItem('托管预约', '在线预约', $r('app.media.ic_calendar'), '#EAF2FF', '#3F7DFF', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentServicesPage' });
+        })
+        this.buildFeatureItem('我的订单', '查看订单', $r('app.media.ic_order'), '#EAF9EF', '#34C759', () => {
+          AppStorage.setOrCreate('main_current_index', 1);
+        })
+        this.buildFeatureItem('签到记录', '出入校记录', $r('app.media.ic_attendance'), '#FFF3E5', '#FFB74D', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
+        })
+        this.buildFeatureItem('家校沟通', '联系老师', $r('app.media.ic_message'), '#F2EEFF', '#8B6CF6', () => {
+          AppStorage.setOrCreate('main_current_index', 2);
+        })
+      }
+      .width('100%')
+
+      Row() {
+        this.buildFeatureItem('作业辅导', '作业与反馈', $r('app.media.ic_homework'), '#FFF4E8', '#FF8A4D', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
+        })
+        this.buildFeatureItem('在校动态', '查看安排', $r('app.media.ic_child'), '#EAF2FF', '#4C89FF', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentSessionsPage' });
+        })
+        this.buildFeatureItem('安全守护', '风险提醒', $r('app.media.ic_warning'), '#EAF9EF', '#2DB36B', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentAlertsPage' });
+        })
+        this.buildFeatureItem('费用缴纳', '缴费记录', $r('app.media.ic_money'), '#FFECEF', '#FF5D73', () => {
+          AppStorage.setOrCreate('main_current_index', 1);
+        })
+      }
+      .width('100%')
+      .margin({ top: 14 })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
+    Column() {
+      Column() {
+        Image(icon)
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor(iconColor)
+      }
+      .width(52)
+      .height(52)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(bgColor)
+      .borderRadius(18)
+
+      Text(title)
+        .fontSize(15)
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
-        .margin({ top: 6 })
+        .margin({ top: 10 })
+
+      Text(subtitle)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 4 })
     }
     .layoutWeight(1)
-    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor('#F7FAFD')
-    .borderRadius(14)
-    .alignItems(HorizontalAlign.Start)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => onClick())
   }
 
   @Builder
-  buildRecentHomework() {
+  private buildScheduleCard() {
     Card({
-      title: '最近作业',
-      subtitle: '及时了解最新作业和辅导进度。',
+      title: '今日托管安排',
+      actionText: '查看全部',
+      onAction: () => {
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
+      },
+      content: this.buildScheduleContent
+    })
+  }
+
+  @Builder
+  private buildScheduleContent() {
+    Column() {
+      this.buildScheduleItem(this.todaySummary?.signInTime || '16:30', '入校签到', this.getSignStatusText(), this.getSignStatusColor(), this.getSignStatusBgColor())
+      this.buildScheduleItem(this.todaySummary?.sessionTime || '16:40 - 17:30', this.getSessionTitle(), this.getHomeworkStatusText(), this.getHomeworkStatusColor(), this.getHomeworkStatusBgColor())
+      this.buildScheduleItem(this.todaySummary?.signOutTime || '17:30 - 18:00', '家长接送', this.getSignOutStatusText(), this.getSignOutStatusColor(), this.getSignOutStatusBgColor())
+
+      Row() {
+        Image($r('app.media.ic_info'))
+          .width(16)
+          .height(16)
+          .fillColor($r('app.color.primary'))
+
+        Text('温馨提示：请关注孩子的托管时间安排，及时查看动态。')
+          .fontSize(12)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ left: 8 })
+      }
+      .width('100%')
+      .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+      .backgroundColor('#F7FAFF')
+      .borderRadius(16)
+      .margin({ top: 16 })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildScheduleItem(time: string, title: string, statusText: string, statusColor: string, statusBgColor: string) {
+    Row() {
+      Text(time)
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .width(94)
+
+      Text(title)
+        .fontSize(15)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+        .layoutWeight(1)
+
+      Text(statusText)
+        .fontSize(12)
+        .fontColor(statusColor)
+        .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+        .backgroundColor(statusBgColor)
+        .borderRadius(999)
+    }
+    .width('100%')
+    .padding({ top: 10, bottom: 10 })
+  }
+
+  @Builder
+  private buildHomeworkCard() {
+    Card({
+      title: '学习反馈',
+      subtitle: this.errorMessage ? this.errorMessage : '及时了解老师反馈和最近作业进度。',
       actionText: '查看全部',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
       },
-      content: this.buildRecentHomeworkContent
+      content: this.buildHomeworkContent
     })
   }
 
   @Builder
-  buildRecentHomeworkContent() {
+  private buildHomeworkContent() {
     if (this.recentHomework.length > 0) {
       Column() {
         ForEach(this.recentHomework, (item: HomeworkTask, index: number) => {
-          HomeworkCard({
-            homework: item,
-            mode: HomeworkCardMode.SIMPLE
-          })
+          Row() {
+            Column() {
+              Text(item.title || '今日学习任务')
+                .fontSize(15)
+                .fontWeight(FontWeight.Medium)
+                .fontColor($r('app.color.text_primary'))
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+              Text(item.subject || item.description || '查看老师布置的最新任务与反馈')
+                .fontSize(12)
+                .fontColor($r('app.color.text_secondary'))
+                .lineHeight(18)
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .margin({ top: 6 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
+
+            Text(item.status || '待查看')
+              .fontSize(12)
+              .fontColor($r('app.color.primary'))
+              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+              .backgroundColor('#EAF2FF')
+              .borderRadius(999)
+          }
+          .width('100%')
+          .padding({ top: 8, bottom: 8 })
+
           if (index < this.recentHomework.length - 1) {
-            Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
+            Divider()
+              .color($r('app.color.divider'))
+              .margin({ top: 10, bottom: 10 })
           }
         })
       }
       .width('100%')
     } else {
-      Text('暂无作业记录。')
-        .fontSize(14)
-        .fontColor($r('app.color.text_secondary'))
-        .padding({ top: 8, bottom: 8 })
+      Column() {
+        Text(this.todaySummary?.latestDynamic || this.todaySummary?.teacherFeedback || '老师暂未更新新的学习反馈。')
+          .fontSize(14)
+          .lineHeight(22)
+          .fontColor($r('app.color.text_secondary'))
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
     }
   }
 
-  private getAttendanceText(): string {
-    switch (this.todaySummary?.status) {
-      case 'SIGNED_IN':
-        return '已到校';
-      case 'SIGNED_OUT':
-        return '已签退';
-      case 'IN_PROGRESS':
-        return '进行中';
-      default:
-        return '待签到';
+  private getSignStatusText(): string {
+    if (this.todaySummary?.status === 'SIGNED_IN' || this.todaySummary?.status === 'SIGNED_OUT' || this.todaySummary?.status === 'IN_PROGRESS') {
+      return '已签到';
     }
+    return '待签到';
   }
 
-  private getHomeworkProgressText(): string {
+  private getSignStatusColor(): string {
+    return this.todaySummary?.status === 'NOT_SIGNED' ? '#FF9F43' : '#34C759';
+  }
+
+  private getSignStatusBgColor(): string {
+    return this.todaySummary?.status === 'NOT_SIGNED' ? '#FFF3E5' : '#EAF9EF';
+  }
+
+  private getHomeworkStatusText(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
-    if (progress <= 0) {
-      return '未开始';
-    }
     if (progress >= 100) {
       return '已完成';
     }
-    return `${progress}%`;
+    if (progress > 0) {
+      return '进行中';
+    }
+    return '未开始';
+  }
+
+  private getHomeworkStatusColor(): string {
+    const progress = this.todaySummary?.homeworkProgress ?? 0;
+    if (progress >= 100) {
+      return '#34C759';
+    }
+    if (progress > 0) {
+      return '#3F7DFF';
+    }
+    return '#9AA8C2';
+  }
+
+  private getHomeworkStatusBgColor(): string {
+    const progress = this.todaySummary?.homeworkProgress ?? 0;
+    if (progress >= 100) {
+      return '#EAF9EF';
+    }
+    if (progress > 0) {
+      return '#EAF2FF';
+    }
+    return '#F2F5FB';
+  }
+
+  private getSignOutStatusText(): string {
+    return this.todaySummary?.status === 'SIGNED_OUT' ? '已完成' : '未开始';
+  }
+
+  private getSignOutStatusColor(): string {
+    return this.todaySummary?.status === 'SIGNED_OUT' ? '#34C759' : '#9AA8C2';
+  }
+
+  private getSignOutStatusBgColor(): string {
+    return this.todaySummary?.status === 'SIGNED_OUT' ? '#EAF9EF' : '#F2F5FB';
   }
 }

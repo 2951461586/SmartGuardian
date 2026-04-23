@@ -2,6 +2,7 @@
   "src": [
     "pages/Index",
     "pages/LoginPage",
+    "pages/RegisterPage",
     "pages/MainPage",
     "pages/parent/ParentQRCodePage",
     "pages/parent/ParentSessionsPage",
@@ -27,6 +28,10 @@
     "pages/teacher/TeacherStudentDetailPage",
     "pages/admin/AdminStudentsPage",
     "pages/admin/AdminMessagesPage",
+    "pages/admin/AdminServicesPage",
+    "pages/admin/AdminSessionsPage",
+    "pages/admin/AdminAlertsPage",
+    "pages/admin/AdminRefundsPage",
     "pages/admin/AdminStudentEditPage",
     "pages/admin/AdminStudentDetailPage",
     "pages/common/QRCodeScanPage"

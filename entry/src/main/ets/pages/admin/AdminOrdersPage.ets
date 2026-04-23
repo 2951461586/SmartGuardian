@@ -18,6 +18,7 @@ import {
   EmptyType,
   ErrorBanner,
   HeaderTheme,
+  IconActionButton,
   LoadingSize,
   LoadingState,
   OrderItemMode,
@@ -153,7 +154,8 @@ export struct AdminOrdersPage {
       PageHeader({
         title: '订单管理',
         subtitle: '统一审核家长端订单、查看状态和处理异常申请。',
-        theme: HeaderTheme.PRIMARY
+        theme: HeaderTheme.PRIMARY,
+        rightContent: this.buildHeaderAction
       })
 
       Scroll() {
@@ -190,57 +192,155 @@ export struct AdminOrdersPage {
   }
 
   @Builder
+  buildHeaderAction() {
+    IconActionButton({
+      icon: $r('app.media.ic_refresh'),
+      iconColor: Color.White,
+      boxBgColor: '#FFFFFF1F',
+      boxBorderColor: '#FFFFFF29',
+      onButtonClick: (): void => {
+        this.loadOrders();
+      }
+    })
+  }
+
+  @Builder
   buildOverviewPanel() {
-    Row() {
-      StatCard({
-        value: this.getVisibleOrderCount(),
-        label: '当前列表',
-        icon: $r('app.media.ic_order'),
-        iconColor: '#1F5EFF'
+    Column() {
+      Card({
+        title: this.getCurrentModeTitle(),
+        subtitle: this.getCurrentModeHint(),
+        customPadding: 18,
+        content: this.buildOverviewHeroContent
       })
-      .layoutWeight(1)
 
-      StatCard({
-        value: this.getPendingAuditCount(),
-        label: '待审核',
-        icon: $r('app.media.ic_warning'),
-        iconColor: '#D97706'
-      })
-      .layoutWeight(1)
-      .margin({ left: 12, right: 12 })
+      Row() {
+        StatCard({
+          value: this.getVisibleOrderCount(),
+          label: '当前列表',
+          icon: $r('app.media.ic_order'),
+          iconColor: '#1F5EFF'
+        })
+        .layoutWeight(1)
 
-      StatCard({
-        value: this.getApprovedCount(),
-        label: '已审核',
-        icon: $r('app.media.ic_success'),
-        iconColor: '#15803D'
-      })
-      .layoutWeight(1)
+        StatCard({
+          value: this.getPendingAuditCount(),
+          label: '待审核',
+          icon: $r('app.media.ic_warning'),
+          iconColor: '#D97706'
+        })
+        .layoutWeight(1)
+        .margin({ left: 12 })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+
+      Row() {
+        StatCard({
+          value: this.getApprovedCount(),
+          label: '已审核',
+          icon: $r('app.media.ic_success'),
+          iconColor: '#15803D'
+        })
+        .layoutWeight(1)
+
+        StatCard({
+          value: this.getAverageAmount(),
+          label: '平均金额',
+          icon: $r('app.media.ic_money'),
+          iconColor: '#8B5CF6'
+        })
+        .layoutWeight(1)
+        .margin({ left: 12 })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+      .margin({ top: 12 })
     }
     .width('100%')
-    .alignItems(VerticalAlign.Top)
     .margin({ bottom: 12 })
   }
 
   @Builder
+  buildOverviewHeroContent() {
+    Row() {
+      Column() {
+        Text(this.getCurrentModeAccent())
+          .fontSize(11)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.primary'))
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#EAF2FF')
+          .borderRadius(999)
+
+        Text(this.getAmountTotalText())
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .margin({ top: 14 })
+
+        Text('当前筛选范围内的订单金额总量')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 8 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Column() {
+        this.buildMiniMetric('待处理', `${this.getPendingAuditCount()}`, '#D97706')
+        this.buildMiniMetric('已完成', `${this.getApprovedCount()}`, '#15803D')
+      }
+      .width(112)
+    }
+    .width('100%')
+  }
+
+  @Builder
   buildTabSection() {
-    Card({
-      title: '审核筛选',
-      subtitle: '在待审核、已审核和全部订单之间快速切换。',
-      customPadding: 12,
-      content: this.buildTabSectionContent
-    })
+    Column() {
+      SectionHeader({
+        title: '审核控制台',
+        subtitle: '先锁定审核范围，再进入订单流逐条处理'
+      })
+
+      Card({
+        customPadding: 12,
+        content: this.buildTabSectionContent
+      })
+    }
   }
 
   @Builder
   buildTabSectionContent() {
-    TabBar({
-      tabs: this.tabs,
-      currentIndex: $currentTab,
-      onTabChange: () => {
-        this.loadOrders();
+    Column() {
+      Row() {
+        Text(this.getCurrentModeTitle())
+          .fontSize($r('app.float.card_title_size'))
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.text_primary'))
+
+        Blank().layoutWeight(1)
+
+        Text('实时同步')
+          .fontSize(11)
+          .fontColor('#2F9B52')
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#ECFDF5')
+          .borderRadius(999)
       }
-    })
+      .width('100%')
+      .margin({ bottom: 12 })
+
+      TabBar({
+        tabs: this.tabs,
+        currentIndex: this.currentTab,
+        onTabChange: (index: number) => {
+          this.currentTab = index;
+          this.loadOrders();
+        }
+      })
+    }
   }
 
   @Builder
@@ -269,6 +369,12 @@ export struct AdminOrdersPage {
         subtitle: `当前共 ${this.orders.length} 条订单记录`
       })
 
+      Card({
+        customPadding: 14,
+        customBgColor: '#F8FBFF',
+        content: this.buildStreamSummary
+      })
+
       Scroll() {
         Column() {
           ForEach(this.orders, (order: Order) => {
@@ -294,6 +400,38 @@ export struct AdminOrdersPage {
       .scrollBar(BarState.Off)
     }
     .width('100%')
+  }
+
+  @Builder
+  buildStreamSummary() {
+    Row() {
+      this.buildMiniMetric('模式', this.tabs[this.currentTab], '#1F5EFF')
+      Blank().width(10)
+      this.buildMiniMetric('订单量', `${this.orders.length}`, '#10203A')
+      Blank().width(10)
+      this.buildMiniMetric('总金额', this.getAmountTotalText(), '#15803D')
+    }
+    .width('100%')
+  }
+
+  @Builder
+  buildMiniMetric(label: string, value: string, valueColor: string) {
+    Column() {
+      Text(label)
+        .fontSize(11)
+        .fontColor($r('app.color.text_secondary'))
+
+      Text(value)
+        .fontSize(15)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(valueColor)
+        .margin({ top: 6 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+    .backgroundColor(Color.White)
+    .borderRadius(16)
+    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
@@ -377,5 +515,53 @@ export struct AdminOrdersPage {
 
   private getApprovedCount(): number {
     return this.orders.filter((order: Order) => order.orderStatus === 'APPROVED').length;
+  }
+
+  private getCurrentModeTitle(): string {
+    if (this.currentTab === 0) {
+      return '待审核工作台';
+    }
+    if (this.currentTab === 1) {
+      return '已审核追踪';
+    }
+    return '全量订单看板';
+  }
+
+  private getCurrentModeHint(): string {
+    if (this.currentTab === 0) {
+      return '聚焦当前需要尽快处理的家长订单申请';
+    }
+    if (this.currentTab === 1) {
+      return '查看已完成审核的记录与处理结果';
+    }
+    return '从全局视角检视订单流转与审核效率';
+  }
+
+  private getCurrentModeAccent(): string {
+    if (this.currentTab === 0) {
+      return '高优先级';
+    }
+    if (this.currentTab === 1) {
+      return '可回溯';
+    }
+    return '运营总览';
+  }
+
+  private getOrderAmountTotal(): number {
+    return this.orders.reduce((sum: number, order: Order) => {
+      return sum + Number(order.actualAmount ?? order.totalAmount ?? order.amount ?? 0);
+    }, 0);
+  }
+
+  private getAverageAmount(): string {
+    if (this.orders.length === 0) {
+      return '¥0';
+    }
+    const average = Math.round(this.getOrderAmountTotal() / this.orders.length);
+    return `¥${average}`;
+  }
+
+  private getAmountTotalText(): string {
+    return `¥${this.getOrderAmountTotal()}`;
   }
 }

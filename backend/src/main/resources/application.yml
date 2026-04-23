@@ -5,10 +5,10 @@ spring:
   application:
     name: smartguardian-backend
   datasource:
-    url: ${DB_URL:jdbc:h2:mem:smartguardian;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=USER}
-    username: ${DB_USERNAME:sa}
-    password: ${DB_PASSWORD:}
-    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/smartguardian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:smartguardian}
+    password: ${DB_PASSWORD:smartguardian123}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
   jpa:
     open-in-view: false
     hibernate:
@@ -16,10 +16,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          time_zone: Asia/Shanghai
     defer-datasource-initialization: true
   sql:
     init:
       mode: always
+      encoding: UTF-8
 
 management:
   endpoints:
@@ -35,5 +38,5 @@ springdoc:
 
 app:
   security:
-    jwt-secret: ${JWT_SECRET}
+    jwt-secret: ${JWT_SECRET:smartguardian-local-jwt-secret-2026-safe}
     jwt-expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}

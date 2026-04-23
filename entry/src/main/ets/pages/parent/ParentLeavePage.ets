@@ -1,11 +1,15 @@
 /**
- * SmartGuardian - 请假申请页
- * 家长提交请假申请
+ * SmartGuardian - Parent Leave Page
+ * Parent leave request page
  */
 
-import { AttendanceService } from '../../services/api/attendance';
 import { LeaveRequest } from '../../models/attendance';
+import { Student } from '../../models/user';
+import { AttendanceService } from '../../services/api/attendance';
+import { StudentStore } from '../../stores/studentStore';
 import { DateUtils } from '../../utils/dateUtils';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { LogUtil } from '../../utils/LogUtil';
 
 interface StudentItem {
   id: number;
@@ -23,88 +27,107 @@ struct ParentLeavePage {
   @State selectedStudentId: number = 0;
   @State availableStudents: StudentItem[] = [];
   @State showDatePicker: boolean = false;
-  @State showTimePicker: boolean = false;
-  @State selectedTime: string = '08:00';
 
   aboutToAppear() {
-    // Load available students
-    const students: StudentItem[] = [];
-    students.push({ id: 1, name: '张三' });
-    students.push({ id: 2, name: '李四' });
-    this.availableStudents = students;
-    if (this.availableStudents.length > 0) {
+    ErrorHandlerUtil.setUIContext(this.getUIContext());
+    this.loadAvailableStudents();
+  }
+
+  private loadAvailableStudents(): void {
+    const storedStudents = StudentStore.getStudentList();
+    const mappedStudents: StudentItem[] = [];
+    storedStudents.forEach((student: Student) => {
+      const item: StudentItem = {
+        id: student.id,
+        name: student.name
+      };
+      mappedStudents.push(item);
+    });
+
+    if (mappedStudents.length > 0) {
+      this.availableStudents = mappedStudents;
+    } else {
+      const fallbackStudents: StudentItem[] = [];
+      const firstStudent: StudentItem = { id: 1, name: '王小明' };
+      const secondStudent: StudentItem = { id: 2, name: '李小雨' };
+      fallbackStudents.push(firstStudent);
+      fallbackStudents.push(secondStudent);
+      this.availableStudents = fallbackStudents;
+    }
+
+    if (this.availableStudents.length > 0 && this.selectedStudentId === 0) {
       this.selectedStudentId = this.availableStudents[0].id;
     }
   }
 
   async submitLeave() {
-    if (!this.selectedStudentId) {
+    if (this.isLoading) {
       return;
     }
-    if (!this.reason.trim()) {
+    if (!this.selectedStudentId) {
+      ErrorHandlerUtil.showErrorToast('请选择学生');
+      return;
+    }
+    if (!ErrorHandlerUtil.validateRequired(this.reason, '请假原因')) {
       return;
     }
 
     this.isLoading = true;
     try {
-      const leaveTypeValue: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER' =
-        this.leaveType === 'SICK' ? 'SICK' :
-        this.leaveType === 'PERSONAL' ? 'PERSONAL' :
-        this.leaveType === 'FAMILY' ? 'FAMILY' : 'OTHER';
       const request: LeaveRequest = {
         studentId: this.selectedStudentId,
         leaveDate: DateUtils.formatDate(this.leaveDate),
-        leaveType: leaveTypeValue,
-        reason: this.reason
+        leaveType: this.leaveType,
+        reason: this.reason.trim(),
+        attachments: this.attachments.length > 0 ? [...this.attachments] : undefined
       };
 
-      const resp = await AttendanceService.submitLeave(request);
-      if (resp.code === 0) {
+      const response = await AttendanceService.submitLeave(request);
+      if (response.code === 0) {
+        ErrorHandlerUtil.showSuccessToast('请假申请已提交');
         this.getUIContext().getRouter().back();
+        return;
       }
+
+      ErrorHandlerUtil.showErrorToast(response.message ? response.message : '请假申请提交失败');
     } catch (error) {
-      console.error('Submit leave failed:', error);
+      LogUtil.error('ParentLeavePage', `Submit leave failed: ${String(error)}`);
+      ErrorHandlerUtil.showErrorToast('请假申请提交失败，请稍后重试');
     } finally {
       this.isLoading = false;
     }
   }
 
-  // 选择图片
-  async selectImage() {
-    try {
-      // TODO: 实现图片选择功能
-      // 临时添加一个占位图片
-      this.attachments.push('mock_image_' + this.attachments.length.toString());
-    } catch (error) {
-      console.error('Select image failed:', error);
+  private selectAttachment(): void {
+    if (this.attachments.length >= 3) {
+      ErrorHandlerUtil.showErrorToast('最多上传 3 个附件');
+      return;
     }
+
+    const attachmentName = `请假证明_${this.attachments.length + 1}_${Date.now().toString().slice(-4)}.jpg`;
+    this.attachments = [...this.attachments, attachmentName];
+    ErrorHandlerUtil.showSuccessToast('已添加附件占位，后续可接入系统图片选择器');
+  }
+
+  private removeAttachment(index: number): void {
+    const nextAttachments = [...this.attachments];
+    nextAttachments.splice(index, 1);
+    this.attachments = nextAttachments;
   }
 
   build() {
     Column() {
-      // Header
       this.buildHeader()
 
-      // Content
       Scroll() {
         Column() {
-          // Student selection
           this.buildStudentSelection()
-
-          // Leave date
           this.buildDatePicker()
-
-          // Leave type
           this.buildLeaveType()
-
-          // Reason input
           this.buildReasonInput()
-
-          // Attachments
           this.buildAttachments()
 
-          // Submit button
-          Button('提交申请')
+          Button(this.isLoading ? '提交中...' : '提交申请')
             .width('100%')
             .height(48)
             .fontSize($r('app.float.text_primary_size'))
@@ -113,6 +136,7 @@ struct ParentLeavePage {
             .borderRadius($r('app.float.button_radius'))
             .margin({ top: 24 })
             .enabled(!this.isLoading)
+            .opacity(this.isLoading ? 0.7 : 1)
             .onClick(() => {
               this.submitLeave();
             })
@@ -135,7 +159,7 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildHeader() {
+  private buildHeader() {
     Row() {
       Image($r('app.media.ic_arrow_left'))
         .width(24)
@@ -161,7 +185,7 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildStudentSelection() {
+  private buildStudentSelection() {
     Column() {
       Text('选择学生')
         .fontSize($r('app.float.text_primary_size'))
@@ -176,6 +200,7 @@ struct ParentLeavePage {
             .padding({ left: 20, right: 20, top: 10, bottom: 10 })
             .backgroundColor(this.selectedStudentId === student.id ? $r('app.color.primary') : $r('app.color.page_background'))
             .borderRadius($r('app.float.button_radius'))
+            .margin({ right: 8, bottom: 8 })
             .onClick(() => {
               this.selectedStudentId = student.id;
             })
@@ -191,7 +216,7 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildDatePicker() {
+  private buildDatePicker() {
     Column() {
       Text('请假日期')
         .fontSize($r('app.float.text_primary_size'))
@@ -226,7 +251,7 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildDatePickerSheet() {
+  private buildDatePickerSheet() {
     Column() {
       Text('选择日期')
         .fontSize(18)
@@ -260,40 +285,26 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildLeaveType() {
+  private buildLeaveType() {
     Column() {
       Text('请假类型')
         .fontSize($r('app.float.text_primary_size'))
         .fontColor($r('app.color.text_primary'))
         .margin({ bottom: 12 })
 
-      Row() {
-        Column() {
-          Text('病假')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(this.leaveType === 'SICK' ? $r('app.color.primary') : $r('app.color.text_secondary'))
+      Column() {
+        Row() {
+          this.buildLeaveTypeChip('病假', 'SICK')
+          this.buildLeaveTypeChip('事假', 'PERSONAL')
         }
-        .layoutWeight(1)
-        .padding(12)
-        .backgroundColor(this.leaveType === 'SICK' ? $r('app.color.primary_light') : $r('app.color.page_background'))
-        .borderRadius($r('app.float.button_radius'))
-        .onClick(() => {
-          this.leaveType = 'SICK';
-        })
+        .width('100%')
 
-        Column() {
-          Text('事假')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(this.leaveType === 'PERSONAL' ? $r('app.color.primary') : $r('app.color.text_secondary'))
+        Row() {
+          this.buildLeaveTypeChip('家庭事务', 'FAMILY')
+          this.buildLeaveTypeChip('其他', 'OTHER')
         }
-        .layoutWeight(1)
-        .padding(12)
-        .margin({ left: 12 })
-        .backgroundColor(this.leaveType === 'PERSONAL' ? $r('app.color.primary_light') : $r('app.color.page_background'))
-        .borderRadius($r('app.float.button_radius'))
-        .onClick(() => {
-          this.leaveType = 'PERSONAL';
-        })
+        .width('100%')
+        .margin({ top: 12 })
       }
       .width('100%')
     }
@@ -305,7 +316,24 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildReasonInput() {
+  private buildLeaveTypeChip(label: string, value: 'SICK' | 'PERSONAL' | 'FAMILY' | 'OTHER') {
+    Column() {
+      Text(label)
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor(this.leaveType === value ? $r('app.color.primary') : $r('app.color.text_secondary'))
+    }
+    .layoutWeight(1)
+    .padding(12)
+    .margin({ right: value === 'SICK' || value === 'FAMILY' ? 12 : 0 })
+    .backgroundColor(this.leaveType === value ? $r('app.color.primary_light') : $r('app.color.page_background'))
+    .borderRadius($r('app.float.button_radius'))
+    .onClick(() => {
+      this.leaveType = value;
+    })
+  }
+
+  @Builder
+  private buildReasonInput() {
     Column() {
       Text('请假原因')
         .fontSize($r('app.float.text_primary_size'))
@@ -321,6 +349,7 @@ struct ParentLeavePage {
         .fontSize($r('app.float.text_primary_size'))
         .backgroundColor($r('app.color.page_background'))
         .borderRadius($r('app.float.button_radius'))
+        .padding({ left: 12, right: 12, top: 12, bottom: 12 })
         .onChange((value: string) => {
           this.reason = value;
         })
@@ -333,59 +362,56 @@ struct ParentLeavePage {
   }
 
   @Builder
-  buildAttachments() {
+  private buildAttachments() {
     Column() {
       Text('上传附件（可选）')
         .fontSize($r('app.float.text_primary_size'))
         .fontColor($r('app.color.text_primary'))
         .margin({ bottom: 12 })
 
-      Row() {
-        // 已选择的图片列表
-        ForEach(this.attachments, (uri: string, index: number) => {
-          Stack({ alignContent: Alignment.TopEnd }) {
-            Image(uri)
-              .width(80)
-              .height(80)
-              .borderRadius(8)
-              .objectFit(ImageFit.Cover)
+      if (this.attachments.length === 0) {
+        Text('当前未添加附件，可上传请假证明、病假单等材料。')
+          .fontSize($r('app.float.text_secondary_size'))
+          .fontColor($r('app.color.text_secondary'))
+          .width('100%')
+      } else {
+        Column() {
+          ForEach(this.attachments, (fileName: string, index: number) => {
+            Row() {
+              Text(fileName)
+                .fontSize($r('app.float.text_secondary_size'))
+                .fontColor($r('app.color.text_primary'))
+                .layoutWeight(1)
 
-            // 删除按钮
-            Image($r('app.media.ic_close'))
-              .width(20)
-              .height(20)
-              .margin({ top: -8, right: -8 })
-              .onClick(() => {
-                this.attachments.splice(index, 1);
-              })
-          }
-          .margin({ right: 8 })
-        })
-
-        // 添加图片按钮
-        if (this.attachments.length < 3) {
-          Column() {
-            Image($r('app.media.ic_add'))
-              .width(32)
-              .height(32)
-              .fillColor($r('app.color.text_tertiary'))
-
-            Text('添加图片')
-              .fontSize($r('app.float.text_tiny_size'))
-              .fontColor($r('app.color.text_tertiary'))
-              .margin({ top: 4 })
-          }
-          .width(80)
-          .height(80)
-          .backgroundColor($r('app.color.page_background'))
-          .borderRadius($r('app.float.button_radius'))
-          .justifyContent(FlexAlign.Center)
-          .onClick(() => {
-            this.selectImage();
+              Text('删除')
+                .fontSize($r('app.float.text_tiny_size'))
+                .fontColor('#DC2626')
+                .onClick(() => {
+                  this.removeAttachment(index);
+                })
+            }
+            .width('100%')
+            .padding(12)
+            .margin({ bottom: 8 })
+            .backgroundColor('#F7FAFD')
+            .borderRadius(12)
           })
         }
+        .width('100%')
       }
-      .width('100%')
+
+      Button(this.attachments.length >= 3 ? '已达上限' : '添加附件')
+        .width('100%')
+        .height(42)
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor(this.attachments.length >= 3 ? $r('app.color.text_tertiary') : $r('app.color.primary'))
+        .backgroundColor('#F3F7FB')
+        .borderRadius($r('app.float.button_radius'))
+        .margin({ top: 12 })
+        .enabled(this.attachments.length < 3)
+        .onClick(() => {
+          this.selectAttachment();
+        })
     }
     .width('100%')
     .padding($r('app.float.card_padding'))

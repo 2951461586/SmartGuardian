@@ -6,6 +6,7 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { ApiConfig } from '../config/api.config';
 import { AppInitializationService } from '../services/AppInitializationService';
 import { LogUtil } from '../utils/LogUtil';
 import { ErrorHandlerUtil } from '../utils/ErrorHandlerUtil';
@@ -18,6 +19,8 @@ export default class EntryAbility extends UIAbility {
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     LogUtil.info('EntryAbility onCreate');
+    ApiConfig.ensureRuntimeConfigReady();
+    LogUtil.info(`Runtime config: ${ApiConfig.describeRuntimeConfig()}`);
 
     // 设置颜色模式
     try {

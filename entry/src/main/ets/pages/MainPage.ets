@@ -68,6 +68,7 @@ struct MainPage {
     if (userInfo) {
       this.currentRole = userInfo.roleType;
     }
+
     this.authLocked = false;
     this.syncStoredNavigationScope();
     this.isInitializing = false;
@@ -147,22 +148,22 @@ struct MainPage {
   }
 
   @Builder
-  buildInitializingState() {
+  private buildInitializingState() {
     Column() {
       Column() {
         LoadingProgress()
           .color(Color.White)
-          .width(40)
-          .height(40)
+          .width(36)
+          .height(36)
       }
-      .width(76)
-      .height(76)
+      .width(82)
+      .height(82)
       .justifyContent(FlexAlign.Center)
       .backgroundColor($r('app.color.primary'))
-      .borderRadius(28)
+      .borderRadius(30)
       .shadow({
-        radius: 18,
-        color: '#1F5EFF33',
+        radius: 22,
+        color: '#2F6BDE18',
         offsetX: 0,
         offsetY: 10
       })
@@ -177,6 +178,11 @@ struct MainPage {
         .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
+
+      Text('默认联调地址已切到本地 Spring Boot + MySQL')
+        .fontSize(12)
+        .fontColor($r('app.color.text_tertiary'))
+        .margin({ top: 6 })
     }
     .width('100%')
     .layoutWeight(1)
@@ -185,7 +191,7 @@ struct MainPage {
   }
 
   @Builder
-  buildAuthLockedState() {
+  private buildAuthLockedState() {
     Column() {
       Column() {
         Text('登录状态已失效')
@@ -193,9 +199,10 @@ struct MainPage {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
-        Text('请重新登录后继续使用智慧学生托管系统。')
+        Text('请重新登录后继续使用 SmartGuardian 工作台。')
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
+          .lineHeight(21)
           .margin({ top: 10 })
 
         Button('返回登录')
@@ -205,7 +212,7 @@ struct MainPage {
           .fontWeight(FontWeight.Medium)
           .fontColor(Color.White)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(16)
+          .borderRadius(18)
           .margin({ top: 22 })
           .onClick(() => {
             this.navigateToLogin();
@@ -213,17 +220,17 @@ struct MainPage {
       }
       .width('100%')
       .padding(24)
-      .backgroundColor(Color.White)
-      .borderRadius(24)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(28)
       .border({
         width: 1,
-        color: '#EAF0F7',
-        radius: 24,
+        color: '#E4ECFA',
+        radius: 28,
         style: BorderStyle.Solid
       })
       .shadow({
-        radius: 18,
-        color: '#10172F12',
+        radius: 22,
+        color: '#2F6BDE10',
         offsetX: 0,
         offsetY: 8
       })
@@ -236,7 +243,7 @@ struct MainPage {
   }
 
   @Builder
-  buildContent() {
+  private buildContent() {
     Stack() {
       if (this.currentRole === UserRole.PARENT) {
         if (this.currentIndex === 0) {
@@ -271,60 +278,49 @@ struct MainPage {
   }
 
   @Builder
-  buildBottomNav() {
+  private buildBottomNav() {
     Column() {
+      Divider()
+        .color($r('app.color.divider'))
+
       Row() {
         ForEach(this.getNavItems(), (item: NavItem, index: number) => {
           this.buildNavItem(index, item.label, item.icon)
         })
       }
       .width('100%')
-      .padding({ left: 8, right: 8, top: 8, bottom: 8 })
-      .backgroundColor($r('app.color.bottom_nav_background'))
-      .borderRadius(26)
-      .border({
-        width: 1,
-        color: '#EAF0F7',
-        radius: 26,
-        style: BorderStyle.Solid
-      })
-      .shadow({
-        radius: 16,
-        color: '#10172F14',
-        offsetX: 0,
-        offsetY: 6
-      })
+      .padding({ left: 8, right: 8, top: 10, bottom: 12 })
     }
     .width('100%')
-    .padding({ left: 12, right: 12, top: 8, bottom: 14 })
+    .backgroundColor($r('app.color.bottom_nav_background'))
+    .shadow({
+      radius: 16,
+      color: '#2F6BDE12',
+      offsetX: 0,
+      offsetY: -2
+    })
   }
 
   @Builder
-  buildNavItem(index: number, label: ResourceStr, icon: Resource) {
+  private buildNavItem(index: number, label: ResourceStr, icon: Resource) {
     Column() {
-      Column() {
-        Image(icon)
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor(this.currentIndex === index ? Color.White : $r('app.color.nav_icon_inactive'))
-      }
-      .width(42)
-      .height(42)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(this.currentIndex === index ? $r('app.color.primary') : '#F3F7FB')
-      .borderRadius(18)
+      Image(icon)
+        .width(22)
+        .height(22)
+        .objectFit(ImageFit.Contain)
+        .fillColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
 
       Text(label)
         .fontSize(11)
         .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
         .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.nav_icon_inactive'))
-        .margin({ top: 8 })
+        .margin({ top: 6 })
     }
     .layoutWeight(1)
-    .padding({ top: 6, bottom: 4 })
+    .padding({ top: 4, bottom: 4 })
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
+    .opacity(this.currentIndex === index ? 1 : 0.96)
     .onClick(() => {
       this.currentIndex = index;
     })

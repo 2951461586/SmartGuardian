@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Card Component
- * Unified card component with consistent styling
+ * Unified card component with a bright campus dashboard hierarchy
  */
 
 export enum CardVariant {
@@ -25,17 +25,17 @@ interface CardPaddingConfig {
 const CARD_SIZE_CONFIG: Record<CardSize, CardPaddingConfig> = {
   [CardSize.SMALL]: {
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 20,
     marginBottom: 8
   },
   [CardSize.DEFAULT]: {
     padding: 18,
-    borderRadius: 20,
+    borderRadius: 24,
     marginBottom: 12
   },
   [CardSize.LARGE]: {
     padding: 22,
-    borderRadius: 24,
+    borderRadius: 28,
     marginBottom: 16
   }
 };
@@ -49,8 +49,8 @@ export struct Card {
   @Prop actionText: string = '';
   @Prop showArrow: boolean = false;
   @Prop clickable: boolean = false;
-  @Prop customBgColor?: ResourceColor;
-  @Prop customPadding?: number;
+  @Prop customBgColor: ResourceColor = '';
+  @Prop customPadding: number = -1;
   onCardClick?: () => void;
   onAction?: () => void;
   @BuilderParam content?: () => void = this.defaultContent;
@@ -97,13 +97,13 @@ export struct Card {
   }
 
   @Builder
-  buildHeader() {
+  private buildHeader() {
     Row() {
       Column() {
         if (this.title) {
           Text(this.title)
             .fontSize($r('app.float.card_title_size'))
-            .fontWeight(FontWeight.Medium)
+            .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
         }
 
@@ -121,15 +121,25 @@ export struct Card {
       if (this.headerRight) {
         this.headerRight()
       } else if (this.actionText) {
-        Text(this.actionText)
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .onClick(() => {
-            if (this.onAction) {
-              this.onAction();
-            }
-          })
+        Row() {
+          Text(this.actionText)
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.primary'))
+
+          Image($r('app.media.ic_arrow_right'))
+            .width(14)
+            .height(14)
+            .objectFit(ImageFit.Contain)
+            .fillColor($r('app.color.primary'))
+            .margin({ left: 4 })
+        }
+        .padding({ left: 2, right: 2, top: 4, bottom: 4 })
+        .onClick(() => {
+          if (this.onAction) {
+            this.onAction();
+          }
+        })
       } else if (this.showArrow) {
         Image($r('app.media.ic_arrow_right'))
           .width(20)
@@ -141,11 +151,11 @@ export struct Card {
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
     .alignItems(VerticalAlign.Top)
-    .margin({ bottom: this.content ? 12 : 0 })
+    .margin({ bottom: this.content ? 14 : 0 })
   }
 
   private getPadding(): number {
-    return this.customPadding ?? CARD_SIZE_CONFIG[this.cardSize].padding;
+    return this.customPadding >= 0 ? this.customPadding : CARD_SIZE_CONFIG[this.cardSize].padding;
   }
 
   private getBorderRadius(): number {
@@ -163,7 +173,7 @@ export struct Card {
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
     }
-    return Color.White;
+    return '#FFFFFF';
   }
 
   private getBorderWidth(): number {
@@ -172,24 +182,33 @@ export struct Card {
 
   private getBorderColor(): ResourceColor {
     if (this.cardVariant === CardVariant.OUTLINED) {
-      return '#D9E3F1';
+      return '#DCE6FA';
     }
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
     }
-    return '#EEF3F8';
+    return '#E4ECFA';
   }
 
   private getShadowRadius(): number {
-    return this.cardVariant === CardVariant.TRANSPARENT ? 0 : 14;
+    if (this.cardVariant === CardVariant.TRANSPARENT) {
+      return 0;
+    }
+    return this.cardVariant === CardVariant.ELEVATED ? 18 : 12;
   }
 
   private getShadowColor(): ResourceColor {
-    return this.cardVariant === CardVariant.TRANSPARENT ? Color.Transparent : '#10172F12';
+    if (this.cardVariant === CardVariant.TRANSPARENT) {
+      return Color.Transparent;
+    }
+    return this.cardVariant === CardVariant.ELEVATED ? '#2F6BDE16' : '#2F6BDE0E';
   }
 
   private getShadowOffsetY(): number {
-    return this.cardVariant === CardVariant.TRANSPARENT ? 0 : 6;
+    if (this.cardVariant === CardVariant.TRANSPARENT) {
+      return 0;
+    }
+    return this.cardVariant === CardVariant.ELEVATED ? 12 : 6;
   }
 }
 
@@ -197,7 +216,7 @@ export struct Card {
 export struct SimpleCard {
   @Prop cardVariant: CardVariant = CardVariant.DEFAULT;
   @Prop cardSize: CardSize = CardSize.DEFAULT;
-  @Prop customBgColor?: ResourceColor;
+  @Prop customBgColor: ResourceColor = '';
   onCardClick?: () => void;
   @BuilderParam content: () => void = this.defaultContent;
 
@@ -210,17 +229,17 @@ export struct SimpleCard {
     }
     .width('100%')
     .padding(CARD_SIZE_CONFIG[this.cardSize].padding)
-    .backgroundColor(this.customBgColor ?? Color.White)
+    .backgroundColor(this.customBgColor || '#FFFFFF')
     .borderRadius(CARD_SIZE_CONFIG[this.cardSize].borderRadius)
     .border({
       width: 1,
-      color: '#EEF3F8',
+      color: '#E4ECFA',
       radius: CARD_SIZE_CONFIG[this.cardSize].borderRadius,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 10,
-      color: '#10172F12',
+      color: '#2F6BDE0C',
       offsetX: 0,
       offsetY: 4
     })
@@ -237,42 +256,49 @@ export struct SimpleCard {
 export struct StatCard {
   @Prop value: string | number = '';
   @Prop label: string = '';
-  @Prop icon?: Resource;
-  @Prop iconColor: string = '#1F5EFF';
-  @Prop trend?: string;
-  @Prop trendValue?: string;
+  @Prop icon: ResourceStr = '';
+  @Prop iconColor: string = '#3F7DFF';
+  @Prop trend: string = '';
+  @Prop trendValue: string = '';
 
   build() {
     Column() {
-      if (this.icon) {
-        Column() {
-          Image(this.icon)
-            .width(20)
-            .height(20)
-            .objectFit(ImageFit.Contain)
-            .fillColor(this.iconColor)
-        }
-        .width(38)
-        .height(38)
-        .justifyContent(FlexAlign.Center)
-        .backgroundColor('#F4F8FD')
-        .borderRadius(14)
-        .margin({ bottom: 12 })
-      }
-
       Row() {
-        Text(`${this.value}`)
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
+        if (this.icon) {
+          Column() {
+            Image(this.icon)
+              .width(20)
+              .height(20)
+              .objectFit(ImageFit.Contain)
+              .fillColor(this.iconColor)
+          }
+          .width(42)
+          .height(42)
+          .justifyContent(FlexAlign.Center)
+          .backgroundColor(this.getIconBgColor())
+          .borderRadius(16)
+        }
+
+        Blank()
 
         if (this.trend && this.trendValue) {
           Text(this.trendValue)
-            .fontSize(12)
+            .fontSize(11)
+            .fontWeight(FontWeight.Medium)
             .fontColor(this.getTrendColor())
-            .margin({ left: 6, top: 8 })
+            .backgroundColor(this.getTrendBgColor())
+            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+            .borderRadius(999)
         }
       }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+
+      Text(`${this.value}`)
+        .fontSize(26)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 16 })
 
       Text(this.label)
         .fontSize($r('app.float.text_secondary_size'))
@@ -281,31 +307,54 @@ export struct StatCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(Color.White)
-    .borderRadius(18)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(24)
     .border({
       width: 1,
-      color: '#EEF3F8',
-      radius: 18,
+      color: '#E4ECFA',
+      radius: 24,
       style: BorderStyle.Solid
     })
     .shadow({
-      radius: 10,
-      color: '#10172F12',
+      radius: 12,
+      color: '#2F6BDE0E',
       offsetX: 0,
-      offsetY: 4
+      offsetY: 6
     })
     .alignItems(HorizontalAlign.Start)
   }
 
+  private getIconBgColor(): string {
+    if (this.iconColor === '#16A34A' || this.iconColor === '#34C759') {
+      return '#EAF9EF';
+    }
+    if (this.iconColor === '#F59E0B' || this.iconColor === '#FFB74D') {
+      return '#FFF4E8';
+    }
+    if (this.iconColor === '#8B5CF6') {
+      return '#F2EEFF';
+    }
+    return '#EAF2FF';
+  }
+
   private getTrendColor(): string {
     if (this.trend === 'up') {
-      return '#16A34A';
+      return '#34C759';
     }
     if (this.trend === 'down') {
-      return '#E5484D';
+      return '#FF5D73';
     }
-    return '#7A879A';
+    return '#7E8EAB';
+  }
+
+  private getTrendBgColor(): string {
+    if (this.trend === 'up') {
+      return '#EAF9EF';
+    }
+    if (this.trend === 'down') {
+      return '#FFECEF';
+    }
+    return '#F1F5FE';
   }
 }
 
@@ -326,7 +375,7 @@ export struct InfoCard {
       if (this.title) {
         Text(this.title)
           .fontSize($r('app.float.card_title_size'))
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
           .margin({ bottom: 12 })
       }
@@ -344,18 +393,18 @@ export struct InfoCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(24)
     .border({
       width: 1,
-      color: '#EEF3F8',
-      radius: 20,
+      color: '#E4ECFA',
+      radius: 24,
       style: BorderStyle.Solid
     })
   }
 
   @Builder
-  buildInfoItem(item: InfoItem) {
+  private buildInfoItem(item: InfoItem) {
     Column() {
       Text(item.label)
         .fontSize($r('app.float.text_secondary_size'))
@@ -386,8 +435,8 @@ export struct ActionCard {
   @Prop cardTitle: string = '';
   @Prop description: string = '';
   @Prop buttonText: string = '';
-  @Prop iconBgColor: string = '#EAF1FF';
-  @Prop iconColor: string = '#1F5EFF';
+  @Prop iconBgColor: string = '#EAF2FF';
+  @Prop iconColor: string = '#3F7DFF';
   onCardClick?: () => void;
   onAction?: () => void;
 
@@ -405,7 +454,7 @@ export struct ActionCard {
         .height(48)
         .justifyContent(FlexAlign.Center)
         .backgroundColor(this.iconBgColor)
-        .borderRadius(16)
+        .borderRadius(18)
         .margin({ right: 12 })
 
         Column() {
@@ -435,7 +484,7 @@ export struct ActionCard {
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(Color.White)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(14)
+          .borderRadius(18)
           .margin({ top: 16 })
           .onClick(() => {
             if (this.onAction) {
@@ -446,17 +495,17 @@ export struct ActionCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(24)
     .border({
       width: 1,
-      color: '#EEF3F8',
-      radius: 20,
+      color: '#E4ECFA',
+      radius: 24,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 10,
-      color: '#10172F12',
+      color: '#2F6BDE0C',
       offsetX: 0,
       offsetY: 4
     })

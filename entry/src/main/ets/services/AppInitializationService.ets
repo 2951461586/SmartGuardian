@@ -32,6 +32,9 @@ export interface InitializationStatus {
 export class AppInitializationService {
   private static instance: AppInitializationService;
   private context: common.UIAbilityContext | null = null;
+  private distributedDataManager: DistributedDataManager | null = null;
+  private distributedAbilityManager: DistributedAbilityManager | null = null;
+  private attendanceSyncService: AttendanceSyncService | null = null;
   private status: InitializationStatus = {
     distributedData: false,
     distributedAbility: false,
@@ -117,8 +120,8 @@ export class AppInitializationService {
    */
   private async initializeDistributedData(): Promise<void> {
     try {
-      const manager = new DistributedDataManager(this.context!);
-      const success = await manager.initialize();
+      this.distributedDataManager = new DistributedDataManager(this.context!);
+      const success = await this.distributedDataManager.initialize();
 
       this.status.distributedData = success;
       LogUtil.info(`Distributed data manager initialized: ${success}`);
@@ -133,8 +136,8 @@ export class AppInitializationService {
    */
   private async initializeDistributedAbility(): Promise<void> {
     try {
-      const manager = new DistributedAbilityManager(this.context!);
-      const success = await manager.initialize();
+      this.distributedAbilityManager = new DistributedAbilityManager(this.context!);
+      const success = await this.distributedAbilityManager.initialize();
 
       this.status.distributedAbility = success;
       LogUtil.info(`Distributed ability manager initialized: ${success}`);
@@ -149,8 +152,8 @@ export class AppInitializationService {
    */
   private async initializeAttendanceSync(): Promise<void> {
     try {
-      const service = new AttendanceSyncService(this.context!);
-      const success = await service.start();
+      this.attendanceSyncService = new AttendanceSyncService(this.context!);
+      const success = await this.attendanceSyncService.start();
 
       this.status.attendanceSync = success;
       LogUtil.info(`Attendance sync service initialized: ${success}`);
@@ -195,6 +198,21 @@ export class AppInitializationService {
    */
   destroy(): void {
     LogUtil.info('Destroying all services...');
+
+    if (this.attendanceSyncService) {
+      this.attendanceSyncService.stop();
+      this.attendanceSyncService = null;
+    }
+
+    if (this.distributedAbilityManager) {
+      this.distributedAbilityManager.destroy();
+      this.distributedAbilityManager = null;
+    }
+
+    if (this.distributedDataManager) {
+      this.distributedDataManager.destroy();
+      this.distributedDataManager = null;
+    }
     
     // 重置状态
     this.status = {

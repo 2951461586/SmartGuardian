@@ -2,9 +2,13 @@
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
-set "DEVECO_NODE=F:\IDE\DevEco Studio\tools\node\node.exe"
-set "WRAPPER_JS=F:\IDE\DevEco Studio\tools\hvigor\bin\hvigorw.js"
-set "DEVECO_SDK_ROOT=F:\IDE\DevEco Studio\sdk"
+set "DEVECO_ROOT=D:\IDE\DevEco Studio"
+if defined DEVECO_STUDIO_HOME set "DEVECO_ROOT=%DEVECO_STUDIO_HOME%"
+if not exist "%DEVECO_ROOT%\tools\hvigor\bin\hvigorw.js" if exist "F:\IDE\DevEco Studio\tools\hvigor\bin\hvigorw.js" set "DEVECO_ROOT=F:\IDE\DevEco Studio"
+
+set "DEVECO_NODE=%DEVECO_ROOT%\tools\node\node.exe"
+set "WRAPPER_JS=%DEVECO_ROOT%\tools\hvigor\bin\hvigorw.js"
+set "DEVECO_SDK_ROOT=%DEVECO_ROOT%\sdk"
 
 if not defined DEVECO_SDK_HOME set "DEVECO_SDK_HOME=%DEVECO_SDK_ROOT%"
 if not defined HOS_SDK_HOME set "HOS_SDK_HOME=%DEVECO_SDK_ROOT%"

@@ -233,8 +233,9 @@ export struct TeacherHomeworkPage {
   buildTabSectionContent() {
     TabBar({
       tabs: this.tabs,
-      currentIndex: $currentTab,
-      onTabChange: () => {
+      currentIndex: this.currentTab,
+      onTabChange: (index: number) => {
+        this.currentTab = index;
         this.loadHomeworkByTab();
       }
     })

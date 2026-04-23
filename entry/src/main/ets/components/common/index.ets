@@ -45,6 +45,16 @@ export {
   TabItem
 } from './TabBar';
 
+export {
+  StatusBadge,
+  SimpleStatusBadge,
+  AttendanceBadge,
+  OrderBadge,
+  HomeworkBadge,
+  SessionBadge,
+  BadgeSize
+} from '../StatusBadge';
+
 // Card
 export {
   Card,
@@ -62,6 +72,7 @@ export { SectionHeader } from './SectionHeader';
 
 // Action Button
 export { ActionButton } from './ActionButton';
+export { IconActionButton } from './IconActionButton';
 
 // Order List Item
 export { OrderListItem, OrderItemMode } from './OrderListItem';

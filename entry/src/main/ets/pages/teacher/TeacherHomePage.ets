@@ -1,18 +1,17 @@
 /**
  * SmartGuardian - Teacher Home Page
- * Teacher dashboard with real attendance and session data
+ * Teacher dashboard with the new light campus style
  */
 
 import {
-  GreetingHeader,
-  HeaderTheme,
-  LoadingState,
-  LoadingSize,
+  Card,
   EmptyState,
   EmptyType,
-  Card,
-  ActionButton,
-  SectionHeader,
+  GreetingHeader,
+  HeaderTheme,
+  IconActionButton,
+  LoadingSize,
+  LoadingState,
   StatCard
 } from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
@@ -130,37 +129,34 @@ export struct TeacherHomePage {
 
   private getSessionStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#16A34A';
+      return '#34C759';
     }
     if (status === 'ENDED') {
-      return '#7A879A';
+      return '#7E8EAB';
     }
-    return '#1F5EFF';
+    return '#3F7DFF';
   }
 
   private getSessionStatusBgColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#ECFDF5';
+      return '#EAF9EF';
     }
     if (status === 'ENDED') {
-      return '#EEF3F8';
+      return '#F2F5FB';
     }
-    return '#EDF4FF';
+    return '#EAF2FF';
   }
 
   build() {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '统一查看场次安排、考勤进度和作业处理情况。',
+        greeting: '统一查看班次安排、考勤进度和作业处理情况。',
         theme: HeaderTheme.WHITE,
-        badgeText: '教师工作台',
-        metaText: this.currentSession?.serviceProductName ? `当前场次：${this.currentSession.serviceProductName}` : '',
-        onRightIconClick: () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
-        }
+        badgeText: '教师端',
+        metaText: this.currentSession?.serviceProductName ? `当前班次：${this.currentSession.serviceProductName}` : '今日授课安排与签到状态总览'
       }) {
-        this.buildMessageEntry()
+        this.buildHeaderActions()
       }
 
       if (this.isLoading) {
@@ -175,48 +171,23 @@ export struct TeacherHomePage {
   }
 
   @Builder
-  buildMessageEntry() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Column() {
-        Image($r('app.media.ic_notification'))
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor('#12305F')
+  private buildHeaderActions() {
+    IconActionButton({
+      icon: $r('app.media.ic_notification'),
+      badgeCount: this.unreadCount,
+      onButtonClick: () => {
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
       }
-      .width(46)
-      .height(46)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor('#FFFFFF')
-      .borderRadius(18)
-      .border({
-        width: 1,
-        color: '#E5EEF9',
-        radius: 18,
-        style: BorderStyle.Solid
-      })
-
-      if (this.unreadCount > 0) {
-        Text(this.unreadCount > 99 ? '99+' : `${this.unreadCount}`)
-          .fontSize(10)
-          .fontColor(Color.White)
-          .backgroundColor($r('app.color.error'))
-          .borderRadius(9)
-          .padding({ left: 5, right: 5, top: 1, bottom: 1 })
-      }
-    }
-    .onClick(() => {
-      this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
     })
   }
 
   @Builder
-  buildContent() {
+  private buildContent() {
     Scroll() {
       Column() {
+        this.buildHeroCard()
         this.buildOverviewPanel()
-        this.buildQuickActions()
-        this.buildSessionOverviewCard()
+        this.buildQuickActionsCard()
         this.buildTodayStatsCard()
         this.buildTodaySessionsCard()
       }
@@ -229,14 +200,103 @@ export struct TeacherHomePage {
   }
 
   @Builder
-  buildOverviewPanel() {
+  private buildHeroCard() {
+    Row() {
+      Column() {
+        Text('今日在岗')
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor('#DCE8FF')
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#FFFFFF22')
+          .borderRadius(999)
+
+        Text(this.getDisplaySession()?.serviceProductName || '今日暂无授课班次')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Color.White)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .margin({ top: 14 })
+
+        Text(this.getDisplaySession() ? `${formatTime(this.getDisplaySession()?.startTime ?? '')} - ${formatTime(this.getDisplaySession()?.endTime ?? '')}` : '可以前往课程安排查看后续排班')
+          .fontSize(14)
+          .fontColor('#EAF1FF')
+          .margin({ top: 8 })
+
+        Row() {
+          this.buildHeroMetric(`${this.todaySessions.length}`, '今日班次')
+          Blank().width(12)
+          this.buildHeroMetric(`${this.getSignedCount()}`, '已签到')
+        }
+        .width('100%')
+        .margin({ top: 16 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Column() {
+        Text(this.getSessionStatusText(this.getDisplaySession()?.status))
+          .fontSize(12)
+          .fontColor('#3F7DFF')
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#F5F9FF')
+          .borderRadius(999)
+
+        Image($r('app.media.startIcon'))
+          .width(84)
+          .height(84)
+          .objectFit(ImageFit.Contain)
+          .opacity(0.22)
+          .margin({ top: 16 })
+      }
+      .alignItems(HorizontalAlign.End)
+    }
+    .width('100%')
+    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
+    .linearGradient({
+      angle: 145,
+      colors: [['#5A96FF', 0], ['#4B85FF', 0.55], ['#3970F5', 1]]
+    })
+    .borderRadius(28)
+    .shadow({
+      radius: 18,
+      color: '#2F6BDE18',
+      offsetX: 0,
+      offsetY: 10
+    })
+    .margin({ bottom: 14 })
+  }
+
+  @Builder
+  private buildHeroMetric(value: string, label: string) {
+    Column() {
+      Text(value)
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(Color.White)
+
+      Text(label)
+        .fontSize(12)
+        .fontColor('#DCE8FF')
+        .margin({ top: 4 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+    .backgroundColor('#FFFFFF16')
+    .borderRadius(18)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private buildOverviewPanel() {
     Column() {
       Row() {
         StatCard({
           value: `${this.todaySessions.length}`,
-          label: '今日场次',
+          label: '今日班次',
           icon: $r('app.media.ic_calendar'),
-          iconColor: '#1F5EFF'
+          iconColor: '#3F7DFF'
         })
         .layoutWeight(1)
 
@@ -246,7 +306,7 @@ export struct TeacherHomePage {
           value: `${this.getUnsignedCount()}`,
           label: '待签到',
           icon: $r('app.media.ic_warning'),
-          iconColor: '#F59E0B'
+          iconColor: '#FFB74D'
         })
         .layoutWeight(1)
       }
@@ -257,7 +317,7 @@ export struct TeacherHomePage {
           value: `${this.getSignedCount()}`,
           label: '已签到',
           icon: $r('app.media.ic_attendance'),
-          iconColor: '#16A34A'
+          iconColor: '#34C759'
         })
         .layoutWeight(1)
 
@@ -267,7 +327,7 @@ export struct TeacherHomePage {
           value: `${this.unreadCount}`,
           label: '未读消息',
           icon: $r('app.media.ic_message'),
-          iconColor: '#8B5CF6'
+          iconColor: '#8B6CF6'
         })
         .layoutWeight(1)
       }
@@ -279,109 +339,84 @@ export struct TeacherHomePage {
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 8 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(20)
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  buildQuickActions() {
-    Column() {
-      SectionHeader({
-        title: '快捷操作',
-        subtitle: '把高频教学任务集中到首页'
-      })
-
-      Row() {
-        ActionButton({
-          label: '扫码签到',
-          icon: $r('app.media.ic_qrcode'),
-          bgColor: '#ECFDF5',
-          iconColor: '#16A34A',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherScanPage' });
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '考勤管理',
-          icon: $r('app.media.ic_attendance'),
-          bgColor: '#EDF4FF',
-          iconColor: '#1F5EFF',
-          onButtonClick: () => {
-            AppStorage.setOrCreate('main_current_index', 1);
-          }
-        })
-      }
-      .width('100%')
-
-      Row() {
-        ActionButton({
-          label: '作业管理',
-          icon: $r('app.media.ic_homework'),
-          bgColor: '#FFF7E8',
-          iconColor: '#F59E0B',
-          onButtonClick: () => {
-            AppStorage.setOrCreate('main_current_index', 2);
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '课程安排',
-          icon: $r('app.media.ic_calendar'),
-          bgColor: '#F5F0FF',
-          iconColor: '#8B5CF6',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
-          }
-        })
-      }
-      .width('100%')
-      .margin({ top: 10 })
-    }
-    .width('100%')
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  buildSessionOverviewCard() {
+  private buildQuickActionsCard() {
     Card({
-      title: '当前场次',
-      subtitle: this.currentSession ? '聚焦当前进行中的场次和签到进度。' : '当前没有进行中的场次，展示今日最近安排。',
-      showArrow: this.getDisplaySession() !== null,
-      clickable: this.getDisplaySession() !== null,
-      onCardClick: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
-      },
-      content: this.buildSessionOverviewContent
+      title: '常用操作',
+      subtitle: '把高频教学任务集中到首页。',
+      content: this.buildQuickActionsContent
     })
   }
 
   @Builder
-  buildSessionOverviewContent() {
+  private buildQuickActionsContent() {
+    Column() {
+      Row() {
+        this.buildFeatureItem('扫码签到', '快速核验', $r('app.media.ic_qrcode'), '#EAF9EF', '#34C759', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherScanPage' });
+        })
+        this.buildFeatureItem('考勤管理', '查看明细', $r('app.media.ic_attendance'), '#EAF2FF', '#3F7DFF', () => {
+          AppStorage.setOrCreate('main_current_index', 1);
+        })
+        this.buildFeatureItem('作业管理', '布置反馈', $r('app.media.ic_homework'), '#FFF4E8', '#FF8A4D', () => {
+          AppStorage.setOrCreate('main_current_index', 2);
+        })
+        this.buildFeatureItem('课程安排', '查看排班', $r('app.media.ic_calendar'), '#F2EEFF', '#8B6CF6', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
+        })
+      }
+      .width('100%')
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
+    Column() {
+      Column() {
+        Image(icon)
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor(iconColor)
+      }
+      .width(52)
+      .height(52)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(bgColor)
+      .borderRadius(18)
+
+      Text(title)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 10 })
+
+      Text(subtitle)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 4 })
+    }
+    .layoutWeight(1)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => onClick())
+  }
+
+  @Builder
+  private buildTodayStatsCard() {
+    Card({
+      title: '当前班次',
+      subtitle: this.currentSession ? '聚焦当前进行中的班次和签到进度。' : '当前没有进行中的班次，展示今日最近安排。',
+      content: this.buildTodayStatsContent
+    })
+  }
+
+  @Builder
+  private buildTodayStatsContent() {
     if (this.getDisplaySession()) {
       Column() {
         Row() {
           Column() {
-            Text(this.getDisplaySession()?.serviceProductName ?? '托管场次')
+            Text(this.getDisplaySession()?.serviceProductName ?? '托管班次')
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.text_primary'))
@@ -404,12 +439,11 @@ export struct TeacherHomePage {
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
         }
         .width('100%')
-        .alignItems(VerticalAlign.Top)
 
         Row() {
-          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#16A34A')
+          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#34C759')
           Blank().width(10)
-          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#F59E0B')
+          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#FFB74D')
         }
         .width('100%')
         .margin({ top: 16 })
@@ -418,14 +452,14 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: '暂无场次安排',
-        customDescription: this.errorMessage || '稍后再刷新，或前往课程安排页查看最新计划。'
+        customTitle: '暂无班次安排',
+        customDescription: this.errorMessage || '稍后再刷新，或前往课程安排查看最新计划。'
       })
     }
   }
 
   @Builder
-  buildInlineMetric(label: string, value: string, color: string) {
+  private buildInlineMetric(label: string, value: string, color: string) {
     Column() {
       Text(label)
         .fontSize(12)
@@ -439,66 +473,15 @@ export struct TeacherHomePage {
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFD')
-    .borderRadius(14)
+    .backgroundColor('#F7FAFF')
+    .borderRadius(16)
     .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
-  buildTodayStatsCard() {
+  private buildTodaySessionsCard() {
     Card({
-      title: '今日概览',
-      subtitle: '查看场次执行情况和当前签到完成度。',
-      content: this.buildTodayStatsContent
-    })
-  }
-
-  @Builder
-  buildTodayStatsContent() {
-    Row() {
-      this.buildStatBlock(String(this.todaySessions.length), '场次', '#1F5EFF')
-
-      Divider()
-        .vertical(true)
-        .height(42)
-        .color('#E6ECF2')
-
-      this.buildStatBlock(String(this.getSignedCount()), '已签到', '#16A34A')
-
-      Divider()
-        .vertical(true)
-        .height(42)
-        .color('#E6ECF2')
-
-      this.buildStatBlock(String(this.unreadCount), '待处理消息', '#8B5CF6')
-    }
-    .width('100%')
-    .justifyContent(FlexAlign.SpaceBetween)
-    .alignItems(VerticalAlign.Center)
-  }
-
-  @Builder
-  buildStatBlock(value: string, label: string, color: string) {
-    Column() {
-      Text(value)
-        .fontSize(24)
-        .fontColor(color)
-        .fontWeight(FontWeight.Bold)
-
-      Text(label)
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
-  }
-
-  @Builder
-  buildTodaySessionsCard() {
-    Card({
-      title: '今日场次',
-      subtitle: '查看今天全部已排班次。',
+      title: '今日班次',
       actionText: '查看全部',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
@@ -508,13 +491,13 @@ export struct TeacherHomePage {
   }
 
   @Builder
-  buildTodaySessionsContent() {
+  private buildTodaySessionsContent() {
     if (this.todaySessions.length > 0) {
       Column() {
         ForEach(this.todaySessions, (session: SessionSchedule, index: number) => {
           Row() {
             Column() {
-              Text(session.serviceProductName ?? '托管场次')
+              Text(session.serviceProductName ?? '托管班次')
                 .fontSize(16)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.text_primary'))
@@ -537,10 +520,12 @@ export struct TeacherHomePage {
               .padding({ left: 10, right: 10, top: 4, bottom: 4 })
           }
           .width('100%')
-          .padding({ top: 4, bottom: 4 })
+          .padding({ top: 6, bottom: 6 })
 
           if (index < this.todaySessions.length - 1) {
-            Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
+            Divider()
+              .color($r('app.color.divider'))
+              .margin({ top: 10, bottom: 10 })
           }
         })
       }
@@ -548,8 +533,8 @@ export struct TeacherHomePage {
     } else {
       EmptyState({
         type: EmptyType.DEFAULT,
-        customTitle: '暂无场次记录',
-        customDescription: this.errorMessage || '当前没有可展示的场次数据。'
+        customTitle: '暂无班次记录',
+        customDescription: this.errorMessage || '当前没有可展示的班次数据。'
       })
     }
   }
