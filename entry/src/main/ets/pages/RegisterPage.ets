@@ -5,8 +5,9 @@
 
 import { PrivacyDialog, isPrivacyAgreed } from '../components/PrivacyDialog';
 
+@Entry
 @Component
-export struct RegisterPage {
+struct RegisterPage {
   @State mobile: string = '';
   @State verifyCode: string = '';
   @State realName: string = '';
@@ -41,7 +42,11 @@ export struct RegisterPage {
     try {
       this.getUIContext().getRouter().back();
     } catch (error) {
-      this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+      try {
+        this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+      } catch (innerError) {
+        console.error('RegisterPage goBack failed:', JSON.stringify(innerError));
+      }
     }
   }
 

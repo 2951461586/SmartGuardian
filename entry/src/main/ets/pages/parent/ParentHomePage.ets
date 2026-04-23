@@ -487,7 +487,7 @@ export struct ParentHomePage {
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-              Text(item.subject || item.description || '查看老师布置的最新任务与反馈')
+              Text(item.subject || item.content || '查看老师布置的最新任务与反馈')
                 .fontSize(12)
                 .fontColor($r('app.color.text_secondary'))
                 .lineHeight(18)

@@ -1,20 +1,18 @@
 /**
  * SmartGuardian - Admin Home Page
- * Admin dashboard backed by real report and order APIs
+ * Admin dashboard with the new light campus style
  */
 
 import {
+  Card,
+  EmptyState,
+  EmptyType,
   GreetingHeader,
   HeaderTheme,
-  LoadingState,
-  LoadingSize,
-  Card,
-  ActionButton,
   IconActionButton,
-  StatCard,
-  SectionHeader,
-  EmptyState,
-  EmptyType
+  LoadingSize,
+  LoadingState,
+  StatCard
 } from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { StudentService } from '../../services/api/auth';
@@ -99,7 +97,7 @@ export struct AdminHomePage {
       this.recentActivities = [
         { title: '学生规模', content: `系统当前共管理 ${totalStudents} 名学生。`, time: '实时' },
         { title: '待处理订单', content: `还有 ${pendingOrders} 笔订单待审核或跟进。`, time: '实时' },
-        { title: '消息提醒', content: `当前工作台还有 ${unreadMessages} 条未读通知。`, time: '实时' }
+        { title: '消息提醒', content: `当前工作台仍有 ${unreadMessages} 条未读通知。`, time: '实时' }
       ];
     } catch (error) {
       this.stats = {
@@ -117,34 +115,16 @@ export struct AdminHomePage {
     }
   }
 
-  private getExecutiveTitle(): string {
-    return '管理驾驶舱';
-  }
-
-  private getExecutiveSubtitle(): string {
-    if (this.errorMessage) {
-      return this.errorMessage;
-    }
-    return '聚焦学生规模、订单流转与经营收入的核心信号';
-  }
-
-  private getExecutiveValue(): string {
-    return `¥${this.stats.netIncome.toFixed(0)}`;
-  }
-
   build() {
     Column() {
       GreetingHeader({
         userName: this.userName,
         greeting: '集中查看学生、订单流转和经营指标。',
         theme: HeaderTheme.WHITE,
-        badgeText: '管理驾驶舱',
-        metaText: `今日出勤率：${this.stats.attendanceRate}%`,
-        onRightIconClick: () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
-        }
+        badgeText: '管理端',
+        metaText: `今日出勤率：${this.stats.attendanceRate}%`
       }) {
-        this.buildMessageEntry()
+        this.buildHeaderActions()
       }
 
       if (this.isLoading) {
@@ -159,12 +139,10 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildMessageEntry() {
+  private buildHeaderActions() {
     IconActionButton({
       icon: $r('app.media.ic_notification'),
       badgeCount: this.stats.unreadMessages,
-      boxBgColor: '#FFFDF8',
-      boxBorderColor: '#E8DDCD',
       onButtonClick: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
       }
@@ -172,10 +150,10 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildContent() {
+  private buildContent() {
     Scroll() {
       Column() {
-        this.buildExecutivePanel()
+        this.buildHeroCard()
         this.buildOverviewPanel()
         this.buildControlDeck()
         this.buildStatsSection()
@@ -190,60 +168,101 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildExecutivePanel() {
-    Card({
-      title: this.getExecutiveTitle(),
-      subtitle: this.getExecutiveSubtitle(),
-      customPadding: 18,
-      content: this.buildExecutiveContent
-    })
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  buildExecutiveContent() {
+  private buildHeroCard() {
     Row() {
       Column() {
-        Text('今日摘要')
-          .fontSize(11)
+        Text('经营总览')
+          .fontSize(12)
           .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
+          .fontColor('#DCE8FF')
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F2EBDD')
+          .backgroundColor('#FFFFFF22')
           .borderRadius(999)
 
-        Text(this.getExecutiveValue())
+        Text(`￥${this.stats.netIncome.toFixed(0)}`)
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
+          .fontColor(Color.White)
           .margin({ top: 14 })
 
         Text('当前统计周期净收入')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
+          .fontSize(14)
+          .fontColor('#EAF1FF')
           .margin({ top: 8 })
+
+        Row() {
+          this.buildHeroMetric(`${this.stats.attendanceRate}%`, '出勤率')
+          Blank().width(12)
+          this.buildHeroMetric(`${this.stats.pendingOrders}`, '待处理')
+        }
+        .width('100%')
+        .margin({ top: 16 })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
       Column() {
-        this.buildOverviewMetric('出勤率', `${this.stats.attendanceRate}%`, '#16A34A', '#F7F1E7')
-        this.buildOverviewMetric('待处理订单', `${this.stats.pendingOrders}`, '#D97706', '#F7F1E7')
+        Text('今日摘要')
+          .fontSize(12)
+          .fontColor('#3F7DFF')
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor('#F5F9FF')
+          .borderRadius(999)
+
+        Image($r('app.media.startIcon'))
+          .width(84)
+          .height(84)
+          .objectFit(ImageFit.Contain)
+          .opacity(0.22)
+          .margin({ top: 16 })
       }
-      .width(128)
+      .alignItems(HorizontalAlign.End)
     }
     .width('100%')
+    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
+    .linearGradient({
+      angle: 145,
+      colors: [['#5A96FF', 0], ['#4B85FF', 0.55], ['#3970F5', 1]]
+    })
+    .borderRadius(28)
+    .shadow({
+      radius: 18,
+      color: '#2F6BDE18',
+      offsetX: 0,
+      offsetY: 10
+    })
+    .margin({ bottom: 14 })
   }
 
   @Builder
-  buildOverviewPanel() {
+  private buildHeroMetric(value: string, label: string) {
+    Column() {
+      Text(value)
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(Color.White)
+
+      Text(label)
+        .fontSize(12)
+        .fontColor('#DCE8FF')
+        .margin({ top: 4 })
+    }
+    .layoutWeight(1)
+    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+    .backgroundColor('#FFFFFF16')
+    .borderRadius(18)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private buildOverviewPanel() {
     Column() {
       Row() {
         StatCard({
           value: `${this.stats.totalStudents}`,
           label: '学生总数',
           icon: $r('app.media.ic_user'),
-          iconColor: '#1F5EFF'
+          iconColor: '#3F7DFF'
         })
         .layoutWeight(1)
 
@@ -253,7 +272,7 @@ export struct AdminHomePage {
           value: `${this.stats.presentStudents}`,
           label: '今日到校',
           icon: $r('app.media.ic_attendance'),
-          iconColor: '#16A34A'
+          iconColor: '#34C759'
         })
         .layoutWeight(1)
       }
@@ -264,7 +283,7 @@ export struct AdminHomePage {
           value: `${this.stats.pendingOrders}`,
           label: '待处理订单',
           icon: $r('app.media.ic_order'),
-          iconColor: '#F59E0B'
+          iconColor: '#FFB74D'
         })
         .layoutWeight(1)
 
@@ -274,7 +293,7 @@ export struct AdminHomePage {
           value: `${this.stats.unreadMessages}`,
           label: '未读提醒',
           icon: $r('app.media.ic_message'),
-          iconColor: '#8B5CF6'
+          iconColor: '#8B6CF6'
         })
         .layoutWeight(1)
       }
@@ -286,147 +305,87 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildOverviewMetric(title: string, value: string, valueColor: string, bgColor: string) {
-    Column() {
-      Text(title)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 8 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
-    .backgroundColor(bgColor)
-    .borderRadius(20)
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  buildControlDeck() {
+  private buildControlDeck() {
     Card({
       title: '控制台入口',
-      subtitle: '从学生、消息、订单和报表四个高频动作进入管理流程',
-      customPadding: 12,
+      subtitle: '围绕学生、订单、服务和告警进入管理流程。',
       content: this.buildQuickActions
     })
-    .margin({ bottom: 14 })
   }
 
   @Builder
-  buildQuickActions() {
+  private buildQuickActions() {
     Column() {
       Row() {
-        ActionButton({
-          label: '学生档案',
-          icon: $r('app.media.ic_user'),
-          bgColor: '#F5F0FF',
-          iconColor: '#8B5CF6',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
-          }
+        this.buildFeatureItem('学生档案', '管理信息', $r('app.media.ic_user'), '#F2EEFF', '#8B6CF6', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentsPage' });
         })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '消息中心',
-          icon: $r('app.media.ic_message'),
-          bgColor: '#EDF4FF',
-          iconColor: '#1F5EFF',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
-          }
+        this.buildFeatureItem('消息中心', '通知处理', $r('app.media.ic_message'), '#EAF2FF', '#3F7DFF', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
+        })
+        this.buildFeatureItem('订单审核', '审批流转', $r('app.media.ic_order'), '#FFF4E8', '#FF8A4D', () => {
+          AppStorage.setOrCreate('main_current_index', 1);
+        })
+        this.buildFeatureItem('统计报表', '经营视图', $r('app.media.ic_report'), '#EAF9EF', '#34C759', () => {
+          AppStorage.setOrCreate('main_current_index', 2);
         })
       }
       .width('100%')
 
       Row() {
-        ActionButton({
-          label: '订单审核',
-          icon: $r('app.media.ic_order'),
-          bgColor: '#FFF7E8',
-          iconColor: '#F59E0B',
-          onButtonClick: () => {
-            AppStorage.setOrCreate('main_current_index', 1);
-          }
+        this.buildFeatureItem('服务产品', '模板配置', $r('app.media.ic_service'), '#EAF2FF', '#2563EB', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminServicesPage' });
         })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '统计报表',
-          icon: $r('app.media.ic_report'),
-          bgColor: '#ECFDF5',
-          iconColor: '#16A34A',
-          onButtonClick: () => {
-            AppStorage.setOrCreate('main_current_index', 2);
-          }
+        this.buildFeatureItem('班次排期', '自动排班', $r('app.media.ic_session'), '#F2EEFF', '#7C3AED', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminSessionsPage' });
+        })
+        this.buildFeatureItem('告警中心', '风险处理', $r('app.media.ic_alert_center'), '#FFF4E8', '#F97316', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminAlertsPage' });
+        })
+        this.buildFeatureItem('退款管理', '售后跟进', $r('app.media.ic_refund'), '#EAF9EF', '#15803D', () => {
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminRefundsPage' });
         })
       }
       .width('100%')
-      .margin({ top: 10 })
-
-      Row() {
-        ActionButton({
-          label: '服务产品',
-          icon: $r('app.media.ic_service'),
-          bgColor: '#EEF6FF',
-          iconColor: '#2563EB',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminServicesPage' });
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '班次排期',
-          icon: $r('app.media.ic_session'),
-          bgColor: '#F5F3FF',
-          iconColor: '#7C3AED',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminSessionsPage' });
-          }
-        })
-      }
-      .width('100%')
-      .margin({ top: 10 })
-
-      Row() {
-        ActionButton({
-          label: '告警中心',
-          icon: $r('app.media.ic_alert_center'),
-          bgColor: '#FFF7ED',
-          iconColor: '#EA580C',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminAlertsPage' });
-          }
-        })
-
-        Blank().width(10)
-
-        ActionButton({
-          label: '退款管理',
-          icon: $r('app.media.ic_refund'),
-          bgColor: '#ECFDF5',
-          iconColor: '#15803D',
-          onButtonClick: () => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminRefundsPage' });
-          }
-        })
-      }
-      .width('100%')
-      .margin({ top: 10 })
+      .margin({ top: 14 })
     }
     .width('100%')
   }
 
   @Builder
-  buildStatsSection() {
+  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
+    Column() {
+      Column() {
+        Image(icon)
+          .width(22)
+          .height(22)
+          .objectFit(ImageFit.Contain)
+          .fillColor(iconColor)
+      }
+      .width(52)
+      .height(52)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(bgColor)
+      .borderRadius(18)
+
+      Text(title)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 10 })
+
+      Text(subtitle)
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 4 })
+    }
+    .layoutWeight(1)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => onClick())
+  }
+
+  @Builder
+  private buildStatsSection() {
     Card({
       title: '运营概览',
       subtitle: this.errorMessage ? this.errorMessage : '集中查看学生规模、考勤、订单流转和营收情况。',
@@ -435,14 +394,14 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildStatsContent() {
+  private buildStatsContent() {
     Column() {
       Row() {
         StatCard({
           value: this.stats.totalStudents,
           label: '学生',
           icon: $r('app.media.ic_user'),
-          iconColor: '#8B5CF6'
+          iconColor: '#8B6CF6'
         })
         .layoutWeight(1)
 
@@ -452,7 +411,7 @@ export struct AdminHomePage {
           value: this.stats.presentStudents,
           label: '到校',
           icon: $r('app.media.ic_attendance'),
-          iconColor: '#16A34A'
+          iconColor: '#34C759'
         })
         .layoutWeight(1)
       }
@@ -463,17 +422,17 @@ export struct AdminHomePage {
           value: `${this.stats.attendanceRate}%`,
           label: '出勤率',
           icon: $r('app.media.ic_home'),
-          iconColor: '#1F5EFF'
+          iconColor: '#3F7DFF'
         })
         .layoutWeight(1)
 
         Blank().width(12)
 
         StatCard({
-          value: `¥${this.stats.netIncome.toFixed(0)}`,
+          value: `￥${this.stats.netIncome.toFixed(0)}`,
           label: '净收入',
           icon: $r('app.media.ic_money'),
-          iconColor: '#F59E0B'
+          iconColor: '#FFB74D'
         })
         .layoutWeight(1)
       }
@@ -484,10 +443,10 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildActivityCard() {
+  private buildActivityCard() {
     Card({
       title: '实时动态',
-      subtitle: '聚焦今天需要管理关注的重点事项。',
+      subtitle: '聚焦今天需要关注的重点事项。',
       actionText: '打开报表',
       onAction: () => {
         AppStorage.setOrCreate('main_current_index', 2);
@@ -497,7 +456,7 @@ export struct AdminHomePage {
   }
 
   @Builder
-  buildActivityContent() {
+  private buildActivityContent() {
     if (this.recentActivities.length > 0) {
       Column() {
         ForEach(this.recentActivities, (item: ActivityItem, index: number) => {
@@ -526,7 +485,9 @@ export struct AdminHomePage {
           .padding({ top: 4, bottom: 4 })
 
           if (index < this.recentActivities.length - 1) {
-            Divider().color('#E5DBCC').margin({ top: 10, bottom: 10 })
+            Divider()
+              .color($r('app.color.divider'))
+              .margin({ top: 10, bottom: 10 })
           }
         })
       }
