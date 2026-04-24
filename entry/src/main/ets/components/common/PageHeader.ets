@@ -1,7 +1,10 @@
 /**
  * SmartGuardian - Page Header Component
- * Unified page header with a light campus visual language
+ * HarmonyOS-inspired headers with pure blue-white surfaces and adaptive cards.
  */
+
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 export enum HeaderTheme {
   PRIMARY = 'PRIMARY',
@@ -31,12 +34,16 @@ export struct PageHeader {
           .fontSize($r('app.float.page_title_size'))
           .fontWeight(FontWeight.Bold)
           .fontColor(this.getTextColor())
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         if (this.subtitle) {
           Text(this.subtitle)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(this.getSubtitleColor())
             .margin({ top: 4 })
+            .maxLines(2)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
       }
       .alignItems(HorizontalAlign.Start)
@@ -49,6 +56,7 @@ export struct PageHeader {
       }
     }
     .width('100%')
+    .alignItems(VerticalAlign.Center)
     .justifyContent(FlexAlign.SpaceBetween)
     .padding(this.getPadding())
     .backgroundColor(this.getBgColor())
@@ -67,19 +75,9 @@ export struct PageHeader {
     .height(42)
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getActionBgColor())
-    .borderRadius(16)
-    .border({
-      width: 1,
-      color: this.getActionBorderColor(),
-      radius: 16,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
-      color: '#2F6BDE10',
-      offsetX: 0,
-      offsetY: 4
-    })
+    .borderRadius(HarmonyRadius.control)
+    .border({ width: 1, color: this.getActionBorderColor(), radius: HarmonyRadius.control, style: BorderStyle.Solid })
+    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
     .margin({ right: 12 })
     .onClick(() => {
       if (this.onBackClick) {
@@ -101,19 +99,9 @@ export struct PageHeader {
     .height(42)
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getActionBgColor())
-    .borderRadius(16)
-    .border({
-      width: 1,
-      color: this.getActionBorderColor(),
-      radius: 16,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
-      color: '#2F6BDE10',
-      offsetX: 0,
-      offsetY: 4
-    })
+    .borderRadius(HarmonyRadius.control)
+    .border({ width: 1, color: this.getActionBorderColor(), radius: HarmonyRadius.control, style: BorderStyle.Solid })
+    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
     .onClick(() => {
       if (this.onRightIconClick) {
         this.onRightIconClick();
@@ -122,58 +110,36 @@ export struct PageHeader {
   }
 
   private getBgColor(): ResourceColor {
-    switch (this.theme) {
-      case HeaderTheme.WHITE:
-        return $r('app.color.page_background');
-      case HeaderTheme.TRANSPARENT:
-        return Color.Transparent;
-      default:
-        return $r('app.color.primary');
+    if (this.theme === HeaderTheme.WHITE) {
+      return $r('app.color.page_background');
     }
+    if (this.theme === HeaderTheme.TRANSPARENT) {
+      return Color.Transparent;
+    }
+    return getCurrentRolePalette().primary;
   }
 
   private getTextColor(): ResourceColor {
-    switch (this.theme) {
-      case HeaderTheme.WHITE:
-        return $r('app.color.text_primary');
-      case HeaderTheme.TRANSPARENT:
-        return Color.White;
-      default:
-        return Color.White;
-    }
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White;
   }
 
   private getSubtitleColor(): ResourceColor {
-    switch (this.theme) {
-      case HeaderTheme.WHITE:
-        return $r('app.color.text_secondary');
-      case HeaderTheme.TRANSPARENT:
-        return '#F6F9FFD9';
-      default:
-        return '#F6F9FFD9';
-    }
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFD9';
   }
 
   private getActionBgColor(): ResourceColor {
-    if (this.theme === HeaderTheme.WHITE) {
-      return '#FFFFFF';
-    }
-    return '#FFFFFF20';
+    return this.theme === HeaderTheme.WHITE ? '#FFFFFF' : '#FFFFFF20';
   }
 
   private getActionBorderColor(): ResourceColor {
-    if (this.theme === HeaderTheme.WHITE) {
-      return '#E4ECFA';
-    }
-    return '#FFFFFF2A';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.line : '#FFFFFF2A';
   }
 
   private getPadding(): Padding {
-    const statusBarHeight = Number($r('app.float.status_bar_height'));
     return {
       left: 16,
       right: 16,
-      top: statusBarHeight + 16,
+      top: Number($r('app.float.status_bar_height')) + 16,
       bottom: 16
     };
   }
@@ -189,15 +155,12 @@ export struct SimplePageHeader {
       Text(this.title)
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
-        .fontColor(this.theme === HeaderTheme.WHITE ? $r('app.color.text_primary') : Color.White)
+        .fontColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White)
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
-    .padding({
-      top: Number($r('app.float.status_bar_height')) + 20,
-      bottom: 20
-    })
-    .backgroundColor(this.theme === HeaderTheme.WHITE ? $r('app.color.page_background') : $r('app.color.primary'))
+    .padding({ top: Number($r('app.float.status_bar_height')) + 20, bottom: 20 })
+    .backgroundColor(this.theme === HeaderTheme.WHITE ? $r('app.color.page_background') : getCurrentRolePalette().primary)
   }
 }
 
@@ -205,7 +168,7 @@ export struct SimplePageHeader {
 export struct GreetingHeader {
   @Prop userName: string = '';
   @Prop greeting: string = '';
-  @Prop theme: HeaderTheme = HeaderTheme.PRIMARY;
+  @Prop theme: HeaderTheme = HeaderTheme.WHITE;
   @Prop badgeText: string = 'SmartGuardian';
   @Prop metaText: string = '';
   onRightIconClick?: () => void;
@@ -215,32 +178,51 @@ export struct GreetingHeader {
     Column() {
       Row() {
         Column() {
-          Text(this.badgeText)
-            .fontSize(11)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(this.getAccentTextColor())
-            .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-            .backgroundColor(this.getAccentBgColor())
-            .borderRadius(999)
+          Row() {
+            Text('智慧学生托管系统')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.getTextColor())
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          Text(`你好，${this.userName || '用户'}`)
-            .fontSize(28)
+            Text(this.badgeText)
+              .fontSize(12)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(this.getAccentTextColor())
+              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+              .backgroundColor(this.getAccentBgColor())
+              .borderRadius(HarmonyRadius.pill)
+              .margin({ left: 10 })
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Center)
+
+          Text(this.userName ? `你好，${this.userName}` : (this.greeting || '欢迎回来'))
+            .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getTextColor())
-            .margin({ top: 14 })
+            .margin({ top: 12 })
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
 
           if (this.greeting) {
             Text(this.greeting)
-              .fontSize(14)
+              .fontSize(13)
               .fontColor(this.getSubtitleColor())
-              .lineHeight(21)
-              .margin({ top: 8 })
+              .lineHeight(19)
+              .margin({ top: 5 })
+              .maxLines(2)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
 
           Text(this.metaText || this.getDefaultMetaText())
             .fontSize(12)
             .fontColor(this.getMutedTextColor())
-            .margin({ top: 14 })
+            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+            .backgroundColor(this.getMetaBgColor())
+            .borderRadius(HarmonyRadius.pill)
+            .margin({ top: 10 })
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
@@ -259,19 +241,14 @@ export struct GreetingHeader {
       left: 20,
       right: 20,
       top: Number($r('app.float.status_bar_height')) + 18,
-      bottom: this.theme === HeaderTheme.WHITE ? 18 : 24
+      bottom: 18
     })
     .linearGradient(this.getGradient())
     .borderRadius({
-      bottomLeft: this.getBottomRadius(),
-      bottomRight: this.getBottomRadius()
+      bottomLeft: this.theme === HeaderTheme.WHITE ? 0 : 32,
+      bottomRight: this.theme === HeaderTheme.WHITE ? 0 : 32
     })
-    .shadow({
-      radius: this.theme === HeaderTheme.WHITE ? 0 : 20,
-      color: '#2F6BDE10',
-      offsetX: 0,
-      offsetY: 10
-    })
+    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 0 : 18, color: harmonyShadowColor(), offsetX: 0, offsetY: 10 })
   }
 
   @Builder
@@ -281,25 +258,20 @@ export struct GreetingHeader {
         .width(22)
         .height(22)
         .objectFit(ImageFit.Contain)
-        .fillColor(this.theme === HeaderTheme.WHITE ? $r('app.color.text_primary') : Color.White)
+        .fillColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White)
     }
     .width(48)
     .height(48)
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.theme === HeaderTheme.WHITE ? '#FFFFFF' : '#FFFFFF20')
-    .borderRadius(20)
+    .borderRadius(HarmonyRadius.control)
     .border({
       width: 1,
-      color: this.theme === HeaderTheme.WHITE ? '#E4ECFA' : '#FFFFFF2A',
-      radius: 20,
+      color: this.theme === HeaderTheme.WHITE ? HarmonyColor.line : '#FFFFFF2A',
+      radius: HarmonyRadius.control,
       style: BorderStyle.Solid
     })
-    .shadow({
-      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
-      color: '#2F6BDE10',
-      offsetX: 0,
-      offsetY: 4
-    })
+    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
     .onClick(() => {
       if (this.onRightIconClick) {
         this.onRightIconClick();
@@ -308,41 +280,41 @@ export struct GreetingHeader {
   }
 
   private getTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? $r('app.color.text_primary') : Color.White;
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White;
   }
 
   private getSubtitleColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? $r('app.color.text_secondary') : '#F7FAFFD9';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFD9';
   }
 
   private getMutedTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? '#94A3BD' : '#E7EEFFB8';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFB8';
   }
 
   private getAccentBgColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? '#EAF2FF' : '#FFFFFF20';
+    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().light : '#FFFFFF20';
   }
 
   private getAccentTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? $r('app.color.primary') : '#FFFFFF';
+    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().primary : '#FFFFFF';
+  }
+
+  private getMetaBgColor(): ResourceColor {
+    return this.theme === HeaderTheme.WHITE ? '#FFFFFFC9' : '#FFFFFF18';
   }
 
   private getGradient(): LinearGradient {
     if (this.theme === HeaderTheme.WHITE) {
       return {
         angle: 165,
-        colors: [['#F7FAFF', 0], ['#F0F5FF', 0.58], ['#EDF3FF', 1]]
+        colors: [['#FFFFFF', 0], ['#F7FAFF', 0.55], [getCurrentRolePalette().light, 1]]
       };
     }
 
     return {
       angle: 145,
-      colors: [['#5A93FF', 0], ['#4B85FF', 0.52], ['#3A72F7', 1]]
+      colors: [[getCurrentRolePalette().primary, 0], [getCurrentRolePalette().primaryDark, 0.58], ['#18233F', 1]]
     };
-  }
-
-  private getBottomRadius(): number {
-    return this.theme === HeaderTheme.WHITE ? 0 : 32;
   }
 
   private getDefaultMetaText(): string {

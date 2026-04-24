@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Refund Page
  * Refund application and refund record management
  */
@@ -457,3 +457,4 @@ struct ParentRefundPage {
     ];
   }
 }
+

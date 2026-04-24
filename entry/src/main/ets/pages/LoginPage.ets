@@ -1,16 +1,25 @@
 /**
  * SmartGuardian - Login Page
- * Unified login entrance for parent, teacher and admin roles
+ * HarmonyOS-inspired unified login entrance for parent, teacher and organization.
  */
 
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../common/HarmonyDesign';
+import { getRolePalette, RolePalette } from '../common/RoleTheme';
 import { ApiConfig, ApiEnvironment } from '../config/api.config';
 import { PrivacyDialog, isPrivacyAgreed } from '../components/PrivacyDialog';
+import { UserRole } from '../models/common';
 import { LoginRequest } from '../models/user';
 import { AuthService } from '../services/api/auth';
 import { UserStore } from '../stores/userStore';
 import { CryptoUtil } from '../utils/CryptoUtil';
 import { LogUtil } from '../utils/LogUtil';
 import { setToken } from '../utils/request';
+
+interface PortalOption {
+  title: string;
+  value: string;
+  subtitle: string;
+}
 
 @Entry
 @Component
@@ -46,6 +55,7 @@ struct LoginPage {
     this.isPrivacyChecked = isPrivacyAgreed();
     this.currentEnv = ApiConfig.getCurrentEnv();
     this.apiBaseUrl = ApiConfig.getConfiguredBaseUrl();
+    this.syncMockDemoAccount(this.selectedPortal);
 
     if (!this.isPrivacyChecked) {
       this.privacyDialogController.open();
@@ -66,34 +76,91 @@ struct LoginPage {
     return true;
   }
 
-  private handleEnvChange(env: string): void {
-    this.currentEnv = env;
-    this.errorMessage = '';
-    if (env === ApiEnvironment.DEV_MOCK) {
-      ApiConfig.applyRuntimeConfig(ApiEnvironment.DEV_MOCK);
-    } else {
-      this.apiBaseUrl = ApiConfig.getConfiguredBaseUrl();
-    }
-  }
-
   private handlePortalChange(portal: string): void {
     this.selectedPortal = portal;
+    this.syncMockDemoAccount(portal);
     this.errorMessage = '';
   }
 
-  private fillDemoAccount(portal: string): void {
-    this.selectedPortal = portal;
-    if (portal === 'PARENT') {
-      this.username = 'parent_zhang';
-    } else if (portal === 'TEACHER') {
-      this.username = 'teacher_wang';
-    } else {
-      this.username = 'admin_li';
+  private getDemoUsername(portal: string): string {
+    if (portal === 'TEACHER') {
+      return 'teacher_wang';
     }
-    this.password = '123456';
+    if (portal === 'ADMIN') {
+      return 'admin_li';
+    }
+    return 'parent_zhang';
   }
 
-  async handleLogin() {
+  private isDemoUsername(username: string): boolean {
+    const value = username.trim();
+    return value === '' ||
+      value === 'parent_zhang' ||
+      value === 'teacher_wang' ||
+      value === 'admin_li';
+  }
+
+  private syncMockDemoAccount(portal: string): void {
+    if (this.currentEnv !== ApiEnvironment.DEV_MOCK) {
+      return;
+    }
+    if (this.isDemoUsername(this.username)) {
+      this.username = this.getDemoUsername(portal);
+    }
+    if (this.password === '' || this.password === '123456') {
+      this.password = '123456';
+    }
+  }
+
+  private getSelectedPortalRole(): UserRole {
+    if (this.selectedPortal === 'TEACHER') {
+      return UserRole.TEACHER;
+    }
+    if (this.selectedPortal === 'ADMIN') {
+      return UserRole.ORG_ADMIN;
+    }
+    return UserRole.PARENT;
+  }
+
+  private getPortalRole(portal: string): UserRole {
+    if (portal === 'TEACHER') {
+      return UserRole.TEACHER;
+    }
+    if (portal === 'ADMIN') {
+      return UserRole.ORG_ADMIN;
+    }
+    return UserRole.PARENT;
+  }
+
+  private getSelectedPalette(): RolePalette {
+    return getRolePalette(this.getSelectedPortalRole());
+  }
+
+  private getPortalPalette(portal: string): RolePalette {
+    return getRolePalette(this.getPortalRole(portal));
+  }
+
+  private getPortalIcon(portal: string): Resource {
+    if (portal === 'TEACHER') {
+      return $r('app.media.ic_homework');
+    }
+    if (portal === 'ADMIN') {
+      return $r('app.media.ic_service');
+    }
+    return $r('app.media.ic_child');
+  }
+
+  private getPortalIllustration(portal: string): Resource {
+    if (portal === 'TEACHER') {
+      return $r('app.media.sg_illustration_teaching');
+    }
+    if (portal === 'ADMIN') {
+      return $r('app.media.sg_illustration_education');
+    }
+    return $r('app.media.sg_illustration_children');
+  }
+
+  async handleLogin(): Promise<void> {
     if (!this.username.trim() || !this.password.trim()) {
       this.errorMessage = '请输入账号和密码。';
       return;
@@ -116,6 +183,9 @@ struct LoginPage {
         username: this.username.trim(),
         password: this.password
       };
+      if (this.currentEnv === ApiEnvironment.DEV_MOCK) {
+        request.roleType = this.getSelectedPortalRole();
+      }
 
       LogUtil.info('LoginPage', `Attempting login for user: ${CryptoUtil.encryptSimple(this.username)}`);
       const resp = await AuthService.login(request);
@@ -123,14 +193,13 @@ struct LoginPage {
       if (resp.code === 0 && resp.data) {
         setToken(resp.data.token);
         UserStore.setUserInfo(resp.data.userInfo);
-        LogUtil.info('LoginPage', `Login successful for role: ${resp.data.userInfo.roleType}`);
         this.getUIContext().getRouter().replaceUrl({ url: 'pages/MainPage' });
       } else {
         this.errorMessage = resp.message || '登录失败，请检查账号密码或服务状态。';
       }
     } catch (error) {
       this.errorMessage = this.currentEnv === ApiEnvironment.TEST_REAL
-        ? '本地后端请求失败，请检查 Spring Boot 服务、MySQL 和联调地址。'
+        ? '本地后端请求失败，请检查 Spring Boot 服务和联调地址。'
         : '网络请求失败，请稍后重试。';
       LogUtil.error('LoginPage', `Login error: ${JSON.stringify(error)}`);
     } finally {
@@ -145,31 +214,28 @@ struct LoginPage {
     }, 2200);
   }
 
-  private getPortalLabel(): string {
+  private getPortalLoginTitle(): string {
     if (this.selectedPortal === 'TEACHER') {
-      return '教师端';
+      return '教师端登录';
     }
     if (this.selectedPortal === 'ADMIN') {
-      return '管理端';
+      return '机构端登录';
     }
-    return '家长端';
+    return '家长端登录';
   }
 
   private getPortalHint(): string {
     if (this.selectedPortal === 'TEACHER') {
-      return '班次、考勤和作业协同统一在一个入口完成。';
+      return '管理学生考勤、作业反馈和家校沟通。';
     }
     if (this.selectedPortal === 'ADMIN') {
-      return '聚焦学生、订单、报表和运营看板的统一控制台。';
+      return '统筹机构运营、订单审核和服务质量。';
     }
-    return '托管预约、签到动态和家校沟通统一进入家长工作台。';
+    return '关注孩子托管、签到动态和成长记录。';
   }
 
   private getAccountPlaceholder(): string {
-    if (this.selectedPortal === 'PARENT') {
-      return '请输入账号 / 手机号';
-    }
-    return '请输入用户名 / 工号';
+    return this.selectedPortal === 'PARENT' ? '请输入手机号 / 家长账号' : '请输入账号';
   }
 
   build() {
@@ -177,312 +243,212 @@ struct LoginPage {
       Column() {
         this.buildHeroSection()
         this.buildLoginCard()
-        this.buildEnvironmentPanel()
       }
       .width('100%')
-      .padding({ bottom: 28 })
+      .padding({ left: 18, right: 18, top: 18, bottom: 28 })
     }
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
-    .backgroundColor($r('app.color.page_background'))
+    .backgroundColor(HarmonyColor.page)
   }
 
   @Builder
   private buildHeroSection() {
     Column() {
+      Text('智慧学生托管系统')
+        .fontSize(30)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(HarmonyColor.textPrimary)
+        .textAlign(TextAlign.Center)
+
+      Text('基于 HarmonyOS + ArkTS 的三端统一工作台')
+        .fontSize(14)
+        .fontColor(HarmonyColor.textSecondary)
+        .margin({ top: 8 })
+
       Row() {
-        Column() {
-          Row() {
-            Image($r('app.media.ic_logo'))
-              .width(74)
-              .height(74)
-              .objectFit(ImageFit.Contain)
-              .backgroundColor('#FFFFFF')
-              .borderRadius(24)
-
-            Blank()
-          }
-          .width('100%')
-
-          Text('智慧学生管理系统')
-            .fontSize(34)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#2451A6')
-            .margin({ top: 18 })
-
-          Text('科技赋能教育 · 智慧成就未来')
-            .fontSize(16)
-            .fontColor('#7B93C4')
-            .margin({ top: 10 })
-
-          Row() {
-            this.buildHeroChip('统一登录')
-            this.buildHeroChip('三端分流')
-            this.buildHeroChip(this.currentEnv === ApiEnvironment.TEST_REAL ? '本地后端' : '模拟演示')
-          }
-          .width('100%')
-          .margin({ top: 18 })
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-
-        Image($r('app.media.startIcon'))
-          .width(116)
-          .height(116)
-          .objectFit(ImageFit.Contain)
-          .opacity(0.28)
-          .margin({ left: 12, top: 36 })
+        this.buildTrustChip('纯净蓝白', $r('app.media.ic_success'), '#EAF2FF', '#0A59F7')
+        this.buildTrustChip('卡片共享', $r('app.media.ic_home'), '#F0EEFF', '#6D5DD3')
+        this.buildTrustChip('多端适配', $r('app.media.ic_distributed'), '#EAF8F1', '#1A8C5F')
       }
-      .width('100%')
-      .alignItems(VerticalAlign.Top)
+      .justifyContent(FlexAlign.Center)
+      .margin({ top: 16 })
     }
     .width('100%')
-    .padding({ left: 22, right: 22, top: 72, bottom: 26 })
-    .backgroundColor($r('app.color.page_background'))
+    .padding({ top: Number($r('app.float.status_bar_height')) + 10, bottom: 18 })
   }
 
   @Builder
-  private buildHeroChip(label: string) {
-    Text(label)
-      .fontSize(11)
-      .fontWeight(FontWeight.Medium)
-      .fontColor($r('app.color.primary'))
-      .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-      .backgroundColor('#EAF2FF')
-      .borderRadius(999)
-      .margin({ right: 8 })
+  private buildTrustChip(label: string, icon: Resource, bgColor: string, iconColor: string) {
+    Row() {
+      Image(icon)
+        .width(14)
+        .height(14)
+        .objectFit(ImageFit.Contain)
+        .fillColor(iconColor)
+
+      Text(label)
+        .fontSize(11)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(HarmonyColor.textSecondary)
+        .margin({ left: 5 })
+    }
+    .padding({ left: 10, right: 10, top: 7, bottom: 7 })
+    .backgroundColor(bgColor)
+    .borderRadius(HarmonyRadius.pill)
+    .margin({ right: 8 })
   }
 
   @Builder
   private buildLoginCard() {
     Column() {
-      Text('欢迎回来')
-        .fontSize(25)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .width('100%')
-
-      Text(`当前入口：${this.getPortalLabel()} · ${this.getPortalHint()}`)
-        .fontSize(14)
-        .fontColor($r('app.color.text_secondary'))
-        .lineHeight(21)
-        .width('100%')
-        .margin({ top: 8 })
-
-      Row() {
-        this.buildPortalCard('家长', 'PARENT', '预约与动态')
-        Blank().width(10)
-        this.buildPortalCard('教师', 'TEACHER', '考勤与作业')
-        Blank().width(10)
-        this.buildPortalCard('管理', 'ADMIN', '运营与审核')
-      }
-      .width('100%')
-      .margin({ top: 18 })
-
+      this.buildPortalVisual()
+      this.buildPortalSwitcher()
       this.buildInputRow($r('app.media.ic_user'), this.getAccountPlaceholder(), this.username, false)
       this.buildInputRow($r('app.media.ic_lock'), '请输入密码', this.password, true)
-
-      Row() {
-        Row() {
-          Checkbox()
-            .select(this.rememberPassword)
-            .selectedColor($r('app.color.primary'))
-            .width(18)
-            .height(18)
-            .onChange((isChecked: boolean) => {
-              this.rememberPassword = isChecked;
-            })
-
-          Text('记住密码')
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ left: 8 })
-        }
-
-        Blank()
-
-        Text('忘记密码？')
-          .fontSize(13)
-          .fontColor($r('app.color.primary'))
-          .onClick(() => this.showTempMessage('当前版本暂未接入密码重置流程。'))
-      }
-      .width('100%')
-      .margin({ top: 18 })
-
-      Row() {
-        Checkbox()
-          .select(this.isPrivacyChecked)
-          .selectedColor($r('app.color.primary'))
-          .width(18)
-          .height(18)
-          .onChange((isChecked: boolean) => {
-            this.isPrivacyChecked = isChecked;
-            if (isChecked) {
-              AppStorage.setOrCreate('privacy_agreed', true);
-            }
-          })
-
-        Text('我已阅读并同意')
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ left: 8 })
-
-        Text('《隐私政策》')
-          .fontSize(12)
-          .fontColor($r('app.color.primary'))
-          .onClick(() => this.privacyDialogController.open())
-      }
-      .width('100%')
-      .margin({ top: 16 })
+      this.buildFormOptions()
 
       if (this.errorMessage) {
-        Row() {
-          Image($r('app.media.ic_warning'))
-            .width(16)
-            .height(16)
-            .fillColor($r('app.color.error'))
-            .margin({ right: 8 })
-
-          Text(this.errorMessage)
-            .fontSize(13)
-            .fontColor($r('app.color.error'))
-            .layoutWeight(1)
-        }
-        .width('100%')
-        .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-        .backgroundColor('#FFECEF')
-        .borderRadius(14)
-        .margin({ top: 18 })
+        this.buildErrorBanner()
       }
 
       Button(this.isLoading ? '登录中...' : '登录')
         .width('100%')
-        .height(54)
+        .height(52)
         .fontSize(17)
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Bold)
         .fontColor(Color.White)
-        .backgroundColor($r('app.color.primary'))
+        .backgroundColor(this.isLoading ? '#A9C5FF' : this.getSelectedPalette().primary)
         .borderRadius(20)
+        .margin({ top: 18 })
         .enabled(!this.isLoading)
-        .opacity(this.isLoading ? 0.72 : 1)
-        .margin({ top: 22 })
-        .onClick(() => {
-          this.handleLogin();
-        })
+        .onClick(() => this.handleLogin())
 
-      Row() {
-        Divider()
-          .color($r('app.color.divider'))
-          .layoutWeight(1)
-
-        Text('其他登录方式')
-          .fontSize(12)
-          .fontColor($r('app.color.text_tertiary'))
-          .margin({ left: 12, right: 12 })
-
-        Divider()
-          .color($r('app.color.divider'))
-          .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 26 })
-
-      Row() {
-        this.buildSecondaryAction($r('app.media.ic_qrcode'), '扫码登录', '#EAF2FF', '#3F7DFF', () => {
-          this.showTempMessage('扫码登录将在后续版本接入。');
-        })
-
-        Blank().width(22)
-
-        this.buildSecondaryAction($r('app.media.ic_message'), '短信验证', '#EAF9EF', '#34C759', () => {
-          this.showTempMessage('短信验证码登录将在后续版本接入。');
-        })
-      }
-      .margin({ top: 22 })
-
-      Row() {
-        Text('还没有账号？')
-          .fontSize(14)
-          .fontColor($r('app.color.text_secondary'))
-
-        Text('立即注册')
-          .fontSize(14)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .margin({ left: 6 })
-          .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/RegisterPage' });
-          })
-      }
-      .margin({ top: 24 })
+      this.buildHarmonyLogin()
+      this.buildAgreementRow()
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 24, bottom: 24 })
-    .backgroundColor('#FFFFFF')
+    .padding({ left: 20, right: 20, top: 20, bottom: 22 })
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(32)
-    .border({
-      width: 1,
-      color: '#E4ECFA',
-      radius: 32,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 24,
-      color: '#2F6BDE12',
-      offsetX: 0,
-      offsetY: 12
-    })
-    .margin({ left: 20, right: 20 })
+    .border({ width: 1, color: HarmonyColor.line, radius: 32, style: BorderStyle.Solid })
+    .shadow({ radius: 24, color: harmonyShadowColor(), offsetX: 0, offsetY: 12 })
   }
 
   @Builder
-  private buildPortalCard(title: string, value: string, subtitle: string) {
-    Column() {
-      Text(title)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(this.selectedPortal === value ? $r('app.color.primary') : $r('app.color.text_primary'))
+  private buildPortalVisual() {
+    Row() {
+      Column() {
+        Row() {
+          Column() {
+            Image(this.getPortalIcon(this.selectedPortal))
+              .width(24)
+              .height(24)
+              .objectFit(ImageFit.Contain)
+              .fillColor(Color.White)
+          }
+          .width(48)
+          .height(48)
+          .justifyContent(FlexAlign.Center)
+          .backgroundColor(this.getSelectedPalette().primary)
+          .borderRadius(18)
 
-      Text(subtitle)
+          Column() {
+            Text(this.getPortalLoginTitle())
+              .fontSize(22)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(HarmonyColor.textPrimary)
+            Text(this.getPortalHint())
+              .fontSize(13)
+              .fontColor(HarmonyColor.textSecondary)
+              .lineHeight(19)
+              .margin({ top: 5 })
+          }
+          .alignItems(HorizontalAlign.Start)
+          .layoutWeight(1)
+          .margin({ left: 12 })
+        }
+        .width('100%')
+
+        Text('账号登录')
+          .fontSize(12)
+          .fontColor(this.getSelectedPalette().primary)
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .backgroundColor(this.getSelectedPalette().light)
+          .borderRadius(HarmonyRadius.pill)
+          .margin({ top: 16 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Image(this.getPortalIllustration(this.selectedPortal))
+        .width(118)
+        .height(96)
+        .objectFit(ImageFit.Contain)
+        .opacity(0.92)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+    .linearGradient({
+      angle: 135,
+      colors: [['#FFFFFF', 0], [this.getSelectedPalette().light, 1]]
+    })
+    .borderRadius(26)
+    .border({ width: 1, color: this.getSelectedPalette().border, radius: 26, style: BorderStyle.Solid })
+  }
+
+  @Builder
+  private buildPortalSwitcher() {
+    Row() {
+      ForEach(this.getPortals(), (portal: PortalOption) => {
+        this.buildPortalCard(portal)
+      })
+    }
+    .width('100%')
+    .padding(4)
+    .backgroundColor('#F2F5FA')
+    .borderRadius(22)
+    .margin({ top: 18, bottom: 2 })
+  }
+
+  @Builder
+  private buildPortalCard(portal: PortalOption) {
+    Column() {
+      Text(portal.title)
+        .fontSize(15)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.selectedPortal === portal.value ? this.getPortalPalette(portal.value).primary : HarmonyColor.textSecondary)
+
+      Text(portal.subtitle)
         .fontSize(11)
-        .fontColor(this.selectedPortal === value ? '#6D91D8' : $r('app.color.text_tertiary'))
-        .margin({ top: 6 })
+        .fontColor(this.selectedPortal === portal.value ? this.getPortalPalette(portal.value).primaryDark : HarmonyColor.textTertiary)
+        .margin({ top: 4 })
     }
     .layoutWeight(1)
-    .height(72)
+    .height(56)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.selectedPortal === value ? '#EAF2FF' : '#F8FAFF')
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: this.selectedPortal === value ? '#CFE0FF' : '#E8EEF9',
-      radius: 20,
-      style: BorderStyle.Solid
+    .backgroundColor(this.selectedPortal === portal.value ? '#FFFFFF' : Color.Transparent)
+    .borderRadius(18)
+    .shadow({
+      radius: this.selectedPortal === portal.value ? 10 : 0,
+      color: this.selectedPortal === portal.value ? harmonyShadowColor() : Color.Transparent,
+      offsetX: 0,
+      offsetY: 4
     })
-    .onClick(() => this.handlePortalChange(value))
+    .onClick(() => this.handlePortalChange(portal.value))
   }
 
   @Builder
   private buildInputRow(icon: Resource, placeholder: string, value: string, isPassword: boolean) {
     Row() {
-      Column() {
-        Image(icon)
-          .width(20)
-          .height(20)
-          .objectFit(ImageFit.Contain)
-          .fillColor($r('app.color.primary'))
-      }
-      .width(36)
-      .height(36)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor('#F2F7FF')
-      .borderRadius(14)
+      Image(icon)
+        .width(20)
+        .height(20)
+        .objectFit(ImageFit.Contain)
+        .fillColor(this.getSelectedPalette().primary)
 
-      TextInput({
-        placeholder,
-        text: value
-      })
+      TextInput({ placeholder, text: value })
         .fontSize(16)
         .backgroundColor(Color.Transparent)
         .flexGrow(1)
@@ -501,7 +467,7 @@ struct LoginPage {
           .width(20)
           .height(20)
           .objectFit(ImageFit.Contain)
-          .fillColor($r('app.color.text_tertiary'))
+          .fillColor(HarmonyColor.textTertiary)
           .onClick(() => {
             this.showPassword = !this.showPassword;
           })
@@ -509,194 +475,137 @@ struct LoginPage {
     }
     .width('100%')
     .height(58)
-    .padding({ left: 14, right: 16 })
-    .backgroundColor('#FFFFFF')
+    .padding({ left: 16, right: 16 })
+    .backgroundColor('#F8FAFD')
     .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#E4ECFA',
-      radius: 20,
-      style: BorderStyle.Solid
-    })
+    .border({ width: 1, color: HarmonyColor.line, radius: 20, style: BorderStyle.Solid })
+    .margin({ top: 14 })
+  }
+
+  @Builder
+  private buildFormOptions() {
+    Row() {
+      Row() {
+        Checkbox()
+          .select(this.rememberPassword)
+          .selectedColor(this.getSelectedPalette().primary)
+          .width(18)
+          .height(18)
+          .onChange((isChecked: boolean) => {
+            this.rememberPassword = isChecked;
+          })
+
+        Text('记住密码')
+          .fontSize(12)
+          .fontColor(HarmonyColor.textSecondary)
+          .margin({ left: 8 })
+      }
+
+      Blank()
+
+      Text('忘记密码？')
+        .fontSize(13)
+        .fontColor(this.getSelectedPalette().primary)
+        .onClick(() => this.showTempMessage('当前版本暂未接入密码重置流程。'))
+    }
+    .width('100%')
     .margin({ top: 16 })
   }
 
   @Builder
-  private buildSecondaryAction(icon: Resource, label: string, bgColor: string, iconColor: string, onClick: () => void) {
-    Column() {
-      Column() {
-        Image(icon)
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor(iconColor)
-      }
-      .width(58)
-      .height(58)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(bgColor)
-      .borderRadius(29)
-
-      Text(label)
+  private buildErrorBanner() {
+    Row() {
+      Image($r('app.media.ic_warning'))
+        .width(18)
+        .height(18)
+        .objectFit(ImageFit.Contain)
+        .fillColor(HarmonyColor.danger)
+      Text(this.errorMessage)
         .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 10 })
+        .fontColor(HarmonyColor.danger)
+        .lineHeight(18)
+        .layoutWeight(1)
+        .margin({ left: 8 })
     }
-    .width(96)
-    .onClick(() => onClick())
+    .width('100%')
+    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+    .backgroundColor('#FFF1F0')
+    .borderRadius(16)
+    .margin({ top: 14 })
   }
 
   @Builder
-  private buildEnvironmentPanel() {
-    Column() {
-      Row() {
-        Column() {
-          Text('联调设置')
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text('本地后端与模拟演示可随时切换，方便你继续联调和验收。')
-            .fontSize(13)
-            .fontColor($r('app.color.text_secondary'))
-            .lineHeight(19)
-            .margin({ top: 6 })
-        }
+  private buildHarmonyLogin() {
+    Row() {
+      Divider()
         .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
+        .color(HarmonyColor.line)
+      Text('其他登录方式')
+        .fontSize(12)
+        .fontColor(HarmonyColor.textTertiary)
+        .margin({ left: 12, right: 12 })
+      Divider()
+        .layoutWeight(1)
+        .color(HarmonyColor.line)
+    }
+    .width('100%')
+    .margin({ top: 22 })
 
-        Text(this.currentEnv === ApiEnvironment.TEST_REAL ? 'LOCAL' : 'MOCK')
-          .fontSize(11)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-          .backgroundColor('#EAF2FF')
-          .borderRadius(999)
-      }
-      .width('100%')
-
-      Row() {
-        this.buildEnvChip('模拟演示', ApiEnvironment.DEV_MOCK)
-        this.buildEnvChip('本地后端', ApiEnvironment.TEST_REAL)
-      }
-      .width('100%')
-      .margin({ top: 16 })
-
-      if (this.currentEnv === ApiEnvironment.TEST_REAL) {
-        Column() {
-          TextInput({
-            placeholder: '请输入后端服务地址',
-            text: this.apiBaseUrl
-          })
-            .fontSize(15)
-            .backgroundColor('#F8FAFF')
-            .borderRadius(18)
-            .height(52)
-            .padding({ left: 16, right: 16 })
-            .onChange((value: string) => {
-              this.apiBaseUrl = value;
-            })
-
-          Button('保存服务地址')
-            .width('100%')
-            .height(44)
-            .fontSize(15)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.primary'))
-            .backgroundColor('#EAF2FF')
-            .borderRadius(16)
-            .margin({ top: 12 })
-            .onClick(() => {
-              if (this.persistApiConfig()) {
-                this.showTempMessage('本地联调配置已保存。');
-              }
-            })
-        }
-        .width('100%')
-        .margin({ top: 16 })
-      }
-
-      Text('演示账号')
+    Row() {
+      Image($r('app.media.ic_user'))
+        .width(20)
+        .height(20)
+        .objectFit(ImageFit.Contain)
+        .fillColor('#C7000B')
+      Text('华为账号登录')
         .fontSize(14)
         .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .width('100%')
-        .margin({ top: 16 })
-
-      this.buildDemoAccount('家长端', 'parent_zhang', '123456', 'PARENT')
-      this.buildDemoAccount('教师端', 'teacher_wang', '123456', 'TEACHER')
-      this.buildDemoAccount('管理端', 'admin_li', '123456', 'ADMIN')
+        .fontColor(HarmonyColor.textPrimary)
+        .margin({ left: 8 })
     }
-    .width('100%')
-    .padding(20)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(28)
-    .border({
-      width: 1,
-      color: '#E4ECFA',
-      radius: 28,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 18,
-      color: '#2F6BDE10',
-      offsetX: 0,
-      offsetY: 8
-    })
-    .margin({ left: 20, right: 20, top: 16 })
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  private buildDemoAccount(role: string, username: string, password: string, portal: string) {
-    Row() {
-      Column() {
-        Text(role)
-          .fontSize(13)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-
-        Text(username)
-          .fontSize(13)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-
-      Text(password)
-        .fontSize(12)
-        .fontColor($r('app.color.primary'))
-        .backgroundColor('#EAF2FF')
-        .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-        .borderRadius(999)
-    }
-    .width('100%')
-    .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F8FAFF')
+    .height(46)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor('#F8FAFD')
     .borderRadius(18)
-    .margin({ top: 12 })
-    .onClick(() => this.fillDemoAccount(portal))
+    .border({ width: 1, color: HarmonyColor.line, radius: 18, style: BorderStyle.Solid })
+    .margin({ top: 14 })
+    .onClick(() => this.showTempMessage('华为账号登录将在后续版本接入。'))
   }
 
   @Builder
-  private buildEnvChip(label: string, env: string) {
-    Text(label)
-      .fontSize(13)
-      .fontWeight(this.currentEnv === env ? FontWeight.Medium : FontWeight.Regular)
-      .fontColor(this.currentEnv === env ? $r('app.color.primary') : $r('app.color.text_secondary'))
-      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-      .backgroundColor(this.currentEnv === env ? '#EAF2FF' : '#F8FAFF')
-      .borderRadius(16)
-      .border({
-        width: 1,
-        color: this.currentEnv === env ? '#CFE0FF' : '#E8EEF9',
-        radius: 16,
-        style: BorderStyle.Solid
-      })
-      .margin({ right: 10 })
-      .onClick(() => {
-        this.handleEnvChange(env);
-      })
+  private buildAgreementRow() {
+    Row() {
+      Checkbox()
+        .select(this.isPrivacyChecked)
+        .selectedColor(this.getSelectedPalette().primary)
+        .width(18)
+        .height(18)
+        .onChange((isChecked: boolean) => {
+          this.isPrivacyChecked = isChecked;
+          if (isChecked) {
+            AppStorage.setOrCreate('privacy_agreed', true);
+          }
+        })
+
+      Text('我已阅读并同意')
+        .fontSize(12)
+        .fontColor(HarmonyColor.textSecondary)
+        .margin({ left: 8 })
+
+      Text('《隐私政策》')
+        .fontSize(12)
+        .fontColor(this.getSelectedPalette().primary)
+        .onClick(() => this.privacyDialogController.open())
+    }
+    .width('100%')
+    .margin({ top: 18 })
+  }
+
+  private getPortals(): PortalOption[] {
+    return [
+      { title: '家长', value: 'PARENT', subtitle: '预约与动态' },
+      { title: '教师', value: 'TEACHER', subtitle: '考勤与作业' },
+      { title: '机构', value: 'ADMIN', subtitle: '服务与审核' }
+    ];
   }
 }

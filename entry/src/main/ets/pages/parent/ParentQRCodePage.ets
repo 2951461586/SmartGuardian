@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent QR Code Page
  * Display QR code for student pickup
  */

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Homework Page
  * Teacher can manage homework tasks and feedback
  */
@@ -193,7 +193,7 @@ export struct TeacherHomeworkPage {
         value: this.sessions.length,
         label: '今日班次',
         icon: $r('app.media.ic_calendar'),
-        iconColor: '#1F5EFF'
+        iconColor: '#526F95'
       })
       .layoutWeight(1)
 
@@ -210,7 +210,7 @@ export struct TeacherHomeworkPage {
         value: this.getCurrentTabLabel(),
         label: '处理阶段',
         icon: $r('app.media.ic_attendance'),
-        iconColor: '#15803D'
+        iconColor: '#2F9E77'
       })
       .layoutWeight(1)
     }
@@ -450,3 +450,4 @@ export struct TeacherHomeworkPage {
     return '全部';
   }
 }
+

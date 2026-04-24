@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Status Mapping Constants
  * Unified status text and color mapping
  * 
@@ -50,38 +50,38 @@ export enum StatusType {
 export const ATTENDANCE_STATUS_MAP: Record<string, StatusStyle> = {
   'NOT_SIGNED': {
     text: '待签到',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'SIGNED_IN': {
     text: '已签到',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'IN_PROGRESS': {
     text: '托管中',
-    textColor: '#2196F3',
-    bgColor: '#E3F2FD'
+    textColor: '#526F95',
+    bgColor: '#EEF6F0'
   },
   'SIGNED_OUT': {
     text: '已签退',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   },
   'ABSENT': {
     text: '缺勤',
-    textColor: '#F44336',
-    bgColor: '#FFEBEE'
+    textColor: '#D94B5A',
+    bgColor: '#FFF0F1'
   },
   'LATE': {
     text: '迟到',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'LEAVE': {
     text: '请假',
-    textColor: '#2196F3',
-    bgColor: '#E3F2FD'
+    textColor: '#526F95',
+    bgColor: '#EEF6F0'
   }
 };
 
@@ -92,33 +92,33 @@ export const ATTENDANCE_STATUS_MAP: Record<string, StatusStyle> = {
 export const ORDER_STATUS_MAP: Record<string, StatusStyle> = {
   'PENDING': {
     text: '待审核',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'APPROVED': {
     text: '已审核',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'REJECTED': {
     text: '已拒绝',
-    textColor: '#F44336',
-    bgColor: '#FFEBEE'
+    textColor: '#D94B5A',
+    bgColor: '#FFF0F1'
   },
   'CANCELLED': {
     text: '已取消',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   },
   'COMPLETED': {
     text: '已完成',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'REFUNDED': {
     text: '已退款',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   }
 };
 
@@ -129,23 +129,23 @@ export const ORDER_STATUS_MAP: Record<string, StatusStyle> = {
 export const HOMEWORK_STATUS_MAP: Record<string, StatusStyle> = {
   'PENDING': {
     text: '待辅导',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'IN_PROGRESS': {
     text: '辅导中',
-    textColor: '#2196F3',
-    bgColor: '#E3F2FD'
+    textColor: '#526F95',
+    bgColor: '#EEF6F0'
   },
   'COMPLETED': {
     text: '已完成',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'CONFIRMED': {
     text: '已确认',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   }
 };
 
@@ -156,23 +156,23 @@ export const HOMEWORK_STATUS_MAP: Record<string, StatusStyle> = {
 export const SESSION_STATUS_MAP: Record<string, StatusStyle> = {
   'SCHEDULED': {
     text: '待开始',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'IN_PROGRESS': {
     text: '进行中',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'COMPLETED': {
     text: '已完成',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   },
   'CANCELLED': {
     text: '已取消',
-    textColor: '#F44336',
-    bgColor: '#FFEBEE'
+    textColor: '#D94B5A',
+    bgColor: '#FFF0F1'
   }
 };
 
@@ -183,23 +183,23 @@ export const SESSION_STATUS_MAP: Record<string, StatusStyle> = {
 export const PAYMENT_STATUS_MAP: Record<string, StatusStyle> = {
   'UNPAID': {
     text: '未支付',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'PAID': {
     text: '已支付',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'REFUNDING': {
     text: '退款中',
-    textColor: '#2196F3',
-    bgColor: '#E3F2FD'
+    textColor: '#526F95',
+    bgColor: '#EEF6F0'
   },
   'REFUNDED': {
     text: '已退款',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   }
 };
 
@@ -210,28 +210,28 @@ export const PAYMENT_STATUS_MAP: Record<string, StatusStyle> = {
 export const REFUND_STATUS_MAP: Record<string, StatusStyle> = {
   'PENDING': {
     text: '待处理',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'PROCESSING': {
     text: '处理中',
-    textColor: '#2196F3',
-    bgColor: '#E3F2FD'
+    textColor: '#526F95',
+    bgColor: '#EEF6F0'
   },
   'SUCCESS': {
     text: '退款成功',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'FAILED': {
     text: '退款失败',
-    textColor: '#F44336',
-    bgColor: '#FFEBEE'
+    textColor: '#D94B5A',
+    bgColor: '#FFF0F1'
   },
   'CANCELLED': {
     text: '已取消',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   }
 };
 
@@ -242,23 +242,23 @@ export const REFUND_STATUS_MAP: Record<string, StatusStyle> = {
 export const ALERT_STATUS_MAP: Record<string, StatusStyle> = {
   'ACTIVE': {
     text: '待处理',
-    textColor: '#F44336',
-    bgColor: '#FFEBEE'
+    textColor: '#D94B5A',
+    bgColor: '#FFF0F1'
   },
   'ACKNOWLEDGED': {
     text: '已确认',
-    textColor: '#FF9800',
-    bgColor: '#FFF3E0'
+    textColor: '#A9794E',
+    bgColor: '#F6F0E9'
   },
   'RESOLVED': {
     text: '已解决',
-    textColor: '#4CAF50',
-    bgColor: '#E8F5E9'
+    textColor: '#5D8267',
+    bgColor: '#EEF6F0'
   },
   'DISMISSED': {
     text: '已忽略',
-    textColor: '#9E9E9E',
-    bgColor: '#F5F5F5'
+    textColor: '#66738A',
+    bgColor: '#EEF3FA'
   }
 };
 
@@ -313,8 +313,8 @@ export class StatusMappingHelper {
   static getDefaultStyle(value: string): StatusStyle {
     return {
       text: value,
-      textColor: '#666666',
-      bgColor: '#F5F5F5'
+      textColor: '#66738A',
+      bgColor: '#EEF3FA'
     };
   }
 
@@ -348,3 +348,4 @@ export class StatusMappingHelper {
     return StatusMappingHelper.getStatusStyle(type, value).bgColor;
   }
 }
+

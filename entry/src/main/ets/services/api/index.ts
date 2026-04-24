@@ -50,3 +50,6 @@ export * from './alert';
 
 // Refund services
 export * from './refund';
+
+// Workbench services
+export * from './workbench';

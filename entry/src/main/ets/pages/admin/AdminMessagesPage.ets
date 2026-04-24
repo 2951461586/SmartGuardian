@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Messages Page
  * Send and manage system messages
  */
@@ -260,3 +260,4 @@ export struct AdminMessagesPage {
     .layoutWeight(1)
   }
 }
+

@@ -232,7 +232,8 @@ export const ServiceNames = {
   REPORT: 'ReportService',
   REFUND: 'RefundService',
   PAYMENT: 'PaymentService',
-  CARD: 'CardService'
+  CARD: 'CardService',
+  WORKBENCH: 'WorkbenchService'
 } as const;
 
 export type ServiceName = typeof ServiceNames[keyof typeof ServiceNames];

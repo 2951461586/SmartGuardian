@@ -11,7 +11,7 @@
  *   onClick: () => { ... }
  * })
  * 
- * // 详细模式（管理端）
+ * // 详细模式（机构端）
  * OrderListItem({
  *   order: order,
  *   mode: OrderItemMode.DETAIL,
@@ -27,7 +27,7 @@ import { OrderBadge } from '../StatusBadge';
 export enum OrderItemMode {
   /** 简化模式 - 家长端，显示基本信息和操作按钮 */
   SIMPLE = 'simple',
-  /** 详细模式 - 管理端，显示完整信息和审核按钮 */
+  /** 详细模式 - 机构端，显示完整信息和审核按钮 */
   DETAIL = 'detail'
 }
 

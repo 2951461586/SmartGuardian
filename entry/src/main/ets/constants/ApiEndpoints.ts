@@ -368,4 +368,13 @@ export class ApiEndpoints {
   static readonly CARDS_TODAY_STATUS = `${API_BASE}/cards/today-status`;
   /** 异常告警卡片 */
   static readonly CARDS_ABNORMAL_ALERT = `${API_BASE}/cards/abnormal-alert`;
+
+  // ============================================
+  // Workbench (三端工作台)
+  // ============================================
+
+  /** 工作台基础路径 */
+  static readonly WORKBENCH = `${API_BASE}/workbench`;
+  /** 当前角色工作台能力清单 */
+  static readonly WORKBENCH_MANIFEST = `${API_BASE}/workbench/manifest`;
 }

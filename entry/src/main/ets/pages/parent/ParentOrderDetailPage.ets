@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Order Detail Page
  * View order details, payment progress and follow-up actions
  */
@@ -127,14 +127,14 @@ struct ParentOrderDetailPage {
       case 'PENDING':
         return '#D97706';
       case 'APPROVED':
-        return '#1F5EFF';
+        return '#526F95';
       case 'REJECTED':
         return '#E5484D';
       case 'CANCELLED':
       case 'REFUNDED':
         return '#7A879A';
       case 'COMPLETED':
-        return '#15803D';
+        return '#2F9E77';
       default:
         return '#5B6678';
     }
@@ -391,3 +391,4 @@ struct ParentOrderDetailPage {
     })
   }
 }
+

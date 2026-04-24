@@ -69,7 +69,7 @@ export struct PrivacyDialog {
         Button('不同意')
           .fontSize(16)
           .fontColor($r('app.color.text_secondary'))
-          .backgroundColor('#F5F5F5')
+          .backgroundColor('#EEF3FA')
           .borderRadius(24)
           .layoutWeight(1)
           .onClick(() => this.handleDisagree())
@@ -88,8 +88,8 @@ export struct PrivacyDialog {
     }
     .width('100%')
     .constraintSize({ maxWidth: $r('app.float.layout_dialog_max_width_xlarge') })
-    .backgroundColor(Color.White)
-    .borderRadius(16)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(20)
   }
 
   /**

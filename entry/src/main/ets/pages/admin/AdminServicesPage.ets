@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Services Page
  * Admin service product management workspace
  */
@@ -194,7 +194,7 @@ struct AdminServicesPage {
 
   private getStatusColor(status: string): string {
     if (status === 'ACTIVE') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'INACTIVE') {
       return '#7A879A';
@@ -202,7 +202,7 @@ struct AdminServicesPage {
     if (status === 'FULL') {
       return '#D97706';
     }
-    return '#1F5EFF';
+    return '#526F95';
   }
 
   build() {
@@ -269,7 +269,7 @@ struct AdminServicesPage {
           value: this.products.length,
           label: '当前服务数',
           icon: $r('app.media.ic_service'),
-          iconColor: '#1F5EFF'
+          iconColor: '#526F95'
         })
         .layoutWeight(1)
 
@@ -277,7 +277,7 @@ struct AdminServicesPage {
           value: this.countByStatus('ACTIVE'),
           label: '启用中',
           icon: $r('app.media.ic_success'),
-          iconColor: '#15803D'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
         .margin({ left: 12, right: 12 })
@@ -428,3 +428,4 @@ struct AdminServicesPage {
     .alignItems(HorizontalAlign.Start)
   }
 }
+

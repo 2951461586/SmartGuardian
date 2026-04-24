@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Alerts Page
  * Admin alert handling workspace
  */
@@ -160,7 +160,7 @@ struct AdminAlertsPage {
     if (severity === 'MEDIUM') {
       return '#D97706';
     }
-    return '#1F5EFF';
+    return '#526F95';
   }
 
   private getStatusText(status: string): string {
@@ -244,7 +244,7 @@ struct AdminAlertsPage {
           value: this.statistics ? this.statistics.resolved : 0,
           label: '已解决',
           icon: $r('app.media.ic_success'),
-          iconColor: '#15803D'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
       }
@@ -361,11 +361,11 @@ struct AdminAlertsPage {
 
       if (alert.status === 'ACTIVE') {
         Row() {
-          this.buildActionText('确认', '#1F5EFF', () => {
+          this.buildActionText('确认', '#526F95', () => {
             this.acknowledgeAlert(alert);
           })
 
-          this.buildActionText('解决', '#15803D', () => {
+          this.buildActionText('解决', '#2F9E77', () => {
             this.resolveAlert(alert);
           })
 
@@ -377,7 +377,7 @@ struct AdminAlertsPage {
         .margin({ top: 14 })
       } else if (alert.status === 'ACKNOWLEDGED') {
         Row() {
-          this.buildActionText('标记解决', '#15803D', () => {
+          this.buildActionText('标记解决', '#2F9E77', () => {
             this.resolveAlert(alert);
           })
         }
@@ -416,3 +416,4 @@ struct AdminAlertsPage {
       })
   }
 }
+

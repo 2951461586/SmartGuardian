@@ -176,7 +176,7 @@ export struct SkeletonLoading {
         Row()
           .width('40%')
           .height(20)
-          .backgroundColor('#E5E7EB')
+          .backgroundColor('#EFE5D4')
           .borderRadius(4)
           .margin({ bottom: 16 })
       }
@@ -189,7 +189,7 @@ export struct SkeletonLoading {
             Column()
               .width(48)
               .height(48)
-              .backgroundColor('#E5E7EB')
+              .backgroundColor('#EFE5D4')
               .borderRadius(24)
               .margin({ right: 12 })
           }
@@ -199,13 +199,13 @@ export struct SkeletonLoading {
             Row()
               .width('100%')
               .height(16)
-              .backgroundColor('#E5E7EB')
+              .backgroundColor('#EFE5D4')
               .borderRadius(4)
 
             Row()
               .width('60%')
               .height(16)
-              .backgroundColor('#E5E7EB')
+              .backgroundColor('#EFE5D4')
               .borderRadius(4)
               .margin({ top: 8 })
           }
@@ -233,20 +233,20 @@ export struct CardSkeleton {
         Column()
           .width(40)
           .height(40)
-          .backgroundColor('#E5E7EB')
+          .backgroundColor('#EFE5D4')
           .borderRadius(8)
 
         Column() {
           Row()
             .width(100)
             .height(16)
-            .backgroundColor('#E5E7EB')
+            .backgroundColor('#EFE5D4')
             .borderRadius(4)
 
           Row()
             .width(60)
             .height(12)
-            .backgroundColor('#E5E7EB')
+            .backgroundColor('#EFE5D4')
             .borderRadius(4)
             .margin({ top: 6 })
         }
@@ -275,7 +275,7 @@ export struct CardSkeleton {
     }
     .width('100%')
     .padding(16)
-    .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
     .borderRadius($r('app.float.card_border_radius'))
   }
 }

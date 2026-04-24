@@ -60,6 +60,7 @@ export struct ErrorState {
         .width(80)
         .height(80)
         .objectFit(ImageFit.Contain)
+        .fillColor($r('app.color.error'))
 
       // 错误标题
       Text(this.getTitle())
@@ -85,7 +86,7 @@ export struct ErrorState {
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(Color.White)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(8)
+          .borderRadius(16)
           .height(40)
           .padding({ left: 24, right: 24 })
           .margin({ top: 20 })
@@ -191,7 +192,7 @@ export struct ErrorBanner {
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-      .backgroundColor('#FFF1F0')
+      .backgroundColor('#FFF0F1')
       .borderRadius($r('app.float.card_border_radius'))
     }
   }

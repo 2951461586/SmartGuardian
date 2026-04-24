@@ -3,8 +3,8 @@
  * Mock service wrapper for API calls
  */
 
-import { ApiResponse, PageResponse } from '../../models/common';
-import { LoginResponse, UserInfo, Student, GuardianRelation } from '../../models/user';
+import { ApiResponse, PageResponse, UserRole } from '../../models/common';
+import { LoginRequest, LoginResponse, UserInfo, Student, GuardianRelation } from '../../models/user';
 import { ServiceProduct, Order, SessionSchedule, SessionWithStudents } from '../../models/service';
 import { AttendanceRecord, LeaveRecord } from '../../models/attendance';
 import { HomeworkTask, HomeworkTaskStatus, HomeworkFeedback } from '../../models/homework';
@@ -15,10 +15,13 @@ import { AlertRecord, AlertStatistics } from '../../models/alert';
 import { PaymentOrder } from '../../models/payment';
 import { RefundRecord, RefundStatistics } from '../../models/refund';
 import { AttendanceReport, FinanceReport, TeacherPerformance, DailyAttendanceStats, StudentAttendanceSummary, DailyRevenueStats, ServiceProductRevenue } from '../../models/report';
+import { WorkbenchManifest } from '../../models/workbench';
 import { ApiConfig } from '../../config/api.config';
 import * as mockData from './mockData';
 import { RequestOptions, HttpMethod, HttpResponse } from '../../utils/request';
 import { ApiEndpoints, API_BASE } from '../../constants/ApiEndpoints';
+
+const USER_INFO_KEY = 'user_info';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve: Function): void => {
@@ -77,6 +80,8 @@ function createPageResponse<T>(list: T[], pageNum: number, pageSize: number): Pa
 }
 
 export class MockService {
+  private static currentUser: UserInfo = mockData.mockUsers[0];
+
   static async handleMockRequest<T>(options: RequestOptions): Promise<HttpResponse<T>> {
     const url = options.url;
     const path = getPath(url);
@@ -124,6 +129,9 @@ export class MockService {
     if (path.indexOf(ApiEndpoints.REPORTS) === 0) {
       return this.handleReportRequest<T>(url, path, method, options.data);
     }
+    if (path.indexOf(ApiEndpoints.WORKBENCH) === 0) {
+      return this.handleWorkbenchRequest<T>(path, method);
+    }
 
     return {
       code: 404,
@@ -132,13 +140,23 @@ export class MockService {
     };
   }
 
-  static async login(username: string, password: string): Promise<ApiResponse<LoginResponse>> {
-    const response = mockData.getMockLoginResponse(username);
+  static async login(username: string, password: string, roleType?: UserRole): Promise<ApiResponse<LoginResponse>> {
+    const response = mockData.getMockLoginResponse(username, roleType);
+    this.currentUser = response.userInfo;
     return mockResponse(response);
   }
 
   static async getCurrentUser(): Promise<ApiResponse<UserInfo>> {
-    return mockResponse(mockData.mockUsers[0]);
+    const storedUser = AppStorage.get<UserInfo>(USER_INFO_KEY);
+    if (storedUser) {
+      this.currentUser = storedUser;
+    }
+    return mockResponse(this.currentUser);
+  }
+
+  static async logout(): Promise<ApiResponse<null>> {
+    this.currentUser = mockData.mockUsers[0];
+    return mockResponse(null);
   }
 
   static async getStudents(params?: {
@@ -408,6 +426,79 @@ export class MockService {
 
   static async getAbnormalAlerts(studentId?: number): Promise<ApiResponse<AbnormalAlertCard | null>> {
     return mockResponse(mockData.mockAbnormalAlerts[0] ?? null);
+  }
+
+  static async getWorkbenchManifest(): Promise<ApiResponse<WorkbenchManifest>> {
+    const roleType = this.currentUser.roleType === UserRole.TEACHER
+      ? UserRole.TEACHER
+      : this.currentUser.roleType === UserRole.PARENT ? UserRole.PARENT : UserRole.ORG_ADMIN;
+    const isTeacher = roleType === UserRole.TEACHER;
+    const isAdmin = roleType === UserRole.ORG_ADMIN;
+    return mockResponse({
+      roleType,
+      version: '2026.04.fullstack-r1',
+      visual: {
+        primary: isTeacher ? '#5D8267' : isAdmin ? '#7B6D96' : '#526F95',
+        light: isTeacher ? '#EEF6F0' : isAdmin ? '#F2F0F7' : '#EEF4FA',
+        surface: '浅灰蓝页面底 + 白色信息卡片',
+        componentTone: '登录页同源圆角、柔和边框、轻阴影',
+        slogan: isTeacher ? '教书育人，助力成长' : isAdmin ? '专业托管，安全无忧' : '陪伴孩子成长，关注每一步'
+      },
+      summary: {
+        title: isTeacher ? '教师工作台' : isAdmin ? '机构工作台' : '家长工作台',
+        description: isTeacher ? '放学高峰签到、作业辅导、异常处置和家校反馈集中处理。' :
+          isAdmin ? '服务产品、订单审核、班次资源、退款告警和经营报表统一治理。' :
+          '学生今日托管状态、预约订单、接送码、作业反馈和消息提醒聚合呈现。',
+        metrics: isTeacher ? ['今日班次', '待签到', '待反馈'] :
+          isAdmin ? ['待审核订单', '班次负载', '活跃告警'] :
+          ['今日状态', '待确认反馈', '未读消息']
+      },
+      primaryFlows: isTeacher ? [
+        { code: 'attendance_peak', name: '高峰签到', description: '班次名单、扫码签到、异常复核和家长通知形成闭环' },
+        { code: 'homework_feedback', name: '作业辅导', description: '记录进度、表现标签、反馈提交和家长确认' }
+      ] : isAdmin ? [
+        { code: 'order_audit', name: '订单审核', description: '预约、支付、审核、排班和退款状态统一追踪' },
+        { code: 'operation_report', name: '经营分析', description: '考勤、财务、绩效和告警数据看板' }
+      ] : [
+        { code: 'today_guardian', name: '今日托管', description: '签到、辅导、待接回和异常提醒一屏掌握' },
+        { code: 'booking_payment', name: '预约支付', description: '服务浏览、订单创建、支付与退款申请' }
+      ],
+      modules: isTeacher ? [
+        { code: 'home', name: '工作台', route: '/teacher/home', enabled: true },
+        { code: 'scan', name: '扫码签到', route: '/teacher/scan', enabled: true },
+        { code: 'attendance', name: '考勤签到', route: '/teacher/attendance', enabled: true },
+        { code: 'homework', name: '作业反馈', route: '/teacher/homework', enabled: true },
+        { code: 'schedule', name: '班次日程', route: '/teacher/schedule', enabled: true },
+        { code: 'messages', name: '家校消息', route: '/teacher/messages', enabled: true },
+        { code: 'profile', name: '我的', route: '/teacher/profile', enabled: true }
+      ] : isAdmin ? [
+        { code: 'home', name: '运营总览', route: '/admin/home', enabled: true },
+        { code: 'messages', name: '消息中心', route: '/admin/messages', enabled: true },
+        { code: 'orders', name: '订单审核', route: '/admin/orders', enabled: true },
+        { code: 'sessions', name: '班次排课', route: '/admin/sessions', enabled: true },
+        { code: 'students', name: '学生档案', route: '/admin/students', enabled: true },
+        { code: 'reports', name: '统计报表', route: '/admin/reports', enabled: true },
+        { code: 'alerts', name: '告警中心', route: '/admin/alerts', enabled: true },
+        { code: 'refunds', name: '退款管理', route: '/admin/refunds', enabled: true },
+        { code: 'profile', name: '我的', route: '/admin/profile', enabled: true }
+      ] : [
+        { code: 'home', name: '今日托管', route: '/parent/home', enabled: true },
+        { code: 'services', name: '托管服务', route: '/parent/services', enabled: true },
+        { code: 'orders', name: '我的订单', route: '/parent/orders', enabled: true },
+        { code: 'homework', name: '作业反馈', route: '/parent/homework', enabled: true },
+        { code: 'sessions', name: '在校安排', route: '/parent/sessions', enabled: true },
+        { code: 'timeline', name: '成长动态', route: '/parent/timeline', enabled: true },
+        { code: 'messages', name: '家校消息', route: '/parent/messages', enabled: true },
+        { code: 'alerts', name: '安全守护', route: '/parent/alerts', enabled: true },
+        { code: 'profile', name: '家庭与设置', route: '/parent/profile', enabled: true }
+      ],
+      integration: {
+        apiBase: '/api/v1',
+        auth: 'Bearer JWT',
+        mockDefault: true,
+        acceptance: ['Mock 演示可跑通', '本地 Spring Boot + MySQL 可联调', 'OpenAPI 与前端模型保持一致']
+      }
+    });
   }
 
   static async getPaymentDetail(paymentNo: string): Promise<ApiResponse<PaymentOrder>> {
@@ -1023,14 +1114,14 @@ export class MockService {
 
   private static async handleAuthRequest<T>(url: string, path: string, method: HttpMethod, data?: object): Promise<HttpResponse<T>> {
     if (path === ApiEndpoints.AUTH_LOGIN && method === HttpMethod.POST) {
-      const body = data as Record<string, string>;
-      return this.login(body.username ?? 'parent_zhang', body.password ?? '') as Promise<HttpResponse<T>>;
+      const body = (data ?? {}) as Partial<LoginRequest>;
+      return this.login(body.username ?? 'parent_zhang', body.password ?? '', body.roleType) as Promise<HttpResponse<T>>;
     }
     if (path === ApiEndpoints.AUTH_ME && method === HttpMethod.GET) {
       return this.getCurrentUser() as Promise<HttpResponse<T>>;
     }
     if (path === ApiEndpoints.AUTH_LOGOUT && method === HttpMethod.POST) {
-      return mockResponse(null) as Promise<HttpResponse<T>>;
+      return this.logout() as Promise<HttpResponse<T>>;
     }
     if (path === ApiEndpoints.AUTH_REFRESH && method === HttpMethod.POST) {
       return mockResponse({ token: 'mock_refresh_token_' + Date.now() }) as Promise<HttpResponse<T>>;
@@ -1344,6 +1435,17 @@ export class MockService {
     }
     if (path === ApiEndpoints.REPORTS_FINANCE_PRODUCTS) {
       return this.getServiceProductRevenue() as Promise<HttpResponse<T>>;
+    }
+    return {
+      code: 404,
+      message: 'Mock route not found',
+      data: null as T
+    };
+  }
+
+  private static async handleWorkbenchRequest<T>(path: string, method: HttpMethod): Promise<HttpResponse<T>> {
+    if (path === ApiEndpoints.WORKBENCH_MANIFEST && method === HttpMethod.GET) {
+      return this.getWorkbenchManifest() as Promise<HttpResponse<T>>;
     }
     return {
       code: 404,

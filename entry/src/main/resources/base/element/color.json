@@ -1,8 +1,8 @@
-{
+﻿{
   "color": [
     {
       "name": "primary",
-      "value": "#3F7DFF"
+      "value": "#0A59F7"
     },
     {
       "name": "primary_light",
@@ -10,35 +10,35 @@
     },
     {
       "name": "secondary",
-      "value": "#63C7C1"
+      "value": "#6D5DD3"
     },
     {
       "name": "success",
-      "value": "#34C759"
+      "value": "#1A8C5F"
     },
     {
       "name": "warning",
-      "value": "#FFB74D"
+      "value": "#B7791F"
     },
     {
       "name": "error",
-      "value": "#FF5D73"
+      "value": "#D94B5A"
     },
     {
       "name": "text_primary",
-      "value": "#1F2D4D"
+      "value": "#101828"
     },
     {
       "name": "text_secondary",
-      "value": "#7E8EAB"
+      "value": "#667085"
     },
     {
       "name": "text_tertiary",
-      "value": "#A9B6CC"
+      "value": "#98A2B3"
     },
     {
       "name": "page_background",
-      "value": "#F3F7FF"
+      "value": "#F7F9FC"
     },
     {
       "name": "card_background",
@@ -46,7 +46,7 @@
     },
     {
       "name": "divider",
-      "value": "#E3EBFA"
+      "value": "#E8EEF7"
     },
     {
       "name": "bottom_nav_background",
@@ -54,19 +54,19 @@
     },
     {
       "name": "nav_icon_inactive",
-      "value": "#9AA8C2"
+      "value": "#8E9AAF"
     },
     {
       "name": "start_window_background",
-      "value": "#3F7DFF"
+      "value": "#2F7DF6"
     },
     {
       "name": "price",
-      "value": "#FF8A4D"
+      "value": "#A9794E"
     },
     {
       "name": "text_hint",
-      "value": "#C2CBDA"
+      "value": "#B6C0CF"
     },
     {
       "name": "scan_page_background",
@@ -102,31 +102,31 @@
     },
     {
       "name": "status_pending",
-      "value": "#FF9F43"
+      "value": "#FF8A1E"
     },
     {
       "name": "status_pending_bg",
-      "value": "#FFF3E5"
+      "value": "#F6F0E9"
     },
     {
       "name": "status_in_progress",
-      "value": "#3F7DFF"
+      "value": "#526F95"
     },
     {
       "name": "status_in_progress_bg",
-      "value": "#EAF2FF"
+      "value": "#EEF4FA"
     },
     {
       "name": "status_completed",
-      "value": "#34C759"
+      "value": "#5D8267"
     },
     {
       "name": "status_completed_bg",
-      "value": "#EAF9EF"
+      "value": "#EEF6F0"
     },
     {
       "name": "status_confirmed",
-      "value": "#8B6CF6"
+      "value": "#6E5BAA"
     },
     {
       "name": "status_confirmed_bg",
@@ -138,3 +138,4 @@
     }
   ]
 }
+

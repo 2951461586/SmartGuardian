@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Order Create Page
  * Create order with student, date and amount summary
  */
@@ -576,3 +576,4 @@ struct ParentOrderCreatePage {
     })
   }
 }
+

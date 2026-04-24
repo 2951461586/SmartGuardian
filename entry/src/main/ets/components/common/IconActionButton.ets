@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Icon Action Button
  * Reusable icon capsule with optional badge count
  */
@@ -6,9 +6,9 @@
 @Component
 export struct IconActionButton {
   @Prop icon: Resource | string | PixelMap = '';
-  @Prop iconColor: ResourceColor = '#1F2D4D';
+  @Prop iconColor: ResourceColor = '#18233F';
   @Prop boxBgColor: ResourceColor = '#FFFFFF';
-  @Prop boxBorderColor: ResourceColor = '#E4ECFA';
+  @Prop boxBorderColor: ResourceColor = '#E6ECF5';
   @Prop badgeCount: number = 0;
   @Prop badgeColor: ResourceColor = $r('app.color.error');
   @Prop boxSize: number = 46;
@@ -37,7 +37,7 @@ export struct IconActionButton {
       })
       .shadow({
         radius: 10,
-        color: '#2F6BDE0C',
+        color: '#526F9510',
         offsetX: 0,
         offsetY: 4
       })

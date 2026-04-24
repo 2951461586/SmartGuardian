@@ -34,19 +34,19 @@ const BADGE_SIZE_CONFIG: Record<BadgeSize, BadgeSizeConfig> = {
     fontSize: 10,
     paddingH: 6,
     paddingV: 2,
-    borderRadius: 4
+    borderRadius: 999
   },
   [BadgeSize.DEFAULT]: {
     fontSize: 12,
     paddingH: 8,
     paddingV: 4,
-    borderRadius: 6
+    borderRadius: 999
   },
   [BadgeSize.LARGE]: {
     fontSize: 14,
     paddingH: 12,
     paddingV: 6,
-    borderRadius: 8
+    borderRadius: 999
   }
 };
 
@@ -125,8 +125,8 @@ export struct StatusBadge {
 @Component
 export struct SimpleStatusBadge {
   @Prop text: string = '';
-  @Prop textColor: string = '#666666';
-  @Prop bgColor: string = '#F5F5F5';
+  @Prop textColor: string = '#66738A';
+  @Prop bgColor: string = '#EEF3FA';
   @Prop badgeSize: BadgeSize = BadgeSize.DEFAULT;
 
   build() {

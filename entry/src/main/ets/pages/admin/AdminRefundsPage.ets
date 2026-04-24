@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Refunds Page
  * Admin refund monitoring workspace
  */
@@ -128,10 +128,10 @@ struct AdminRefundsPage {
       return '#D97706';
     }
     if (status === 'PROCESSING') {
-      return '#1F5EFF';
+      return '#526F95';
     }
     if (status === 'COMPLETED') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'REJECTED' || status === 'CANCELLED') {
       return '#DC2626';
@@ -195,7 +195,7 @@ struct AdminRefundsPage {
           value: this.statistics ? this.statistics.processing : 0,
           label: '退款中',
           icon: $r('app.media.ic_refresh'),
-          iconColor: '#1F5EFF'
+          iconColor: '#526F95'
         })
         .layoutWeight(1)
         .margin({ left: 12, right: 12 })
@@ -204,7 +204,7 @@ struct AdminRefundsPage {
           value: this.statistics ? `¥${Number(this.statistics.totalAmount).toFixed(0)}` : '¥0',
           label: '累计退款额',
           icon: $r('app.media.ic_money'),
-          iconColor: '#15803D'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
       }
@@ -369,3 +369,4 @@ struct AdminRefundsPage {
     .alignItems(HorizontalAlign.Start)
   }
 }
+

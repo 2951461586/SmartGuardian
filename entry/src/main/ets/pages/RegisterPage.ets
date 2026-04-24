@@ -4,6 +4,8 @@
  */
 
 import { PrivacyDialog, isPrivacyAgreed } from '../components/PrivacyDialog';
+import { getRolePalette, RolePalette } from '../common/RoleTheme';
+import { UserRole } from '../models/common';
 
 @Entry
 @Component
@@ -55,6 +57,24 @@ struct RegisterPage {
     setTimeout(() => {
       this.errorMessage = '';
     }, 2200);
+  }
+
+  private getPortalRole(portal: string): UserRole {
+    if (portal === 'TEACHER') {
+      return UserRole.TEACHER;
+    }
+    if (portal === 'ADMIN') {
+      return UserRole.ORG_ADMIN;
+    }
+    return UserRole.PARENT;
+  }
+
+  private getSelectedPalette(): RolePalette {
+    return getRolePalette(this.getPortalRole(this.selectedPortal));
+  }
+
+  private getPortalPalette(portal: string): RolePalette {
+    return getRolePalette(this.getPortalRole(portal));
   }
 
   private requestVerifyCode(): void {
@@ -127,7 +147,7 @@ struct RegisterPage {
           .borderRadius(16)
           .border({
             width: 1,
-            color: '#E4ECFA',
+            color: '#E6ECF5',
             radius: 16,
             style: BorderStyle.Solid
           })
@@ -148,11 +168,11 @@ struct RegisterPage {
             Image($r('app.media.ic_success'))
               .width(16)
               .height(16)
-              .fillColor($r('app.color.primary'))
+              .fillColor(this.getSelectedPalette().primary)
 
             Text('信息安全保护中，请放心注册')
               .fontSize(13)
-              .fontColor('#6D91D8')
+              .fontColor(this.getSelectedPalette().primaryDark)
               .margin({ left: 8 })
           }
           .margin({ top: 18 })
@@ -172,6 +192,10 @@ struct RegisterPage {
     }
     .width('100%')
     .padding({ left: 22, right: 22, top: 72, bottom: 20 })
+    .linearGradient({
+      angle: 180,
+      colors: [[this.getSelectedPalette().gradientStart, 0], ['#F3F7FC', 1]]
+    })
   }
 
   @Builder
@@ -185,7 +209,7 @@ struct RegisterPage {
         Blank().width(10)
         this.buildPortalCard('教师', 'TEACHER')
         Blank().width(10)
-        this.buildPortalCard('管理', 'ADMIN')
+        this.buildPortalCard('机构', 'ADMIN')
       }
       .width('100%')
       .margin({ top: 16 })
@@ -197,7 +221,7 @@ struct RegisterPage {
       Row() {
         Checkbox()
           .select(this.isPrivacyChecked)
-          .selectedColor($r('app.color.primary'))
+          .selectedColor(this.getSelectedPalette().primary)
           .width(18)
           .height(18)
           .onChange((isChecked: boolean) => {
@@ -214,7 +238,7 @@ struct RegisterPage {
 
         Text('《隐私政策》')
           .fontSize(12)
-          .fontColor($r('app.color.primary'))
+          .fontColor(this.getSelectedPalette().primary)
           .margin({ left: 4 })
           .onClick(() => this.privacyDialogController.open())
       }
@@ -236,7 +260,7 @@ struct RegisterPage {
         }
         .width('100%')
         .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-        .backgroundColor('#FFECEF')
+        .backgroundColor('#FFF0F1')
         .borderRadius(14)
         .margin({ top: 18 })
       }
@@ -247,7 +271,7 @@ struct RegisterPage {
         .fontSize(17)
         .fontWeight(FontWeight.Medium)
         .fontColor(Color.White)
-        .backgroundColor($r('app.color.primary'))
+        .backgroundColor(this.getSelectedPalette().primary)
         .borderRadius(20)
         .margin({ top: 22 })
         .onClick(() => this.handleRegister())
@@ -260,7 +284,7 @@ struct RegisterPage {
         Text('立即登录')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
+          .fontColor(this.getSelectedPalette().primary)
           .margin({ left: 6 })
           .onClick(() => this.goBack())
       }
@@ -272,13 +296,13 @@ struct RegisterPage {
     .borderRadius(32)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: '#E6ECF5',
       radius: 32,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 24,
-      color: '#2F6BDE12',
+      color: this.getSelectedPalette().shadow,
       offsetX: 0,
       offsetY: 12
     })
@@ -293,12 +317,12 @@ struct RegisterPage {
           .width(20)
           .height(20)
           .objectFit(ImageFit.Contain)
-          .fillColor($r('app.color.primary'))
+          .fillColor(this.getSelectedPalette().primary)
       }
       .width(36)
       .height(36)
       .justifyContent(FlexAlign.Center)
-      .backgroundColor('#F2F7FF')
+      .backgroundColor(this.getSelectedPalette().light)
       .borderRadius(14)
 
       TextInput({
@@ -316,7 +340,7 @@ struct RegisterPage {
       Text('获取验证码')
         .fontSize(13)
         .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.primary'))
+        .fontColor(this.getSelectedPalette().primary)
         .onClick(() => this.requestVerifyCode())
     }
     .width('100%')
@@ -326,7 +350,7 @@ struct RegisterPage {
     .borderRadius(20)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: '#E6ECF5',
       radius: 20,
       style: BorderStyle.Solid
     })
@@ -338,15 +362,15 @@ struct RegisterPage {
     Text(title)
       .fontSize(14)
       .fontWeight(this.selectedPortal === value ? FontWeight.Medium : FontWeight.Regular)
-      .fontColor(this.selectedPortal === value ? $r('app.color.primary') : $r('app.color.text_secondary'))
+      .fontColor(this.selectedPortal === value ? this.getPortalPalette(value).primary : $r('app.color.text_secondary'))
       .layoutWeight(1)
       .height(52)
       .textAlign(TextAlign.Center)
-      .backgroundColor(this.selectedPortal === value ? '#EAF2FF' : '#F8FAFF')
+      .backgroundColor(this.selectedPortal === value ? this.getPortalPalette(value).light : '#F7FAFE')
       .borderRadius(16)
       .border({
         width: 1,
-        color: this.selectedPortal === value ? '#CFE0FF' : '#E8EEF9',
+        color: this.selectedPortal === value ? this.getPortalPalette(value).border : '#E6ECF5',
         radius: 16,
         style: BorderStyle.Solid
       })
@@ -363,12 +387,12 @@ struct RegisterPage {
           .width(20)
           .height(20)
           .objectFit(ImageFit.Contain)
-          .fillColor($r('app.color.primary'))
+          .fillColor(this.getSelectedPalette().primary)
       }
       .width(36)
       .height(36)
       .justifyContent(FlexAlign.Center)
-      .backgroundColor('#F2F7FF')
+      .backgroundColor(this.getSelectedPalette().light)
       .borderRadius(14)
 
       TextInput({
@@ -419,7 +443,7 @@ struct RegisterPage {
     .borderRadius(20)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: '#E6ECF5',
       radius: 20,
       style: BorderStyle.Solid
     })

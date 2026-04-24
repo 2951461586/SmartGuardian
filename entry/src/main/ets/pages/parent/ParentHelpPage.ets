@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Help Page
  * Help center and feedback page
  */
@@ -209,3 +209,4 @@ struct ParentHelpPage {
     .padding({ top: 10, bottom: 10 })
   }
 }
+

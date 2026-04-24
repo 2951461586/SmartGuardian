@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Timeline Page
  * View student activity timeline including attendance, homework, messages
  */
@@ -21,7 +21,7 @@ interface TimelineEvent {
 
 @Entry
 @Component
-struct ParentTimelinePage {
+export struct ParentTimelinePage {
   @State students: Student[] = [];
   @State selectedStudentId: number = 0;
   @State selectedStudentName: string = '';
@@ -363,3 +363,4 @@ struct ParentTimelinePage {
     return time.replace('T', ' ');
   }
 }
+

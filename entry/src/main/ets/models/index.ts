@@ -44,3 +44,6 @@ export * from './report';
 
 // Card models
 export * from './card';
+
+// Workbench manifest models
+export * from './workbench';

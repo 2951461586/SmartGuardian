@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent About Page
  * 关于我们页面
  */
@@ -109,3 +109,4 @@ struct ParentAboutPage {
     .padding({ top: 12, bottom: 12 })
   }
 }
+

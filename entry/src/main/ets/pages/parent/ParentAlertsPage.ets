@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Alerts Page
  * Alert and warning center for parents
  */
@@ -412,3 +412,4 @@ struct ParentAlertsPage {
     return time.substring(0, 10);
   }
 }
+

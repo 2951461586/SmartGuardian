@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Messages Page
  * Unified teacher message center
  */
@@ -161,7 +161,7 @@ export struct TeacherMessagesPage {
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#1F5EFF',
+      iconColor: '#526F95',
       boxBgColor: Color.White,
       boxBorderColor: '#E5EDF6',
       onButtonClick: (): void => {
@@ -177,7 +177,7 @@ export struct TeacherMessagesPage {
         value: `${this.messages.length}`,
         label: '\u5168\u90e8\u6d88\u606f',
         icon: $r('app.media.ic_message'),
-        iconColor: '#1F5EFF'
+        iconColor: '#526F95'
       })
       .layoutWeight(1)
 
@@ -187,7 +187,7 @@ export struct TeacherMessagesPage {
         value: `${this.getUnreadCount()}`,
         label: '\u672a\u8bfb\u6d88\u606f',
         icon: $r('app.media.ic_notification'),
-        iconColor: '#F59E0B'
+        iconColor: '#A9794E'
       })
       .layoutWeight(1)
     }
@@ -261,3 +261,4 @@ export struct TeacherMessagesPage {
     }
   }
 }
+

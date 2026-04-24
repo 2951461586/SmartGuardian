@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Profile Edit Page
  * Parent profile edit page with unified card layout
  */
@@ -209,3 +209,4 @@ struct ParentProfileEditPage {
     ];
   }
 }
+

@@ -27,7 +27,17 @@
       "Bash(java:*)",
       "Bash(mvn:*)",
       "Bash(git:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(exit 0)",
+      "Bash(set -a)",
+      "Bash(export JWT_SECRET='smartguardian-demo-secret-key-32b')",
+      "Skill(claude-hud:configure)",
+      "Skill(update-config)",
+      "Bash(PYTHONIOENCODING=utf-8 python:*)",
+      "Bash(expect -v)",
+      "Bash(E:/hm-demo/SmartGuardian/hvigorw assembleHap:*)",
+      "Bash(where.exe hvigorw:*)",
+      "Bash(D:/IDE/DevEco Studio/tools/hvigor/bin/hvigorw.bat assembleHap:*)"
     ]
   }
 }

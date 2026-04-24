@@ -19,6 +19,9 @@ export interface LoginRequest {
   
   /** 密码 */
   password: string;
+
+  /** Mock mode role hint from the selected login portal */
+  roleType?: UserRole;
 }
 
 /**

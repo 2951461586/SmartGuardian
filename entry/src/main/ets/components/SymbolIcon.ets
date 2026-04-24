@@ -1,14 +1,13 @@
-/**
- * SmartGuardian - 通用图标组件
- * 使用系统Symbol字体替代图片图标，解决图标资源缺失问题
- */
+﻿/**
+ * SmartGuardian - 閫氱敤鍥炬爣缁勪欢
+ * 浣跨敤绯荤粺Symbol瀛椾綋鏇夸唬鍥剧墖鍥炬爣锛岃В鍐冲浘鏍囪祫婧愮己澶遍棶棰? */
 
 @Component
 export struct SymbolIcon {
-  @Prop icon: string = 'home';      // 图标名称
-  @Prop iconSize: number = 24;      // 图标大小
-  @Prop color: ResourceColor = '#000000';  // 图标颜色
-  @Prop fontWeight: number = 400;   // 字重
+  @Prop icon: string = 'home';      // 鍥炬爣鍚嶇О
+  @Prop iconSize: number = 24;      // 鍥炬爣澶у皬
+  @Prop color: ResourceColor = '#172A2A';  // 鍥炬爣棰滆壊
+  @Prop fontWeight: number = 400;   // 瀛楅噸
 
   build() {
     Text(this.getIconChar())
@@ -20,7 +19,7 @@ export struct SymbolIcon {
 
   private getIconChar(): string {
     const iconMap: Record<string, string> = {
-      // 导航图标
+      // 瀵艰埅鍥炬爣
       'home': '\u{1F3E0}',
       'order': '\u{1F4CB}',
       'message': '\u{1F4AC}',
@@ -37,13 +36,13 @@ export struct SymbolIcon {
       'empty': '\u{1F4DD}',
       'logo': '\u{1F393}',
 
-      // 表单图标
+      // 琛ㄥ崟鍥炬爣
       'user': '\u{1F464}',
       'lock': '\u{1F512}',
       'eye_open': '\u{1F441}',
       'eye_close': '\u{1F648}',
 
-      // 操作图标
+      // 鎿嶄綔鍥炬爣
       'leave': '\u{1F4C4}',
       'qrcode': '\u{1F4F7}',
       'calendar': '\u{1F4C5}',
@@ -71,22 +70,21 @@ export struct SymbolIcon {
       'heart': '\u{2764}',
       'bell': '\u{1F514}',
 
-      // 支付相关
+      // 鏀粯鐩稿叧
       'alipay': '\u{1F4B3}',
       'wechat': '\u{1F4F1}',
 
-      // 状态图标
-      'success': '\u{2705}',
+      // 鐘舵€佸浘鏍?      'success': '\u{2705}',
       'error': '\u{274C}',
       'info': '\u{2139}\u{FE0F}',
       'pending': '\u{23F3}',
       'done': '\u{2705}',
 
-      // 性别
+      // 鎬у埆
       'male': '\u{2640}',
       'female': '\u{2642}',
 
-      // 默认头像
+      // 榛樿澶村儚
       'default_avatar': '\u{1F464}'
     };
 
@@ -95,14 +93,14 @@ export struct SymbolIcon {
 }
 
 /**
- * 带背景的圆形图标组件
+ * 甯﹁儗鏅殑鍦嗗舰鍥炬爣缁勪欢
  */
 @Component
 export struct SymbolIconBg {
   @Prop icon: string = 'home';
   @Prop containerSize: number = 40;
-  @Prop bgColor: ResourceColor = '#E3F2FD';
-  @Prop iconColor: ResourceColor = '#007AFF';
+  @Prop bgColor: ResourceColor = '#EEF4FA';
+  @Prop iconColor: ResourceColor = '#526F95';
   @Prop iconSize: number = 20;
 
   build() {
@@ -123,16 +121,15 @@ export struct SymbolIconBg {
 }
 
 /**
- * 图标+文字的组合组件
- */
+ * 鍥炬爣+鏂囧瓧鐨勭粍鍚堢粍浠? */
 @Component
 export struct IconText {
   @Prop icon: string = 'home';
   @Prop text: string = '';
   @Prop iconSize: number = 16;
   @Prop textSize: number = 14;
-  @Prop iconColor: ResourceColor = '#007AFF';
-  @Prop textColor: ResourceColor = '#1C1C1E';
+  @Prop iconColor: ResourceColor = '#526F95';
+  @Prop textColor: ResourceColor = '#172A2A';
   @Prop gap: number = 4;
 
   build() {

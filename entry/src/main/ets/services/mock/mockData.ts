@@ -657,8 +657,30 @@ export const mockV2Examples = {
 /**
  * Mock Login Response
  */
-export function getMockLoginResponse(username: string): LoginResponse {
-  const user = mockUsers.find(u => u.username === username) ?? mockUsers[0];
+function isAdminRole(roleType: UserRole): boolean {
+  return roleType === UserRole.ADMIN ||
+    roleType === UserRole.ORG_ADMIN ||
+    roleType === UserRole.SCHOOL_ADMIN ||
+    roleType === UserRole.PLATFORM_ADMIN;
+}
+
+function findMockUserByRole(roleType?: UserRole): UserInfo | undefined {
+  if (!roleType) {
+    return undefined;
+  }
+
+  if (isAdminRole(roleType)) {
+    return mockUsers.find((user: UserInfo) => isAdminRole(user.roleType));
+  }
+
+  return mockUsers.find((user: UserInfo) => user.roleType === roleType);
+}
+
+export function getMockLoginResponse(username: string, roleType?: UserRole): LoginResponse {
+  const normalizedUsername = username.trim();
+  const user = mockUsers.find((item: UserInfo) => item.username === normalizedUsername) ??
+    findMockUserByRole(roleType) ??
+    mockUsers[0];
   return {
     token: 'mock_token_' + Date.now(),
     expiresIn: 7200,

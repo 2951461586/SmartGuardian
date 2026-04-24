@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Schedule Page
  * Unified weekly schedule workspace
  */
@@ -135,7 +135,7 @@ export struct TeacherSchedulePage {
 
   private getStatusColor(status: string): string {
     if (status === 'IN_PROGRESS') {
-      return '#16A34A';
+      return '#2F9E77';
     }
     if (status === 'COMPLETED') {
       return '#7A879A';
@@ -143,7 +143,7 @@ export struct TeacherSchedulePage {
     if (status === 'CANCELLED') {
       return '#D14343';
     }
-    return '#1F5EFF';
+    return '#526F95';
   }
 
   build() {
@@ -170,7 +170,7 @@ export struct TeacherSchedulePage {
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#1F5EFF',
+      iconColor: '#526F95',
       boxBgColor: Color.White,
       boxBorderColor: '#E5EDF6',
       onButtonClick: (): void => {
@@ -186,7 +186,7 @@ export struct TeacherSchedulePage {
         value: `${this.getTodayCount()}`,
         label: '\u5f53\u65e5\u8bfe\u7a0b',
         icon: $r('app.media.ic_calendar'),
-        iconColor: '#1F5EFF'
+        iconColor: '#526F95'
       })
       .layoutWeight(1)
 
@@ -196,7 +196,7 @@ export struct TeacherSchedulePage {
         value: `${this.getOngoingCount()}`,
         label: '\u8fdb\u884c\u4e2d',
         icon: $r('app.media.ic_attendance'),
-        iconColor: '#16A34A'
+        iconColor: '#2F9E77'
       })
       .layoutWeight(1)
 
@@ -206,7 +206,7 @@ export struct TeacherSchedulePage {
         value: `${this.getStudentCount()}`,
         label: '\u5b66\u751f\u603b\u6570',
         icon: $r('app.media.ic_user'),
-        iconColor: '#F59E0B'
+        iconColor: '#A9794E'
       })
       .layoutWeight(1)
     }
@@ -297,7 +297,7 @@ export struct TeacherSchedulePage {
           }
           .layoutWeight(1)
           .padding({ top: 10, bottom: 10 })
-          .backgroundColor(this.formatDate(date) === this.formatDate(this.selectedDate) ? '#EAF2FF' : Color.Transparent)
+          .backgroundColor(this.formatDate(date) === this.formatDate(this.selectedDate) ? '#EEF6F0' : Color.Transparent)
           .borderRadius(16)
           .onClick((): void => {
             this.selectedDate = date;
@@ -424,3 +424,4 @@ export struct TeacherSchedulePage {
     .margin({ bottom: 12 })
   }
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - 学生档案管理页
  * 管理员查看和筛选学生信息
  */
@@ -17,7 +17,7 @@ interface StudentWithGuardian extends Student {
 
 @Entry
 @Component
-struct AdminStudentsPage {
+export struct AdminStudentsPage {
   @StorageLink('student_list') studentList: StudentWithGuardian[] = [];
 
   @State isLoading: boolean = false;
@@ -210,7 +210,7 @@ struct AdminStudentsPage {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.primary'))
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#EAF2FF')
+          .backgroundColor('#F6F0E9')
           .borderRadius(999)
 
         Text(`${this.getFilteredTotal()}`)
@@ -228,8 +228,8 @@ struct AdminStudentsPage {
       .alignItems(HorizontalAlign.Start)
 
       Column() {
-        this.buildExecutiveMetric('年级', this.getSelectedGradeText(), '#15803D')
-        this.buildExecutiveMetric('页码', `${this.currentPage}/${this.totalPages}`, '#1F5EFF')
+        this.buildExecutiveMetric('年级', this.getSelectedGradeText(), '#2F9E77')
+        this.buildExecutiveMetric('页码', `${this.currentPage}/${this.totalPages}`, '#526F95')
       }
       .width(128)
     }
@@ -251,7 +251,7 @@ struct AdminStudentsPage {
     }
     .width('100%')
     .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor('#F7FAFF')
+    .backgroundColor('#F7FAFE')
     .borderRadius(16)
     .alignItems(HorizontalAlign.Start)
     .margin({ bottom: 10 })
@@ -264,7 +264,7 @@ struct AdminStudentsPage {
         value: this.allStudents.length,
         label: '学生总数',
         icon: $r('app.media.ic_user'),
-        iconColor: '#1F5EFF'
+        iconColor: '#526F95'
       })
       .layoutWeight(1)
 
@@ -281,7 +281,7 @@ struct AdminStudentsPage {
         value: this.getSelectedGradeText(),
         label: '筛选年级',
         icon: $r('app.media.ic_filter'),
-        iconColor: '#15803D'
+        iconColor: '#2F9E77'
       })
       .layoutWeight(1)
     }
@@ -437,7 +437,7 @@ struct AdminStudentsPage {
   @Builder
   buildListSummary() {
     Row() {
-      this.buildExecutiveMetric('当前页', `${this.studentList.length}`, '#1F5EFF')
+      this.buildExecutiveMetric('当前页', `${this.studentList.length}`, '#526F95')
       Blank().width(10)
       this.buildExecutiveMetric('筛选总量', `${this.getFilteredTotal()}`, '#D97706')
       Blank().width(10)
@@ -466,9 +466,9 @@ struct AdminStudentsPage {
           if (student.gender) {
             Text(student.gender === 'MALE' ? '男' : '女')
               .fontSize(12)
-              .fontColor(student.gender === 'MALE' ? '#1F5EFF' : '#D946EF')
+              .fontColor(student.gender === 'MALE' ? '#526F95' : '#8A6A9E')
               .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-              .backgroundColor(student.gender === 'MALE' ? '#EAF1FF' : '#FDF0FF')
+              .backgroundColor(student.gender === 'MALE' ? '#F8F0DE' : '#FDF0FF')
               .borderRadius(999)
               .margin({ left: 8 })
           }
@@ -598,3 +598,4 @@ struct AdminStudentsPage {
     return this.selectedGrade === 'ALL' ? '全部' : `${this.selectedGrade}年级`;
   }
 }
+

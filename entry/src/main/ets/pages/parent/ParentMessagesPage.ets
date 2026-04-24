@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Messages Page
  * Enhanced message center with unified visual system
  */
@@ -236,7 +236,7 @@ export struct ParentMessagesPage {
             .height(32)
             .fontSize(12)
             .fontColor($r('app.color.primary'))
-            .backgroundColor('#EAF2FF')
+            .backgroundColor('#EEF4FA')
             .borderRadius(16)
             .padding({ left: 12, right: 12 })
             .onClick(() => this.markAllAsRead())
@@ -367,3 +367,4 @@ export struct ParentMessagesPage {
     };
   }
 }
+

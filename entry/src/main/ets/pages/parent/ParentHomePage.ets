@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Home Page
  * Parent dashboard refactored into the new light campus style
  */
@@ -15,6 +15,7 @@ import { ErrorMessages } from '../../constants/ErrorMessages';
 import { TodayStatusCard } from '../../models/card';
 import { HomeworkQueryParams } from '../../models/common';
 import { HomeworkTask } from '../../models/homework';
+import { WorkbenchManifest, WorkbenchModule } from '../../models/workbench';
 import { CardService } from '../../services/api/card';
 import { HomeworkService } from '../../services/api/homework';
 import { MessageService } from '../../services/api/message';
@@ -30,13 +31,22 @@ export struct ParentHomePage {
   @State errorMessage: string = '';
   @State unreadCount: number = 0;
   @State alertSummary: string = '';
+  @State workbenchManifest: WorkbenchManifest | null = null;
 
   aboutToAppear() {
     const userInfo = UserStore.getUserInfo();
     if (userInfo) {
       this.userName = userInfo.realName;
     }
+    this.loadWorkbenchManifest();
     this.loadData();
+  }
+
+  private loadWorkbenchManifest(): void {
+    const manifest = AppStorage.get<WorkbenchManifest>('workbench_manifest');
+    if (manifest && manifest.roleType === 'PARENT') {
+      this.workbenchManifest = manifest;
+    }
   }
 
   async loadData() {
@@ -125,10 +135,10 @@ export struct ParentHomePage {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '欢迎使用智慧学生管理系统 · 家长端',
+        greeting: this.workbenchManifest?.summary.description ?? '欢迎使用智慧学生管理系统 · 家长端',
         theme: HeaderTheme.WHITE,
         badgeText: '家长端',
-        metaText: this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排'
+        metaText: this.workbenchManifest?.visual.slogan ?? (this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排')
       }) {
         this.buildHeaderActions()
       }
@@ -210,9 +220,9 @@ export struct ParentHomePage {
 
           Text(this.getDisplayStudentMeta())
             .fontSize(11)
-            .fontColor('#3F7DFF')
+            .fontColor('#0A59F7')
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor('#F5F9FF')
+            .backgroundColor('#EEF4FA')
             .borderRadius(999)
             .margin({ left: 10 })
         }
@@ -220,39 +230,45 @@ export struct ParentHomePage {
 
         Text(`学号：${this.getDisplayStudentNo()}`)
           .fontSize(14)
-          .fontColor('#EAF1FF')
+          .fontColor('#FFFFFFD9')
           .margin({ top: 10 })
 
         Text(`学校：${this.getDisplaySchoolName()}`)
           .fontSize(14)
-          .fontColor('#EAF1FF')
+          .fontColor('#FFFFFFD9')
           .margin({ top: 6 })
 
         Text(this.getSessionTitle())
           .fontSize(13)
-          .fontColor('#DDE8FF')
+          .fontColor('#FFFFFFCC')
           .margin({ top: 10 })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
       .margin({ left: 14 })
 
-      Image($r('app.media.startIcon'))
-        .width(84)
-        .height(84)
+      Image($r('app.media.sg_illustration_children'))
+        .width(104)
+        .height(92)
         .objectFit(ImageFit.Contain)
-        .opacity(0.22)
+        .opacity(0.88)
     }
     .width('100%')
     .padding({ left: 18, right: 18, top: 18, bottom: 18 })
     .linearGradient({
-      angle: 145,
-      colors: [['#5A96FF', 0], ['#4B85FF', 0.55], ['#3970F5', 1]]
+      angle: 130,
+      colors: [['#0A59F7', 0], ['#4D8DFF', 0.62], ['#DCEAFF', 1]]
+    })
+    .border({
+      width: 1,
+      color: '#D8E6FF',
+      radius: 28,
+      style: BorderStyle.Solid
     })
     .borderRadius(28)
     .shadow({
       radius: 18,
-      color: '#2F6BDE18',
+      color: '#0A59F726',
       offsetX: 0,
       offsetY: 10
     })
@@ -300,13 +316,13 @@ export struct ParentHomePage {
     .borderRadius(22)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: '#E6ECF5',
       radius: 22,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 12,
-      color: '#2F6BDE0D',
+      color: '#526F950D',
       offsetX: 0,
       offsetY: 6
     })
@@ -316,7 +332,8 @@ export struct ParentHomePage {
   @Builder
   private buildQuickActionsCard() {
     Card({
-      title: '常用功能',
+      title: this.workbenchManifest?.summary.title ?? '常用功能',
+      subtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '预约、订单、消息和学生动态入口。',
       actionText: '全部功能',
       onAction: () => {
         this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentServicesPage' });
@@ -329,39 +346,30 @@ export struct ParentHomePage {
   private buildQuickActionsContent() {
     Column() {
       Row() {
-        this.buildFeatureItem('托管预约', '在线预约', $r('app.media.ic_calendar'), '#EAF2FF', '#3F7DFF', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentServicesPage' });
-        })
-        this.buildFeatureItem('我的订单', '查看订单', $r('app.media.ic_order'), '#EAF9EF', '#34C759', () => {
-          AppStorage.setOrCreate('main_current_index', 1);
-        })
-        this.buildFeatureItem('签到记录', '出入校记录', $r('app.media.ic_attendance'), '#FFF3E5', '#FFB74D', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
-        })
-        this.buildFeatureItem('家校沟通', '联系老师', $r('app.media.ic_message'), '#F2EEFF', '#8B6CF6', () => {
-          AppStorage.setOrCreate('main_current_index', 2);
+        ForEach(this.getFirstActionRow(), (module: WorkbenchModule) => {
+          this.buildManifestFeatureItem(module)
         })
       }
       .width('100%')
 
-      Row() {
-        this.buildFeatureItem('作业辅导', '作业与反馈', $r('app.media.ic_homework'), '#FFF4E8', '#FF8A4D', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
-        })
-        this.buildFeatureItem('在校动态', '查看安排', $r('app.media.ic_child'), '#EAF2FF', '#4C89FF', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentSessionsPage' });
-        })
-        this.buildFeatureItem('安全守护', '风险提醒', $r('app.media.ic_warning'), '#EAF9EF', '#2DB36B', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentAlertsPage' });
-        })
-        this.buildFeatureItem('费用缴纳', '缴费记录', $r('app.media.ic_money'), '#FFECEF', '#FF5D73', () => {
-          AppStorage.setOrCreate('main_current_index', 1);
-        })
+      if (this.getSecondActionRow().length > 0) {
+        Row() {
+          ForEach(this.getSecondActionRow(), (module: WorkbenchModule) => {
+            this.buildManifestFeatureItem(module)
+          })
+        }
+        .width('100%')
+        .margin({ top: 14 })
       }
-      .width('100%')
-      .margin({ top: 14 })
     }
     .width('100%')
+  }
+
+  @Builder
+  private buildManifestFeatureItem(module: WorkbenchModule) {
+    this.buildFeatureItem(module.name, this.getModuleSubtitle(module.code), this.getModuleIcon(module.code), this.getModuleBgColor(module.code), this.getModuleIconColor(module.code), () => {
+      this.openWorkbenchModule(module);
+    })
   }
 
   @Builder
@@ -396,6 +404,121 @@ export struct ParentHomePage {
     .onClick(() => onClick())
   }
 
+  private getActionModules(): WorkbenchModule[] {
+    const manifestModules = this.workbenchManifest?.modules?.filter((module: WorkbenchModule) => module.enabled && module.code !== 'home') ?? [];
+    if (manifestModules.length > 0) {
+      return manifestModules;
+    }
+    return [
+      { code: 'services', name: '托管预约', route: '/parent/services', enabled: true },
+      { code: 'orders', name: '我的订单', route: '/parent/orders', enabled: true },
+      { code: 'timeline', name: '成长动态', route: '/parent/timeline', enabled: true },
+      { code: 'messages', name: '家校消息', route: '/parent/messages', enabled: true },
+      { code: 'homework', name: '作业辅导', route: '/parent/homework', enabled: true },
+      { code: 'sessions', name: '在校安排', route: '/parent/sessions', enabled: true },
+      { code: 'alerts', name: '安全守护', route: '/parent/alerts', enabled: true },
+      { code: 'profile', name: '家庭与设置', route: '/parent/profile', enabled: true },
+      { code: 'children', name: '孩子档案', route: '/parent/children', enabled: true },
+      { code: 'payment', name: '费用缴纳', route: '/parent/payment', enabled: true }
+    ];
+  }
+
+  private getFirstActionRow(): WorkbenchModule[] {
+    return this.getActionModules().slice(0, 5);
+  }
+
+  private getSecondActionRow(): WorkbenchModule[] {
+    return this.getActionModules().slice(5, 10);
+  }
+
+  private getModuleSubtitle(code: string): string {
+    if (code === 'services') return '在线预约';
+    if (code === 'orders') return '查看订单';
+    if (code === 'timeline') return '成长记录';
+    if (code === 'messages') return '联系老师';
+    if (code === 'homework') return '作业与反馈';
+    if (code === 'sessions') return '查看安排';
+    if (code === 'alerts') return '风险提醒';
+    if (code === 'profile') return '家庭资料';
+    if (code === 'children') return '学生档案';
+    if (code === 'payment') return '在线缴费';
+    return '进入模块';
+  }
+
+  private getModuleIcon(code: string): Resource {
+    if (code === 'services') return $r('app.media.ic_calendar');
+    if (code === 'orders') return $r('app.media.ic_order');
+    if (code === 'timeline') return $r('app.media.ic_child');
+    if (code === 'messages') return $r('app.media.ic_message');
+    if (code === 'homework') return $r('app.media.ic_homework');
+    if (code === 'sessions') return $r('app.media.ic_attendance');
+    if (code === 'alerts') return $r('app.media.ic_warning');
+    if (code === 'profile') return $r('app.media.ic_profile');
+    if (code === 'children') return $r('app.media.ic_child');
+    if (code === 'payment') return $r('app.media.ic_money');
+    return $r('app.media.ic_home');
+  }
+
+  private getModuleBgColor(code: string): string {
+    if (code === 'orders' || code === 'homework' || code === 'profile') return '#F6F0E9';
+    if (code === 'messages') return '#F2F0F7';
+    if (code === 'alerts') return '#F8EEEE';
+    return '#EEF4FA';
+  }
+
+  private getModuleIconColor(code: string): string {
+    if (code === 'orders' || code === 'profile') return '#8A6A4E';
+    if (code === 'timeline' || code === 'sessions') return '#5D8267';
+    if (code === 'messages') return '#7B6D96';
+    if (code === 'homework') return '#A9794E';
+    if (code === 'alerts') return '#A75A61';
+    return '#526F95';
+  }
+
+  private openWorkbenchModule(module: WorkbenchModule): void {
+    if (module.code === 'home') {
+      AppStorage.setOrCreate('main_current_index', 0);
+      return;
+    }
+    if (module.code === 'services') {
+      AppStorage.setOrCreate('main_current_index', 1);
+      return;
+    }
+    if (module.code === 'messages') {
+      AppStorage.setOrCreate('main_current_index', 2);
+      return;
+    }
+    if (module.code === 'timeline') {
+      AppStorage.setOrCreate('main_current_index', 3);
+      return;
+    }
+    if (module.code === 'profile') {
+      AppStorage.setOrCreate('main_current_index', 4);
+      return;
+    }
+    if (module.code === 'orders') {
+      this.pushPage('pages/parent/ParentOrdersPage');
+    } else if (module.code === 'children') {
+      this.pushPage('pages/parent/ParentChildrenPage');
+    } else if (module.code === 'payment') {
+      this.pushPage('pages/parent/ParentPaymentPage');
+    } else if (module.code === 'homework') {
+      this.pushPage('pages/parent/ParentHomeworkPage');
+    } else if (module.code === 'sessions') {
+      this.pushPage('pages/parent/ParentSessionsPage');
+    } else if (module.code === 'alerts') {
+      this.pushPage('pages/parent/ParentAlertsPage');
+    }
+  }
+
+  private pushPage(url: string): void {
+    try {
+      this.getUIContext().getRouter().pushUrl({ url });
+    } catch (error) {
+      console.error('ParentHomePage navigate failed:', String(error));
+    }
+  }
+
   @Builder
   private buildScheduleCard() {
     Card({
@@ -428,7 +551,7 @@ export struct ParentHomePage {
       }
       .width('100%')
       .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-      .backgroundColor('#F7FAFF')
+      .backgroundColor('#F7FAFE')
       .borderRadius(16)
       .margin({ top: 16 })
     }
@@ -502,7 +625,7 @@ export struct ParentHomePage {
               .fontSize(12)
               .fontColor($r('app.color.primary'))
               .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-              .backgroundColor('#EAF2FF')
+              .backgroundColor('#EEF4FA')
               .borderRadius(999)
           }
           .width('100%')
@@ -536,11 +659,11 @@ export struct ParentHomePage {
   }
 
   private getSignStatusColor(): string {
-    return this.todaySummary?.status === 'NOT_SIGNED' ? '#FF9F43' : '#34C759';
+    return this.todaySummary?.status === 'NOT_SIGNED' ? '#A9794E' : '#5D8267';
   }
 
   private getSignStatusBgColor(): string {
-    return this.todaySummary?.status === 'NOT_SIGNED' ? '#FFF3E5' : '#EAF9EF';
+    return this.todaySummary?.status === 'NOT_SIGNED' ? '#F6F0E9' : '#EEF4FA';
   }
 
   private getHomeworkStatusText(): string {
@@ -557,23 +680,23 @@ export struct ParentHomePage {
   private getHomeworkStatusColor(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
     if (progress >= 100) {
-      return '#34C759';
+      return '#5D8267';
     }
     if (progress > 0) {
-      return '#3F7DFF';
+      return '#526F95';
     }
-    return '#9AA8C2';
+    return '#8C9A93';
   }
 
   private getHomeworkStatusBgColor(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
     if (progress >= 100) {
-      return '#EAF9EF';
+      return '#EEF4FA';
     }
     if (progress > 0) {
-      return '#EAF2FF';
+      return '#EEF4FA';
     }
-    return '#F2F5FB';
+    return '#F5F1E8';
   }
 
   private getSignOutStatusText(): string {
@@ -581,10 +704,11 @@ export struct ParentHomePage {
   }
 
   private getSignOutStatusColor(): string {
-    return this.todaySummary?.status === 'SIGNED_OUT' ? '#34C759' : '#9AA8C2';
+    return this.todaySummary?.status === 'SIGNED_OUT' ? '#2F9E77' : '#8C9A93';
   }
 
   private getSignOutStatusBgColor(): string {
-    return this.todaySummary?.status === 'SIGNED_OUT' ? '#EAF9EF' : '#F2F5FB';
+    return this.todaySummary?.status === 'SIGNED_OUT' ? '#EEF4FA' : '#F5F1E8';
   }
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Sessions Page
  * View student's class sessions
  */
@@ -175,3 +175,4 @@ export struct ParentSessionsPage {
     .borderRadius(8)
   }
 }
+

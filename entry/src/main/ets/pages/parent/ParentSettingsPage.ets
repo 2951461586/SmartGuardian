@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Settings Page
  * 账户设置页面
  */
@@ -202,3 +202,4 @@ struct ParentSettingsPage {
     .backgroundColor($r('app.color.page_background'))
   }
 }
+

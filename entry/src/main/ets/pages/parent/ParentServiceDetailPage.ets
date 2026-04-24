@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Service Detail Page
  * Service product detail view with booking functionality
  */
@@ -400,3 +400,4 @@ struct ParentServiceDetailPage {
     })
   }
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Orders Page
  * Admin can review and audit orders
  * 
@@ -219,7 +219,7 @@ export struct AdminOrdersPage {
           value: this.getVisibleOrderCount(),
           label: '当前列表',
           icon: $r('app.media.ic_order'),
-          iconColor: '#1F5EFF'
+          iconColor: '#526F95'
         })
         .layoutWeight(1)
 
@@ -240,7 +240,7 @@ export struct AdminOrdersPage {
           value: this.getApprovedCount(),
           label: '已审核',
           icon: $r('app.media.ic_success'),
-          iconColor: '#15803D'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
 
@@ -248,7 +248,7 @@ export struct AdminOrdersPage {
           value: this.getAverageAmount(),
           label: '平均金额',
           icon: $r('app.media.ic_money'),
-          iconColor: '#8B5CF6'
+          iconColor: '#6E5BAA'
         })
         .layoutWeight(1)
         .margin({ left: 12 })
@@ -270,7 +270,7 @@ export struct AdminOrdersPage {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.primary'))
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#EAF2FF')
+          .backgroundColor('#F6F0E9')
           .borderRadius(999)
 
         Text(this.getAmountTotalText())
@@ -289,7 +289,7 @@ export struct AdminOrdersPage {
 
       Column() {
         this.buildMiniMetric('待处理', `${this.getPendingAuditCount()}`, '#D97706')
-        this.buildMiniMetric('已完成', `${this.getApprovedCount()}`, '#15803D')
+        this.buildMiniMetric('已完成', `${this.getApprovedCount()}`, '#2F9E77')
       }
       .width(112)
     }
@@ -405,11 +405,11 @@ export struct AdminOrdersPage {
   @Builder
   buildStreamSummary() {
     Row() {
-      this.buildMiniMetric('模式', this.tabs[this.currentTab], '#1F5EFF')
+      this.buildMiniMetric('模式', this.tabs[this.currentTab], '#526F95')
       Blank().width(10)
       this.buildMiniMetric('订单量', `${this.orders.length}`, '#10203A')
       Blank().width(10)
-      this.buildMiniMetric('总金额', this.getAmountTotalText(), '#15803D')
+      this.buildMiniMetric('总金额', this.getAmountTotalText(), '#2F9E77')
     }
     .width('100%')
   }
@@ -565,3 +565,4 @@ export struct AdminOrdersPage {
     return `¥${this.getOrderAmountTotal()}`;
   }
 }
+

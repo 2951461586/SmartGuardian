@@ -33,10 +33,10 @@ public class DataInitializer implements CommandLineRunner {
       1L, "P001", "parent_zhang", encodedPassword, "张家长", "13800138001", "PARENT", "ENABLED", 0,
       Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()));
     jdbcTemplate.update("insert into user (id, account_no, username, password_hash, real_name, mobile, role_type, status, is_deleted, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      2L, "T001", "teacher_li", encodedPassword, "李老师", "13800138002", "TEACHER", "ENABLED", 0,
+      2L, "T001", "teacher_wang", encodedPassword, "王老师", "13800138002", "TEACHER", "ENABLED", 0,
       Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()));
     jdbcTemplate.update("insert into user (id, account_no, username, password_hash, real_name, mobile, role_type, status, is_deleted, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      3L, "A001", "admin_wang", encodedPassword, "王管理员", "13800138003", "ADMIN", "ENABLED", 0,
+      3L, "A001", "admin_li", encodedPassword, "李管理员", "13800138003", "ORG_ADMIN", "ENABLED", 0,
       Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()));
 
     jdbcTemplate.update("insert into student (id, student_no, name, gender, birthday, school_id, class_id, grade, guardian_user_id, health_notes, status, is_deleted, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",

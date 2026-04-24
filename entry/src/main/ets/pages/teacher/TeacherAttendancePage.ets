@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Attendance Page
  * Manage student attendance with unified visual system
  */
@@ -349,8 +349,9 @@ export struct TeacherAttendancePage {
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFF')
+    .backgroundColor('#F7FAFE')
     .borderRadius(14)
     .alignItems(HorizontalAlign.Start)
   }
 }
+

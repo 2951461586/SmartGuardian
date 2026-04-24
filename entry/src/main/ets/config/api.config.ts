@@ -18,7 +18,7 @@ export class ApiConfig {
   static readonly API_ENV_STORAGE_KEY: string = 'smart_guardian_api_env';
   static readonly API_BASE_URL_STORAGE_KEY: string = 'smart_guardian_api_base_url';
   static readonly API_CONFIG_VERSION_STORAGE_KEY: string = 'smart_guardian_api_config_version';
-  private static readonly API_CONFIG_VERSION: number = 3;
+  private static readonly API_CONFIG_VERSION: number = 4;
   private static readonly LEGACY_REAL_BASE_URLS: string[] = [
     'http://106.12.35.30',
     'http://106.12.35.30:8080'
@@ -28,7 +28,7 @@ export class ApiConfig {
    * Default environment for fresh installs.
    * Keep mock as the baseline and let runtime config switch to real services.
    */
-  static readonly CURRENT_ENV: string = ApiEnvironment.TEST_REAL;
+  static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
 
   /**
    * Default real backend base URL. Can be overridden at runtime.
@@ -107,9 +107,6 @@ export class ApiConfig {
     }
 
     if (storedVersion < ApiConfig.API_CONFIG_VERSION) {
-      if (nextEnv === ApiEnvironment.DEV_MOCK) {
-        nextEnv = ApiEnvironment.TEST_REAL;
-      }
       AppStorage.setOrCreate(ApiConfig.API_ENV_STORAGE_KEY, nextEnv);
       AppStorage.setOrCreate(ApiConfig.API_BASE_URL_STORAGE_KEY, nextBaseUrl);
       AppStorage.setOrCreate(ApiConfig.API_CONFIG_VERSION_STORAGE_KEY, ApiConfig.API_CONFIG_VERSION);

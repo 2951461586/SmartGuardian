@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Sessions Page
  * Admin session scheduling workspace
  */
@@ -213,7 +213,7 @@ struct AdminSessionsPage {
 
   private getStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'ENDED') {
       return '#7A879A';
@@ -221,7 +221,7 @@ struct AdminSessionsPage {
     if (status === 'CANCELLED') {
       return '#DC2626';
     }
-    return '#1F5EFF';
+    return '#526F95';
   }
 
   build() {
@@ -293,7 +293,7 @@ struct AdminSessionsPage {
           value: this.sessions.length,
           label: '当前班次数',
           icon: $r('app.media.ic_session'),
-          iconColor: '#1F5EFF'
+          iconColor: '#526F95'
         })
         .layoutWeight(1)
 
@@ -301,7 +301,7 @@ struct AdminSessionsPage {
           value: this.getTodayCount(),
           label: '今日班次',
           icon: $r('app.media.ic_clock'),
-          iconColor: '#15803D'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
         .margin({ left: 12, right: 12 })
@@ -520,3 +520,4 @@ struct AdminSessionsPage {
     .padding(20)
   }
 }
+

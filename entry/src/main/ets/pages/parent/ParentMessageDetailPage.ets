@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Message Detail Page
  * 显示消息详情
  */
@@ -109,3 +109,4 @@ struct ParentMessageDetailPage {
     .backgroundColor($r('app.color.page_background'))
   }
 }
+

@@ -1,7 +1,10 @@
-/**
+﻿/**
  * SmartGuardian - Card Component
- * Unified card component with a bright campus dashboard hierarchy
+ * Unified card component with the tri-portal visual language
  */
+
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 export enum CardVariant {
   DEFAULT = 'DEFAULT',
@@ -173,7 +176,7 @@ export struct Card {
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
     }
-    return '#FFFFFF';
+    return HarmonyColor.surface;
   }
 
   private getBorderWidth(): number {
@@ -182,12 +185,12 @@ export struct Card {
 
   private getBorderColor(): ResourceColor {
     if (this.cardVariant === CardVariant.OUTLINED) {
-      return '#DCE6FA';
+      return HarmonyColor.line;
     }
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
     }
-    return '#E4ECFA';
+    return HarmonyColor.line;
   }
 
   private getShadowRadius(): number {
@@ -201,7 +204,7 @@ export struct Card {
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
     }
-    return this.cardVariant === CardVariant.ELEVATED ? '#2F6BDE16' : '#2F6BDE0E';
+    return this.cardVariant === CardVariant.ELEVATED ? getCurrentRolePalette().shadow : harmonyShadowColor();
   }
 
   private getShadowOffsetY(): number {
@@ -229,17 +232,17 @@ export struct SimpleCard {
     }
     .width('100%')
     .padding(CARD_SIZE_CONFIG[this.cardSize].padding)
-    .backgroundColor(this.customBgColor || '#FFFFFF')
+    .backgroundColor(this.customBgColor || HarmonyColor.surface)
     .borderRadius(CARD_SIZE_CONFIG[this.cardSize].borderRadius)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: HarmonyColor.line,
       radius: CARD_SIZE_CONFIG[this.cardSize].borderRadius,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 10,
-      color: '#2F6BDE0C',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: 4
     })
@@ -257,7 +260,7 @@ export struct StatCard {
   @Prop value: string | number = '';
   @Prop label: string = '';
   @Prop icon: ResourceStr = '';
-  @Prop iconColor: string = '#3F7DFF';
+  @Prop iconColor: string = '#526F95';
   @Prop trend: string = '';
   @Prop trendValue: string = '';
 
@@ -307,17 +310,17 @@ export struct StatCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(24)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: HarmonyColor.line,
       radius: 24,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 12,
-      color: '#2F6BDE0E',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: 6
     })
@@ -325,36 +328,36 @@ export struct StatCard {
   }
 
   private getIconBgColor(): string {
-    if (this.iconColor === '#16A34A' || this.iconColor === '#34C759') {
-      return '#EAF9EF';
+    if (this.iconColor === '#5D8267') {
+      return '#EEF6F0';
     }
-    if (this.iconColor === '#F59E0B' || this.iconColor === '#FFB74D') {
-      return '#FFF4E8';
+    if (this.iconColor === '#A9794E') {
+      return '#F6F0E9';
     }
-    if (this.iconColor === '#8B5CF6') {
-      return '#F2EEFF';
+    if (this.iconColor === '#6E5BAA') {
+      return '#F1EDFB';
     }
-    return '#EAF2FF';
+    return getCurrentRolePalette().light;
   }
 
   private getTrendColor(): string {
     if (this.trend === 'up') {
-      return '#34C759';
+      return '#5D8267';
     }
     if (this.trend === 'down') {
-      return '#FF5D73';
+      return '#D94B5A';
     }
-    return '#7E8EAB';
+    return '#66738A';
   }
 
   private getTrendBgColor(): string {
     if (this.trend === 'up') {
-      return '#EAF9EF';
+      return '#EEF4FA';
     }
     if (this.trend === 'down') {
-      return '#FFECEF';
+      return '#FFF0F1';
     }
-    return '#F1F5FE';
+    return '#F5F1E8';
   }
 }
 
@@ -393,11 +396,11 @@ export struct InfoCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(24)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: HarmonyColor.line,
       radius: 24,
       style: BorderStyle.Solid
     })
@@ -435,8 +438,8 @@ export struct ActionCard {
   @Prop cardTitle: string = '';
   @Prop description: string = '';
   @Prop buttonText: string = '';
-  @Prop iconBgColor: string = '#EAF2FF';
-  @Prop iconColor: string = '#3F7DFF';
+  @Prop iconBgColor: string = '#EEF4FA';
+  @Prop iconColor: string = '#526F95';
   onCardClick?: () => void;
   onAction?: () => void;
 
@@ -454,7 +457,7 @@ export struct ActionCard {
         .height(48)
         .justifyContent(FlexAlign.Center)
         .backgroundColor(this.iconBgColor)
-        .borderRadius(18)
+        .borderRadius(HarmonyRadius.control)
         .margin({ right: 12 })
 
         Column() {
@@ -483,8 +486,8 @@ export struct ActionCard {
           .height(42)
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(Color.White)
-          .backgroundColor($r('app.color.primary'))
-          .borderRadius(18)
+          .backgroundColor(getCurrentRolePalette().primary)
+          .borderRadius(HarmonyRadius.control)
           .margin({ top: 16 })
           .onClick(() => {
             if (this.onAction) {
@@ -495,17 +498,17 @@ export struct ActionCard {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(24)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: HarmonyColor.line,
       radius: 24,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 10,
-      color: '#2F6BDE0C',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: 4
     })
@@ -516,3 +519,4 @@ export struct ActionCard {
     })
   }
 }
+

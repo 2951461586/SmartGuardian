@@ -1,7 +1,6 @@
-/**
- * SmartGuardian - 图标别名统一导出
- * 使用现有媒体资源，并为缺失图标提供稳定兜底
- */
+﻿/**
+ * SmartGuardian - 鍥炬爣鍒悕缁熶竴瀵煎嚭
+ * 浣跨敤鐜版湁濯掍綋璧勬簮锛屽苟涓虹己澶卞浘鏍囨彁渚涚ǔ瀹氬厹搴? */
 
 export const IC_HOME: Resource = $r('app.media.ic_home');
 export const IC_ORDER: Resource = $r('app.media.ic_order');
@@ -43,16 +42,16 @@ export const IC_DEFAULT_AVATAR: Resource = $r('app.media.ic_default_avatar');
 export const IC_SYSTEM: Resource = $r('app.media.ic_system');
 export const IC_CHAT: Resource = $r('app.media.ic_chat');
 
-export const IC_SUCCESS: Resource = $r('app.media.ic_notification');
-export const IC_ERROR: Resource = $r('app.media.ic_warning');
-export const IC_INFO: Resource = $r('app.media.ic_notification');
+export const IC_SUCCESS: Resource = $r('app.media.ic_success');
+export const IC_ERROR: Resource = $r('app.media.ic_error');
+export const IC_INFO: Resource = $r('app.media.ic_info');
 
 export const IC_MALE: Resource = $r('app.media.ic_user');
 export const IC_FEMALE: Resource = $r('app.media.ic_user');
 
 export const IC_PHONE: Resource = $r('app.media.ic_message');
 export const IC_EMAIL: Resource = $r('app.media.ic_message');
-export const IC_LOCATION: Resource = $r('app.media.ic_child');
+export const IC_LOCATION: Resource = $r('app.media.ic_location');
 
 export const IC_TIME: Resource = $r('app.media.ic_calendar');
 
@@ -60,7 +59,7 @@ export const IC_STAR: Resource = $r('app.media.ic_notification');
 export const IC_HEART: Resource = $r('app.media.ic_notification');
 export const IC_BELL: Resource = $r('app.media.ic_notification');
 
-export const COLOR_PRIMARY: string = '#007AFF';
-export const COLOR_SUCCESS: string = '#34C759';
-export const COLOR_WARNING: string = '#FF9500';
-export const COLOR_ERROR: string = '#FF3B30';
+export const COLOR_PRIMARY: string = '#526F95';
+export const COLOR_SUCCESS: string = '#5D8267';
+export const COLOR_WARNING: string = '#A9794E';
+export const COLOR_ERROR: string = '#D94B5A';

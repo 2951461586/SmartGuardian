@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Home Page
  * Teacher dashboard with the new light campus style
  */
@@ -16,6 +16,7 @@ import {
 } from '../../components/common';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { AttendanceRecord } from '../../models/attendance';
+import { WorkbenchManifest, WorkbenchModule } from '../../models/workbench';
 import { AttendanceService } from '../../services/api/attendance';
 import { MessageService } from '../../services/api/message';
 import { SessionSchedule, SessionService } from '../../services/api/service';
@@ -36,13 +37,22 @@ export struct TeacherHomePage {
   @State currentSession: SessionSchedule | null = null;
   @State errorMessage: string = '';
   @State unreadCount: number = 0;
+  @State workbenchManifest: WorkbenchManifest | null = null;
 
   async aboutToAppear() {
     const userInfo = UserStore.getUserInfo();
     if (userInfo) {
       this.userName = userInfo.realName;
     }
+    this.loadWorkbenchManifest();
     await this.loadData();
+  }
+
+  private loadWorkbenchManifest(): void {
+    const manifest = AppStorage.get<WorkbenchManifest>('workbench_manifest');
+    if (manifest && manifest.roleType === 'TEACHER') {
+      this.workbenchManifest = manifest;
+    }
   }
 
   async loadData() {
@@ -129,32 +139,32 @@ export struct TeacherHomePage {
 
   private getSessionStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#34C759';
+      return '#2F9E77';
     }
     if (status === 'ENDED') {
-      return '#7E8EAB';
+      return '#66738A';
     }
-    return '#3F7DFF';
+    return '#5D8267';
   }
 
   private getSessionStatusBgColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#EAF9EF';
+      return '#EEF6F0';
     }
     if (status === 'ENDED') {
-      return '#F2F5FB';
+      return '#F5F1E8';
     }
-    return '#EAF2FF';
+    return '#EEF6F0';
   }
 
   build() {
     Column() {
       GreetingHeader({
         userName: this.userName,
-        greeting: '统一查看班次安排、考勤进度和作业处理情况。',
+        greeting: this.workbenchManifest?.summary.description ?? '统一查看班次安排、考勤进度和作业处理情况。',
         theme: HeaderTheme.WHITE,
         badgeText: '教师端',
-        metaText: this.currentSession?.serviceProductName ? `当前班次：${this.currentSession.serviceProductName}` : '今日授课安排与签到状态总览'
+        metaText: this.workbenchManifest?.visual.slogan ?? (this.currentSession?.serviceProductName ? `当前班次：${this.currentSession.serviceProductName}` : '今日授课安排与签到状态总览')
       }) {
         this.buildHeaderActions()
       }
@@ -206,22 +216,22 @@ export struct TeacherHomePage {
         Text('今日在岗')
           .fontSize(12)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#DCE8FF')
+          .fontColor('#5D8267')
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#FFFFFF22')
+          .backgroundColor('#EEF6F0')
           .borderRadius(999)
 
         Text(this.getDisplaySession()?.serviceProductName || '今日暂无授课班次')
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
+          .fontColor($r('app.color.text_primary'))
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .margin({ top: 14 })
 
         Text(this.getDisplaySession() ? `${formatTime(this.getDisplaySession()?.startTime ?? '')} - ${formatTime(this.getDisplaySession()?.endTime ?? '')}` : '可以前往课程安排查看后续排班')
           .fontSize(14)
-          .fontColor('#EAF1FF')
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 8 })
 
         Row() {
@@ -238,16 +248,16 @@ export struct TeacherHomePage {
       Column() {
         Text(this.getSessionStatusText(this.getDisplaySession()?.status))
           .fontSize(12)
-          .fontColor('#3F7DFF')
+          .fontColor('#5D8267')
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F5F9FF')
+          .backgroundColor('#EEF6F0')
           .borderRadius(999)
 
-        Image($r('app.media.startIcon'))
-          .width(84)
-          .height(84)
+        Image($r('app.media.sg_illustration_teaching'))
+          .width(108)
+          .height(92)
           .objectFit(ImageFit.Contain)
-          .opacity(0.22)
+          .opacity(0.88)
           .margin({ top: 16 })
       }
       .alignItems(HorizontalAlign.End)
@@ -256,12 +266,18 @@ export struct TeacherHomePage {
     .padding({ left: 18, right: 18, top: 18, bottom: 18 })
     .linearGradient({
       angle: 145,
-      colors: [['#5A96FF', 0], ['#4B85FF', 0.55], ['#3970F5', 1]]
+      colors: [['#FFFFFF', 0], ['#F3F8F4', 1]]
+    })
+    .border({
+      width: 1,
+      color: '#D7E6DA',
+      radius: 28,
+      style: BorderStyle.Solid
     })
     .borderRadius(28)
     .shadow({
       radius: 18,
-      color: '#2F6BDE18',
+      color: '#5D826712',
       offsetX: 0,
       offsetY: 10
     })
@@ -274,16 +290,16 @@ export struct TeacherHomePage {
       Text(value)
         .fontSize(22)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor('#3F654B')
 
       Text(label)
         .fontSize(12)
-        .fontColor('#DCE8FF')
+        .fontColor('#66738A')
         .margin({ top: 4 })
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-    .backgroundColor('#FFFFFF16')
+    .backgroundColor('#FFFFFFCC')
     .borderRadius(18)
     .alignItems(HorizontalAlign.Start)
   }
@@ -296,7 +312,7 @@ export struct TeacherHomePage {
           value: `${this.todaySessions.length}`,
           label: '今日班次',
           icon: $r('app.media.ic_calendar'),
-          iconColor: '#3F7DFF'
+          iconColor: '#5D8267'
         })
         .layoutWeight(1)
 
@@ -306,7 +322,7 @@ export struct TeacherHomePage {
           value: `${this.getUnsignedCount()}`,
           label: '待签到',
           icon: $r('app.media.ic_warning'),
-          iconColor: '#FFB74D'
+          iconColor: '#E8A23A'
         })
         .layoutWeight(1)
       }
@@ -317,7 +333,7 @@ export struct TeacherHomePage {
           value: `${this.getSignedCount()}`,
           label: '已签到',
           icon: $r('app.media.ic_attendance'),
-          iconColor: '#34C759'
+          iconColor: '#2F9E77'
         })
         .layoutWeight(1)
 
@@ -327,7 +343,7 @@ export struct TeacherHomePage {
           value: `${this.unreadCount}`,
           label: '未读消息',
           icon: $r('app.media.ic_message'),
-          iconColor: '#8B6CF6'
+          iconColor: '#6E5BAA'
         })
         .layoutWeight(1)
       }
@@ -341,8 +357,8 @@ export struct TeacherHomePage {
   @Builder
   private buildQuickActionsCard() {
     Card({
-      title: '常用操作',
-      subtitle: '把高频教学任务集中到首页。',
+      title: this.workbenchManifest?.summary.title ?? '常用操作',
+      subtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '把高频教学任务集中到首页。',
       content: this.buildQuickActionsContent
     })
   }
@@ -351,22 +367,30 @@ export struct TeacherHomePage {
   private buildQuickActionsContent() {
     Column() {
       Row() {
-        this.buildFeatureItem('扫码签到', '快速核验', $r('app.media.ic_qrcode'), '#EAF9EF', '#34C759', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherScanPage' });
-        })
-        this.buildFeatureItem('考勤管理', '查看明细', $r('app.media.ic_attendance'), '#EAF2FF', '#3F7DFF', () => {
-          AppStorage.setOrCreate('main_current_index', 1);
-        })
-        this.buildFeatureItem('作业管理', '布置反馈', $r('app.media.ic_homework'), '#FFF4E8', '#FF8A4D', () => {
-          AppStorage.setOrCreate('main_current_index', 2);
-        })
-        this.buildFeatureItem('课程安排', '查看排班', $r('app.media.ic_calendar'), '#F2EEFF', '#8B6CF6', () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
+        ForEach(this.getFirstActionRow(), (module: WorkbenchModule) => {
+          this.buildManifestFeatureItem(module)
         })
       }
       .width('100%')
+
+      if (this.getSecondActionRow().length > 0) {
+        Row() {
+          ForEach(this.getSecondActionRow(), (module: WorkbenchModule) => {
+            this.buildManifestFeatureItem(module)
+          })
+        }
+        .width('100%')
+        .margin({ top: 14 })
+      }
     }
     .width('100%')
+  }
+
+  @Builder
+  private buildManifestFeatureItem(module: WorkbenchModule) {
+    this.buildFeatureItem(module.name, this.getModuleSubtitle(module.code), this.getModuleIcon(module.code), this.getModuleBgColor(module.code), this.getModuleIconColor(module.code), () => {
+      this.openWorkbenchModule(module);
+    })
   }
 
   @Builder
@@ -399,6 +423,105 @@ export struct TeacherHomePage {
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Center)
     .onClick(() => onClick())
+  }
+
+  private getActionModules(): WorkbenchModule[] {
+    const manifestModules = this.workbenchManifest?.modules?.filter((module: WorkbenchModule) => module.enabled && module.code !== 'home') ?? [];
+    if (manifestModules.length > 0) {
+      return manifestModules;
+    }
+    return [
+      { code: 'scan', name: '扫码签到', route: '/teacher/scan', enabled: true },
+      { code: 'attendance', name: '考勤管理', route: '/teacher/attendance', enabled: true },
+      { code: 'homework', name: '作业管理', route: '/teacher/homework', enabled: true },
+      { code: 'schedule', name: '课程安排', route: '/teacher/schedule', enabled: true },
+      { code: 'messages', name: '家校消息', route: '/teacher/messages', enabled: true },
+      { code: 'students', name: '学生档案', route: '/teacher/students', enabled: true },
+      { code: 'resources', name: '教学资源', route: '/teacher/resources', enabled: true },
+      { code: 'profile', name: '我的', route: '/teacher/profile', enabled: true }
+    ];
+  }
+
+  private getFirstActionRow(): WorkbenchModule[] {
+    return this.getActionModules().slice(0, 5);
+  }
+
+  private getSecondActionRow(): WorkbenchModule[] {
+    return this.getActionModules().slice(5, 10);
+  }
+
+  private getModuleSubtitle(code: string): string {
+    if (code === 'scan') return '快速核验';
+    if (code === 'attendance') return '查看明细';
+    if (code === 'homework') return '布置反馈';
+    if (code === 'schedule') return '查看排班';
+    if (code === 'messages') return '联系家长';
+    if (code === 'students') return '学生档案';
+    if (code === 'resources') return '资料沉淀';
+    if (code === 'profile') return '个人设置';
+    return '进入模块';
+  }
+
+  private getModuleIcon(code: string): Resource {
+    if (code === 'scan') return $r('app.media.ic_qrcode');
+    if (code === 'attendance') return $r('app.media.ic_attendance');
+    if (code === 'homework') return $r('app.media.ic_homework');
+    if (code === 'schedule') return $r('app.media.ic_calendar');
+    if (code === 'messages') return $r('app.media.ic_message');
+    if (code === 'students') return $r('app.media.ic_child');
+    if (code === 'resources') return $r('app.media.ic_service');
+    if (code === 'profile') return $r('app.media.ic_profile');
+    return $r('app.media.ic_home');
+  }
+
+  private getModuleBgColor(code: string): string {
+    if (code === 'homework') return '#F6F0E9';
+    if (code === 'schedule' || code === 'messages') return '#F2F0F7';
+    return '#EEF6F0';
+  }
+
+  private getModuleIconColor(code: string): string {
+    if (code === 'homework') return '#A9794E';
+    if (code === 'schedule' || code === 'messages') return '#7B6D96';
+    return '#5D8267';
+  }
+
+  private openWorkbenchModule(module: WorkbenchModule): void {
+    if (module.code === 'home') {
+      AppStorage.setOrCreate('main_current_index', 0);
+      return;
+    }
+    if (module.code === 'attendance') {
+      AppStorage.setOrCreate('main_current_index', 1);
+      return;
+    }
+    if (module.code === 'messages') {
+      AppStorage.setOrCreate('main_current_index', 2);
+      return;
+    }
+    if (module.code === 'homework') {
+      AppStorage.setOrCreate('main_current_index', 3);
+      return;
+    }
+    if (module.code === 'profile') {
+      AppStorage.setOrCreate('main_current_index', 4);
+      return;
+    }
+    if (module.code === 'scan') {
+      this.pushPage('pages/teacher/TeacherScanPage');
+    } else if (module.code === 'schedule') {
+      this.pushPage('pages/teacher/TeacherSchedulePage');
+    } else if (module.code === 'students') {
+      this.pushPage('pages/teacher/TeacherStudentDetailPage');
+    }
+  }
+
+  private pushPage(url: string): void {
+    try {
+      this.getUIContext().getRouter().pushUrl({ url });
+    } catch (error) {
+      console.error('TeacherHomePage navigate failed:', String(error));
+    }
   }
 
   @Builder
@@ -441,9 +564,9 @@ export struct TeacherHomePage {
         .width('100%')
 
         Row() {
-          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#34C759')
+          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#2F9E77')
           Blank().width(10)
-          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#FFB74D')
+          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#E8A23A')
         }
         .width('100%')
         .margin({ top: 16 })
@@ -473,7 +596,7 @@ export struct TeacherHomePage {
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFF')
+    .backgroundColor('#F7FAFE')
     .borderRadius(16)
     .alignItems(HorizontalAlign.Start)
   }
@@ -539,3 +662,4 @@ export struct TeacherHomePage {
     }
   }
 }
+

@@ -58,11 +58,11 @@
     },
     {
       "name": "card_border_radius",
-      "value": "20fp"
+      "value": "24fp"
     },
     {
       "name": "button_radius",
-      "value": "8fp"
+      "value": "16fp"
     },
     {
       "name": "badge_radius",

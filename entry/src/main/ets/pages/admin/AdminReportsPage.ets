@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Reports Page
  * Admin can view detailed statistics and reports
  */
@@ -225,7 +225,7 @@ export struct AdminReportsPage {
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#1F5EFF',
+      iconColor: '#526F95',
       boxBgColor: Color.White,
       boxBorderColor: '#E5EDF6',
       onButtonClick: (): void => {
@@ -254,7 +254,7 @@ export struct AdminReportsPage {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.primary'))
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#EAF2FF')
+          .backgroundColor('#F6F0E9')
           .borderRadius(999)
 
         Text(this.getExecutiveValue())
@@ -272,7 +272,7 @@ export struct AdminReportsPage {
       .alignItems(HorizontalAlign.Start)
 
       Column() {
-        this.buildCompactMetric('统计周期', this.dateRange, '#1F5EFF')
+        this.buildCompactMetric('统计周期', this.dateRange, '#526F95')
         this.buildCompactMetric('报告类型', this.tabs[this.currentTab], '#10203A')
       }
       .width(124)
@@ -410,7 +410,7 @@ export struct AdminReportsPage {
             .fontWeight(this.dateRange === range ? FontWeight.Medium : FontWeight.Normal)
             .fontColor(this.dateRange === range ? $r('app.color.primary') : $r('app.color.text_secondary'))
             .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-            .backgroundColor(this.dateRange === range ? '#EAF2FF' : '#F7FAFF')
+            .backgroundColor(this.dateRange === range ? '#F6F0E9' : '#F7FAFE')
             .borderRadius(16)
             .margin({ right: range === this.rangeOptions[this.rangeOptions.length - 1] ? 0 : 10 })
             .onClick(() => {
@@ -679,8 +679,9 @@ export struct AdminReportsPage {
     }
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFF')
+    .backgroundColor('#F7FAFE')
     .borderRadius(14)
     .alignItems(HorizontalAlign.Start)
   }
 }
+

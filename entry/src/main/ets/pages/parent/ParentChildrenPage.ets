@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Children Page
  * 孩子管理页面
  */
@@ -112,3 +112,4 @@ struct ParentChildrenPage {
     .backgroundColor($r('app.color.page_background'))
   }
 }
+

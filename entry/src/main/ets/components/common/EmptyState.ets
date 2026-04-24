@@ -71,9 +71,10 @@ export struct EmptyState {
     Column() {
       // 图标
       Image(this.getIcon())
-        .width(120)
-        .height(120)
+        .width(88)
+        .height(88)
         .objectFit(ImageFit.Contain)
+        .fillColor($r('app.color.text_tertiary'))
 
       // 标题
       Text(this.getTitle())
@@ -96,7 +97,7 @@ export struct EmptyState {
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(Color.White)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(8)
+          .borderRadius(16)
           .height(40)
           .padding({ left: 24, right: 24 })
           .margin({ top: 20 })

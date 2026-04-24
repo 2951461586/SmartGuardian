@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Scan QR Code Page
  * Teachers can scan student QR code for quick sign-in/sign-out
  */
@@ -357,3 +357,4 @@ struct TeacherScanPage {
     .backgroundColor($r('app.color.scan_header_background'))
   }
 }
+

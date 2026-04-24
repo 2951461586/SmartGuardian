@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Student Detail Page
  * Student profile detail page for admin flow
  */
@@ -257,7 +257,7 @@ struct AdminStudentDetailPage {
       Column() {
         Text(guardian.authorizedPickup ? '已授权接送' : '未授权接送')
           .fontSize(12)
-          .fontColor(guardian.authorizedPickup ? '#15803D' : '#D97706')
+          .fontColor(guardian.authorizedPickup ? '#2F9E77' : '#D97706')
 
         Text(guardian.pickupCode ? guardian.pickupCode : '--')
           .fontSize(12)
@@ -368,7 +368,7 @@ struct AdminStudentDetailPage {
       return '#D97706';
     }
     if (status === 'SIGNED_OUT' || status === 'SIGNED_IN') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'ABSENT') {
       return '#DC2626';
@@ -399,3 +399,4 @@ struct AdminStudentDetailPage {
     return value;
   }
 }
+

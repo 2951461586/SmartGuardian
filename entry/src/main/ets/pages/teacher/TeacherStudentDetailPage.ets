@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Teacher Student Detail Page
  * Student overview for teacher flow
  */
@@ -351,7 +351,7 @@ struct TeacherStudentDetailPage {
       return '#D97706';
     }
     if (status === 'SIGNED_OUT' || status === 'SIGNED_IN') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'ABSENT') {
       return '#DC2626';
@@ -374,10 +374,10 @@ struct TeacherStudentDetailPage {
 
   private getHomeworkStatusColor(status: string): string {
     if (status === 'COMPLETED' || status === 'CONFIRMED') {
-      return '#15803D';
+      return '#2F9E77';
     }
     if (status === 'IN_PROGRESS') {
-      return '#1F5EFF';
+      return '#526F95';
     }
     return '#D97706';
   }
@@ -405,3 +405,4 @@ struct TeacherStudentDetailPage {
     return value;
   }
 }
+

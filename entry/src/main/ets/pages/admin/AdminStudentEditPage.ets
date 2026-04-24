@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Admin Student Edit Page
  * Student create and edit page for admin flow
  */
@@ -419,3 +419,4 @@ struct AdminStudentEditPage {
     ];
   }
 }
+

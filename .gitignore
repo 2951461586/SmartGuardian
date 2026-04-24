@@ -23,6 +23,8 @@ local.properties
 .appanalyzer/
 **/build/
 **/.test/
+.ohos/
+META-INF/
 
 # Native / CXX / clang
 .cxx/
@@ -45,6 +47,10 @@ Thumbs.db
 coverage/
 reports/
 *.lcov
+
+# Backend build output
+target/
+backend/target/
 
 # Archive / export artifacts
 *.zip

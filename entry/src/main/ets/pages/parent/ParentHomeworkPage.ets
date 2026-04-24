@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Homework Page
  * View student's homework tasks
  */
@@ -164,3 +164,4 @@ export struct ParentHomeworkPage {
     .backgroundColor('#F5F5F5')
   }
 }
+

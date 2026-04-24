@@ -1,14 +1,16 @@
 /**
  * SmartGuardian - ActionButton Component
- * Reusable quick-action tile in the new light campus style
+ * Reusable quick-action tile in the tri-portal style
  */
+
+import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 @Component
 export struct ActionButton {
   @Prop label: string = '';
   @Prop icon: Resource | string | PixelMap = '';
-  @Prop bgColor: string = '#EAF2FF';
-  @Prop iconColor: string = '#3F7DFF';
+  @Prop bgColor: string = '';
+  @Prop iconColor: string = '';
   onButtonClick?: () => void;
 
   build() {
@@ -19,12 +21,12 @@ export struct ActionButton {
             .width(22)
             .height(22)
             .objectFit(ImageFit.Contain)
-            .fillColor(this.iconColor)
+            .fillColor(this.iconColor || getCurrentRolePalette().primary)
         }
         .width(48)
         .height(48)
         .justifyContent(FlexAlign.Center)
-        .backgroundColor(this.bgColor)
+        .backgroundColor(this.bgColor || getCurrentRolePalette().light)
         .borderRadius(18)
 
         Blank()
@@ -46,13 +48,13 @@ export struct ActionButton {
     .borderRadius(22)
     .border({
       width: 1,
-      color: '#E4ECFA',
+      color: '#E6ECF5',
       radius: 22,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: 12,
-      color: '#2F6BDE0D',
+      color: getCurrentRolePalette().shadow,
       offsetX: 0,
       offsetY: 6
     })

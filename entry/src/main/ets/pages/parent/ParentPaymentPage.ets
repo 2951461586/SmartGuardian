@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Payment Page
  * Payment method selection and payment processing
  */
@@ -374,3 +374,4 @@ struct ParentPaymentPage {
     })
   }
 }
+

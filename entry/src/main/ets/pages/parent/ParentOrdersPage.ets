@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Orders Page
  * Parent can view and manage their orders
  *
@@ -308,3 +308,4 @@ export struct ParentOrdersPage {
     .scrollBar(BarState.Off)
   }
 }
+

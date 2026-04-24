@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartGuardian - Parent Leave Page
  * Parent leave request page
  */
@@ -419,3 +419,4 @@ struct ParentLeavePage {
     .borderRadius($r('app.float.card_border_radius'))
   }
 }
+

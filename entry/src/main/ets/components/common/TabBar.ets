@@ -1,7 +1,10 @@
 /**
  * SmartGuardian - Tab Bar Component
- * Unified tab bar with a bright segmented style
+ * Unified tab bar with tri-portal segmented style
  */
+
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 export interface TabItem {
   id: string | number;
@@ -25,7 +28,7 @@ export struct TabBar {
   @Prop showIndicator: boolean = true;
   @Prop indicatorWidth: number = 20;
   onTabChange?: (index: number) => void;
-  @Prop tabBgColor: ResourceColor = '#EEF4FF';
+  @Prop tabBgColor: ResourceColor = '#F2F5FA';
 
   build() {
     if (this.style === TabBarStyle.SCROLLABLE) {
@@ -45,11 +48,11 @@ export struct TabBar {
     .width('100%')
     .padding(4)
     .backgroundColor(this.tabBgColor)
-    .borderRadius(20)
+    .borderRadius(22)
     .border({
       width: 1,
-      color: '#DCE6FA',
-      radius: 20,
+      color: HarmonyColor.line,
+      radius: 22,
       style: BorderStyle.Solid
     })
   }
@@ -68,11 +71,11 @@ export struct TabBar {
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
     .backgroundColor(this.tabBgColor)
-    .borderRadius(20)
+    .borderRadius(22)
     .border({
       width: 1,
-      color: '#DCE6FA',
-      radius: 20,
+      color: HarmonyColor.line,
+      radius: 22,
       style: BorderStyle.Solid
     })
   }
@@ -83,7 +86,7 @@ export struct TabBar {
       Row() {
         Text(tab.text)
           .fontSize($r('app.float.text_primary_size'))
-          .fontColor(this.isSelected(index) ? $r('app.color.primary') : $r('app.color.text_secondary'))
+          .fontColor(this.isSelected(index) ? getCurrentRolePalette().primary : $r('app.color.text_secondary'))
           .fontWeight(this.isSelected(index) ? FontWeight.Medium : FontWeight.Normal)
 
         if (tab.badge && tab.badge > 0) {
@@ -95,7 +98,7 @@ export struct TabBar {
         Row()
           .width(this.indicatorWidth)
           .height(3)
-          .backgroundColor($r('app.color.primary'))
+          .backgroundColor(getCurrentRolePalette().primary)
           .borderRadius(999)
           .margin({ top: 5 })
       } else if (this.showIndicator) {
@@ -110,17 +113,17 @@ export struct TabBar {
     .height(50)
     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.isSelected(index) ? '#FFFFFF' : Color.Transparent)
-    .borderRadius(16)
+    .backgroundColor(this.isSelected(index) ? HarmonyColor.surface : Color.Transparent)
+    .borderRadius(HarmonyRadius.control)
     .border({
       width: this.isSelected(index) ? 1 : 0,
-      color: this.isSelected(index) ? '#E4ECFA' : Color.Transparent,
-      radius: 16,
+      color: this.isSelected(index) ? getCurrentRolePalette().border : Color.Transparent,
+      radius: HarmonyRadius.control,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: this.isSelected(index) ? 8 : 0,
-      color: this.isSelected(index) ? '#2F6BDE0A' : Color.Transparent,
+      color: this.isSelected(index) ? harmonyShadowColor() : Color.Transparent,
       offsetX: 0,
       offsetY: this.isSelected(index) ? 3 : 0
     })
@@ -193,7 +196,7 @@ export struct SimpleTabBar {
         Column() {
           Text(tab)
             .fontSize($r('app.float.text_primary_size'))
-            .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
+            .fontColor(this.currentIndex === index ? getCurrentRolePalette().primary : $r('app.color.text_secondary'))
             .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
         }
         .layoutWeight(1)
@@ -207,7 +210,7 @@ export struct SimpleTabBar {
       })
     }
     .width('100%')
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(HarmonyColor.surface)
   }
 }
 
@@ -216,15 +219,15 @@ export struct SegmentTabBar {
   @Prop tabs: string[] = [];
   @Prop currentIndex: number = 0;
   onTabChange?: (index: number) => void;
-  @Prop segmentBgColor: ResourceColor = '#EEF4FF';
-  @Prop activeBgColor: ResourceColor = '#FFFFFF';
+  @Prop segmentBgColor: ResourceColor = '#F2F5FA';
+  @Prop activeBgColor: ResourceColor = HarmonyColor.surface;
 
   build() {
     Row() {
       ForEach(this.tabs, (tab: string, index: number) => {
         Text(tab)
           .fontSize($r('app.float.text_primary_size'))
-          .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
+          .fontColor(this.currentIndex === index ? getCurrentRolePalette().primary : $r('app.color.text_secondary'))
           .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
           .backgroundColor(this.currentIndex === index ? this.activeBgColor : Color.Transparent)
           .borderRadius(10)
@@ -258,7 +261,7 @@ export struct UnderlineTabBar {
           Column() {
             Text(tab)
               .fontSize($r('app.float.text_primary_size'))
-              .fontColor(this.currentIndex === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
+              .fontColor(this.currentIndex === index ? getCurrentRolePalette().primary : $r('app.color.text_secondary'))
               .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
               .padding({ bottom: 8 })
           }
@@ -278,7 +281,7 @@ export struct UnderlineTabBar {
         Row()
           .width(`${100 / this.tabs.length}%`)
           .height(3)
-          .backgroundColor($r('app.color.primary'))
+          .backgroundColor(getCurrentRolePalette().primary)
           .borderRadius(999)
       }
       .width('100%')
