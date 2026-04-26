@@ -3,7 +3,9 @@
  * 支持 2x2, 2x4, 4x4 三种尺寸
  */
 
-@Entry
+let todayGuardianCardStorage = new LocalStorage();
+
+@Entry(todayGuardianCardStorage)
 @Component
 struct TodayGuardianCard {
   @LocalStorageProp('studentName') studentName: string = '张小明';

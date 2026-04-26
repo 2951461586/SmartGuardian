@@ -7,7 +7,10 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { ApiConfig } from '../config/api.config';
+import { RouteUrls } from '../constants/app.constants';
+import { AppLaunchCoordinatorService, AppLaunchTarget } from '../services/AppLaunchCoordinatorService';
 import { AppInitializationService } from '../services/AppInitializationService';
+import { NotificationLaunchService } from '../services/NotificationLaunchService';
 import { LogUtil } from '../utils/LogUtil';
 import { ErrorHandlerUtil } from '../utils/ErrorHandlerUtil';
 import { setRequestUIContext } from '../utils/request';
@@ -16,11 +19,22 @@ const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
   private initService: AppInitializationService = AppInitializationService.getInstance();
+  private windowStageRef: window.WindowStage | null = null;
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     LogUtil.info('EntryAbility onCreate');
     ApiConfig.ensureRuntimeConfigReady();
+    NotificationLaunchService.captureWant(want);
     LogUtil.info(`Runtime config: ${ApiConfig.describeRuntimeConfig()}`);
+
+    // TODO: 初始化 AppGallery Connect SDK
+    // 依赖安装完成后取消注释以下代码
+    // try {
+    //   agconnect.instance().init(this.context);
+    //   LogUtil.info('AGC SDK initialized successfully');
+    // } catch (err) {
+    //   LogUtil.error('Failed to initialize AGC SDK:', String(err));
+    // }
 
     // 设置颜色模式
     try {
@@ -59,28 +73,29 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     LogUtil.info('EntryAbility onWindowStageCreate');
+    this.windowStageRef = windowStage;
 
-    try {
-      const mainWindow: window.Window = windowStage.getMainWindowSync();
-      const uiContext = mainWindow.getUIContext();
-      ErrorHandlerUtil.setUIContext(uiContext);
-      setRequestUIContext(uiContext);
-    } catch (error) {
-      LogUtil.error('Failed to initialize ErrorHandler UIContext:', String(error));
-    }
-
-    // 统一入口到 Index，由 Index 负责登录态分流
+    // Keep bootstrap UI minimal and visible before entering LoginPage or MainPage.
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
-        LogUtil.error('Failed to load content:', String(err));
+        LogUtil.error('Failed to load bootstrap content:', String(err));
+        this.loadFallbackLogin(windowStage);
         return;
       }
-      LogUtil.info('Succeeded in loading the content.');
+      this.initializeUIContext(windowStage);
+      LogUtil.info('Succeeded in loading bootstrap content.');
     });
   }
 
   onWindowStageDestroy(): void {
     LogUtil.info('EntryAbility onWindowStageDestroy');
+    this.windowStageRef = null;
+  }
+
+  onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    NotificationLaunchService.captureWant(want);
+    this.consumeNotificationLaunch();
+    LogUtil.info('EntryAbility onNewWant');
   }
 
   onForeground(): void {
@@ -89,5 +104,53 @@ export default class EntryAbility extends UIAbility {
 
   onBackground(): void {
     LogUtil.info('EntryAbility onBackground');
+  }
+
+  private consumeNotificationLaunch(): void {
+    const launch = NotificationLaunchService.consumePendingLaunch();
+    if (!launch || !this.windowStageRef) {
+      return;
+    }
+
+    try {
+      const mainWindow = this.windowStageRef.getMainWindowSync();
+      const uiContext = mainWindow.getUIContext();
+      uiContext.getRouter().replaceUrl({
+        url: launch.route,
+        params: NotificationLaunchService.parseParams(launch.paramsJson)
+      });
+    } catch (error) {
+      LogUtil.warn('EntryAbility notification launch consume failed: ' + String(error));
+      NotificationLaunchService.storePendingLaunch(launch.route, launch.paramsJson);
+    }
+  }
+
+  private initializeUIContext(windowStage: window.WindowStage): void {
+    try {
+      const mainWindow: window.Window = windowStage.getMainWindowSync();
+      const uiContext = mainWindow.getUIContext();
+      ErrorHandlerUtil.setUIContext(uiContext);
+      setRequestUIContext(uiContext);
+    } catch (error) {
+      LogUtil.error('Failed to initialize UIContext after content loaded:', String(error));
+    }
+  }
+
+  private resolveInitialContentRoute(): string {
+    const target: AppLaunchTarget = AppLaunchCoordinatorService.resolveEntryTarget();
+    if (target.paramsJson.length > 0) {
+      return RouteUrls.MAIN;
+    }
+    return target.route.length > 0 ? target.route : RouteUrls.LOGIN;
+  }
+
+  private loadFallbackLogin(windowStage: window.WindowStage): void {
+    windowStage.loadContent(RouteUrls.LOGIN, (err) => {
+      if (err.code) {
+        LogUtil.error('Failed to load fallback LoginPage:', String(err));
+        return;
+      }
+      this.initializeUIContext(windowStage);
+    });
   }
 }

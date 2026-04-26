@@ -3,7 +3,9 @@
  * 用于显示学生异常情况的快速提醒
  */
 
-@Entry
+let abnormalAlertCardStorage = new LocalStorage();
+
+@Entry(abnormalAlertCardStorage)
 @Component
 struct AbnormalAlertCard {
   @LocalStorageProp('studentName') studentName: string = '张小明';

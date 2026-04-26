@@ -3,6 +3,7 @@
  * Reusable quick-action tile in the tri-portal style
  */
 
+import { HarmonyColor } from '../../common/HarmonyDesign';
 import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 @Component
@@ -44,11 +45,11 @@ export struct ActionButton {
     .layoutWeight(1)
     .height(112)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(22)
     .border({
       width: 1,
-      color: '#E6ECF5',
+      color: HarmonyColor.line,
       radius: 22,
       style: BorderStyle.Solid
     })

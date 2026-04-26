@@ -4,26 +4,45 @@
  */
 
 import {
-  Card,
   GreetingHeader,
   HeaderTheme,
   IconActionButton,
   LoadingSize,
-  LoadingState
+  LoadingState,
+  PageScaffold,
+  ParentHomeWorkspaceSection,
+  ParentScheduleNode,
+  WorkbenchActionGrid
 } from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { getRolePalette } from '../../common/RoleTheme';
+import { RouteUrls, StorageKeys } from '../../constants/app.constants';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { TodayStatusCard } from '../../models/card';
-import { HomeworkQueryParams } from '../../models/common';
+import { HomeworkQueryParams, UserRole } from '../../models/common';
 import { HomeworkTask } from '../../models/homework';
 import { WorkbenchManifest, WorkbenchModule } from '../../models/workbench';
 import { CardService } from '../../services/api/card';
 import { HomeworkService } from '../../services/api/homework';
 import { MessageService } from '../../services/api/message';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
 import { StudentStore } from '../../stores/studentStore';
 import { UserStore } from '../../stores/userStore';
 
+@Entry
 @Component
-export struct ParentHomePage {
+struct ParentHomePage {
+  build() {
+    Stack() {
+      ParentHomePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct ParentHomePageContent {
   @State userName: string = '';
   @State todaySummary: TodayStatusCard | null = null;
   @State recentHomework: HomeworkTask[] = [];
@@ -43,7 +62,7 @@ export struct ParentHomePage {
   }
 
   private loadWorkbenchManifest(): void {
-    const manifest = AppStorage.get<WorkbenchManifest>('workbench_manifest');
+    const manifest = AppStorage.get<WorkbenchManifest>(StorageKeys.WORKBENCH_MANIFEST);
     if (manifest && manifest.roleType === 'PARENT') {
       this.workbenchManifest = manifest;
     }
@@ -78,6 +97,7 @@ export struct ParentHomePage {
       }
 
       this.unreadCount = unreadResp.code === 0 && unreadResp.data ? unreadResp.data.count : (this.todaySummary?.messages ?? 0);
+      await HarmonyCapabilityService.syncMessageBadge(this.unreadCount);
 
       if (alertResp.code === 0 && alertResp.data) {
         this.alertSummary = alertResp.data.alertTitle || alertResp.data.alertContent || '';
@@ -89,6 +109,7 @@ export struct ParentHomePage {
       this.todaySummary = null;
       this.recentHomework = [];
       this.unreadCount = 0;
+      await HarmonyCapabilityService.syncMessageBadge(0);
       this.alertSummary = '';
     } finally {
       this.isLoading = false;
@@ -127,31 +148,80 @@ export struct ParentHomePage {
     return this.alertSummary || '关于近期托管服务安排的通知';
   }
 
+  private getNoticeDateText(): string {
+    if (this.todaySummary?.date) {
+      return this.todaySummary.date.slice(5);
+    }
+    return '今日';
+  }
+
   private getSessionTitle(): string {
     return this.todaySummary?.sessionName || '今日托管课程';
   }
 
+  private getHomeworkFallbackText(): string {
+    return this.todaySummary?.latestDynamic || this.todaySummary?.teacherFeedback || '老师暂未更新新的学习反馈。';
+  }
+
+  private getScheduleItems(): ParentScheduleNode[] {
+    return [
+      {
+        time: this.todaySummary?.signInTime || '16:30',
+        title: '入校签到',
+        statusText: this.getSignStatusText(),
+        statusColor: this.getSignStatusColor(),
+        statusBgColor: this.getSignStatusBgColor()
+      },
+      {
+        time: this.todaySummary?.sessionTime || '16:40 - 17:30',
+        title: this.getSessionTitle(),
+        statusText: this.getHomeworkStatusText(),
+        statusColor: this.getHomeworkStatusColor(),
+        statusBgColor: this.getHomeworkStatusBgColor()
+      },
+      {
+        time: this.todaySummary?.signOutTime || '17:30 - 18:00',
+        title: '家长接送',
+        statusText: this.getSignOutStatusText(),
+        statusColor: this.getSignOutStatusColor(),
+        statusBgColor: this.getSignOutStatusBgColor()
+      }
+    ];
+  }
+
   build() {
     Column() {
-      GreetingHeader({
-        userName: this.userName,
-        greeting: this.workbenchManifest?.summary.description ?? '欢迎使用智慧学生管理系统 · 家长端',
-        theme: HeaderTheme.WHITE,
-        badgeText: '家长端',
-        metaText: this.workbenchManifest?.visual.slogan ?? (this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排')
-      }) {
-        this.buildHeaderActions()
-      }
-
-      if (this.isLoading) {
-        LoadingState({ loadingSize: LoadingSize.DEFAULT })
-      } else {
-        this.buildContent()
-      }
+      PageScaffold({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        content: this.buildBody
+      })
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  private buildHeader() {
+    GreetingHeader({
+      userName: this.userName,
+      greeting: this.workbenchManifest?.summary.description ?? '欢迎使用智慧学生管理系统 · 家长端',
+      theme: HeaderTheme.WHITE,
+      badgeText: '家长端',
+      metaText: this.workbenchManifest?.visual.slogan ?? (this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排')
+    }) {
+      this.buildHeaderActions()
+    }
+  }
+
+  @Builder
+  private buildBody() {
+    if (this.isLoading) {
+      LoadingState({ loadingSize: LoadingSize.DEFAULT })
+    } else {
+      this.buildContent()
+    }
   }
 
   @Builder
@@ -161,7 +231,7 @@ export struct ParentHomePage {
         icon: $r('app.media.ic_notification'),
         badgeCount: this.unreadCount,
         onButtonClick: () => {
-          AppStorage.setOrCreate('main_current_index', 2);
+          AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 2);
         }
       })
 
@@ -170,7 +240,7 @@ export struct ParentHomePage {
       IconActionButton({
         icon: $r('app.media.ic_qrcode'),
         onButtonClick: () => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentQRCodePage' });
+          this.pushPage(RouteUrls.PARENT_QRCODE);
         }
       })
     }
@@ -178,230 +248,44 @@ export struct ParentHomePage {
 
   @Builder
   private buildContent() {
-    Scroll() {
-      Column() {
-        this.buildStudentHeroCard()
-        this.buildNoticeCard()
-        this.buildQuickActionsCard()
-        this.buildScheduleCard()
-        this.buildHomeworkCard()
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 24 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
-  private buildStudentHeroCard() {
-    Row() {
-      Row() {
-        Image($r('app.media.ic_default_avatar'))
-          .width(70)
-          .height(70)
-          .objectFit(ImageFit.Cover)
-      }
-      .width(86)
-      .height(86)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor('#FFFFFF')
-      .borderRadius(43)
-
-      Column() {
-        Row() {
-          Text(this.getDisplayStudentName())
-            .fontSize(24)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(Color.White)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-          Text(this.getDisplayStudentMeta())
-            .fontSize(11)
-            .fontColor('#0A59F7')
-            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor('#EEF4FA')
-            .borderRadius(999)
-            .margin({ left: 10 })
-        }
-        .width('100%')
-
-        Text(`学号：${this.getDisplayStudentNo()}`)
-          .fontSize(14)
-          .fontColor('#FFFFFFD9')
-          .margin({ top: 10 })
-
-        Text(`学校：${this.getDisplaySchoolName()}`)
-          .fontSize(14)
-          .fontColor('#FFFFFFD9')
-          .margin({ top: 6 })
-
-        Text(this.getSessionTitle())
-          .fontSize(13)
-          .fontColor('#FFFFFFCC')
-          .margin({ top: 10 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .margin({ left: 14 })
-
-      Image($r('app.media.sg_illustration_children'))
-        .width(104)
-        .height(92)
-        .objectFit(ImageFit.Contain)
-        .opacity(0.88)
-    }
-    .width('100%')
-    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
-    .linearGradient({
-      angle: 130,
-      colors: [['#0A59F7', 0], ['#4D8DFF', 0.62], ['#DCEAFF', 1]]
-    })
-    .border({
-      width: 1,
-      color: '#D8E6FF',
-      radius: 28,
-      style: BorderStyle.Solid
-    })
-    .borderRadius(28)
-    .shadow({
-      radius: 18,
-      color: '#0A59F726',
-      offsetX: 0,
-      offsetY: 10
-    })
-    .alignItems(VerticalAlign.Center)
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  private buildNoticeCard() {
-    Row() {
-      Column() {
-        Text('系统')
-          .fontSize(13)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.primary'))
-
-        Text('通知')
-          .fontSize(13)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.primary'))
-          .margin({ top: 2 })
-      }
-      .width(48)
-      .alignItems(HorizontalAlign.Center)
-
-      Column() {
-        Text(this.getNoticeSummary())
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .margin({ left: 12, right: 12 })
-
-      Text(this.todaySummary?.date ? this.todaySummary.date.slice(5) : '今日')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 16, bottom: 16 })
-    .backgroundColor('#FFFFFF')
-    .borderRadius(22)
-    .border({
-      width: 1,
-      color: '#E6ECF5',
-      radius: 22,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 12,
-      color: '#526F950D',
-      offsetX: 0,
-      offsetY: 6
-    })
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  private buildQuickActionsCard() {
-    Card({
-      title: this.workbenchManifest?.summary.title ?? '常用功能',
-      subtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '预约、订单、消息和学生动态入口。',
-      actionText: '全部功能',
-      onAction: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentServicesPage' });
+    ParentHomeWorkspaceSection({
+      studentName: this.getDisplayStudentName(),
+      studentMeta: this.getDisplayStudentMeta(),
+      studentNo: this.getDisplayStudentNo(),
+      schoolName: this.getDisplaySchoolName(),
+      sessionTitle: this.getSessionTitle(),
+      noticeSummary: this.getNoticeSummary(),
+      noticeDateText: this.getNoticeDateText(),
+      scheduleItems: this.getScheduleItems(),
+      recentHomework: this.recentHomework,
+      homeworkSubtitle: this.errorMessage ? this.errorMessage : '及时了解老师反馈和最近作业进度。',
+      homeworkFallbackText: this.getHomeworkFallbackText(),
+      quickActionsTitle: this.workbenchManifest?.summary.title ?? '常用功能',
+      quickActionsSubtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '预约、订单、消息和学生动态入口。',
+      onQuickActions: () => {
+        this.pushPage(RouteUrls.PARENT_SERVICES);
       },
-      content: this.buildQuickActionsContent
+      onTimeline: (): void => {
+        this.pushPage(RouteUrls.PARENT_TIMELINE);
+      },
+      onHomework: (): void => {
+        this.pushPage(RouteUrls.PARENT_HOMEWORK);
+      },
+      quickActionsContent: this.buildQuickActionsContent
     })
   }
 
   @Builder
   private buildQuickActionsContent() {
-    Column() {
-      Row() {
-        ForEach(this.getFirstActionRow(), (module: WorkbenchModule) => {
-          this.buildManifestFeatureItem(module)
-        })
-      }
-      .width('100%')
-
-      if (this.getSecondActionRow().length > 0) {
-        Row() {
-          ForEach(this.getSecondActionRow(), (module: WorkbenchModule) => {
-            this.buildManifestFeatureItem(module)
-          })
-        }
-        .width('100%')
-        .margin({ top: 14 })
-      }
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildManifestFeatureItem(module: WorkbenchModule) {
-    this.buildFeatureItem(module.name, this.getModuleSubtitle(module.code), this.getModuleIcon(module.code), this.getModuleBgColor(module.code), this.getModuleIconColor(module.code), () => {
-      this.openWorkbenchModule(module);
+    WorkbenchActionGrid({
+      modules: this.getActionModules(),
+      titleFontSize: 15,
+      subtitleResolver: (code: string): string => this.getModuleSubtitle(code),
+      iconResolver: (code: string): Resource => this.getModuleIcon(code),
+      bgColorResolver: (code: string): string => this.getModuleBgColor(code),
+      iconColorResolver: (code: string): string => this.getModuleIconColor(code),
+      onModuleClick: (module: WorkbenchModule): void => this.openWorkbenchModule(module)
     })
-  }
-
-  @Builder
-  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
-    Column() {
-      Column() {
-        Image(icon)
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor(iconColor)
-      }
-      .width(52)
-      .height(52)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(bgColor)
-      .borderRadius(18)
-
-      Text(title)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ top: 10 })
-
-      Text(subtitle)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
-    .onClick(() => onClick())
   }
 
   private getActionModules(): WorkbenchModule[] {
@@ -421,14 +305,6 @@ export struct ParentHomePage {
       { code: 'children', name: '孩子档案', route: '/parent/children', enabled: true },
       { code: 'payment', name: '费用缴纳', route: '/parent/payment', enabled: true }
     ];
-  }
-
-  private getFirstActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(0, 5);
-  }
-
-  private getSecondActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(5, 10);
   }
 
   private getModuleSubtitle(code: string): string {
@@ -460,54 +336,54 @@ export struct ParentHomePage {
   }
 
   private getModuleBgColor(code: string): string {
-    if (code === 'orders' || code === 'homework' || code === 'profile') return '#F6F0E9';
-    if (code === 'messages') return '#F2F0F7';
-    if (code === 'alerts') return '#F8EEEE';
-    return '#EEF4FA';
+    if (code === 'orders' || code === 'homework' || code === 'profile') return HarmonyReport.cautionSurface;
+    if (code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).light;
+    if (code === 'alerts') return HarmonyReport.dangerSurface;
+    if (code === 'timeline' || code === 'sessions') return HarmonyReport.positiveSurface;
+    return HarmonyReport.accentSurface;
   }
 
   private getModuleIconColor(code: string): string {
-    if (code === 'orders' || code === 'profile') return '#8A6A4E';
-    if (code === 'timeline' || code === 'sessions') return '#5D8267';
-    if (code === 'messages') return '#7B6D96';
-    if (code === 'homework') return '#A9794E';
-    if (code === 'alerts') return '#A75A61';
-    return '#526F95';
+    if (code === 'orders' || code === 'homework' || code === 'profile') return HarmonyReport.caution;
+    if (code === 'timeline' || code === 'sessions') return HarmonyReport.positive;
+    if (code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).primary;
+    if (code === 'alerts') return HarmonyReport.danger;
+    return HarmonyColor.info;
   }
 
   private openWorkbenchModule(module: WorkbenchModule): void {
     if (module.code === 'home') {
-      AppStorage.setOrCreate('main_current_index', 0);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
       return;
     }
     if (module.code === 'services') {
-      AppStorage.setOrCreate('main_current_index', 1);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 1);
       return;
     }
     if (module.code === 'messages') {
-      AppStorage.setOrCreate('main_current_index', 2);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 2);
       return;
     }
     if (module.code === 'timeline') {
-      AppStorage.setOrCreate('main_current_index', 3);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 3);
       return;
     }
     if (module.code === 'profile') {
-      AppStorage.setOrCreate('main_current_index', 4);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 4);
       return;
     }
     if (module.code === 'orders') {
-      this.pushPage('pages/parent/ParentOrdersPage');
+      this.pushPage(RouteUrls.PARENT_ORDERS);
     } else if (module.code === 'children') {
-      this.pushPage('pages/parent/ParentChildrenPage');
+      this.pushPage(RouteUrls.PARENT_CHILDREN);
     } else if (module.code === 'payment') {
-      this.pushPage('pages/parent/ParentPaymentPage');
+      this.pushPage(RouteUrls.PARENT_PAYMENT);
     } else if (module.code === 'homework') {
-      this.pushPage('pages/parent/ParentHomeworkPage');
+      this.pushPage(RouteUrls.PARENT_HOMEWORK);
     } else if (module.code === 'sessions') {
-      this.pushPage('pages/parent/ParentSessionsPage');
+      this.pushPage(RouteUrls.PARENT_SESSIONS);
     } else if (module.code === 'alerts') {
-      this.pushPage('pages/parent/ParentAlertsPage');
+      this.pushPage(RouteUrls.PARENT_ALERTS);
     }
   }
 
@@ -519,138 +395,6 @@ export struct ParentHomePage {
     }
   }
 
-  @Builder
-  private buildScheduleCard() {
-    Card({
-      title: '今日托管安排',
-      actionText: '查看全部',
-      onAction: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentTimelinePage' });
-      },
-      content: this.buildScheduleContent
-    })
-  }
-
-  @Builder
-  private buildScheduleContent() {
-    Column() {
-      this.buildScheduleItem(this.todaySummary?.signInTime || '16:30', '入校签到', this.getSignStatusText(), this.getSignStatusColor(), this.getSignStatusBgColor())
-      this.buildScheduleItem(this.todaySummary?.sessionTime || '16:40 - 17:30', this.getSessionTitle(), this.getHomeworkStatusText(), this.getHomeworkStatusColor(), this.getHomeworkStatusBgColor())
-      this.buildScheduleItem(this.todaySummary?.signOutTime || '17:30 - 18:00', '家长接送', this.getSignOutStatusText(), this.getSignOutStatusColor(), this.getSignOutStatusBgColor())
-
-      Row() {
-        Image($r('app.media.ic_info'))
-          .width(16)
-          .height(16)
-          .fillColor($r('app.color.primary'))
-
-        Text('温馨提示：请关注孩子的托管时间安排，及时查看动态。')
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ left: 8 })
-      }
-      .width('100%')
-      .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-      .backgroundColor('#F7FAFE')
-      .borderRadius(16)
-      .margin({ top: 16 })
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildScheduleItem(time: string, title: string, statusText: string, statusColor: string, statusBgColor: string) {
-    Row() {
-      Text(time)
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .width(94)
-
-      Text(title)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .layoutWeight(1)
-
-      Text(statusText)
-        .fontSize(12)
-        .fontColor(statusColor)
-        .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-        .backgroundColor(statusBgColor)
-        .borderRadius(999)
-    }
-    .width('100%')
-    .padding({ top: 10, bottom: 10 })
-  }
-
-  @Builder
-  private buildHomeworkCard() {
-    Card({
-      title: '学习反馈',
-      subtitle: this.errorMessage ? this.errorMessage : '及时了解老师反馈和最近作业进度。',
-      actionText: '查看全部',
-      onAction: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/parent/ParentHomeworkPage' });
-      },
-      content: this.buildHomeworkContent
-    })
-  }
-
-  @Builder
-  private buildHomeworkContent() {
-    if (this.recentHomework.length > 0) {
-      Column() {
-        ForEach(this.recentHomework, (item: HomeworkTask, index: number) => {
-          Row() {
-            Column() {
-              Text(item.title || '今日学习任务')
-                .fontSize(15)
-                .fontWeight(FontWeight.Medium)
-                .fontColor($r('app.color.text_primary'))
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-              Text(item.subject || item.content || '查看老师布置的最新任务与反馈')
-                .fontSize(12)
-                .fontColor($r('app.color.text_secondary'))
-                .lineHeight(18)
-                .maxLines(2)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .margin({ top: 6 })
-            }
-            .alignItems(HorizontalAlign.Start)
-            .layoutWeight(1)
-
-            Text(item.status || '待查看')
-              .fontSize(12)
-              .fontColor($r('app.color.primary'))
-              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-              .backgroundColor('#EEF4FA')
-              .borderRadius(999)
-          }
-          .width('100%')
-          .padding({ top: 8, bottom: 8 })
-
-          if (index < this.recentHomework.length - 1) {
-            Divider()
-              .color($r('app.color.divider'))
-              .margin({ top: 10, bottom: 10 })
-          }
-        })
-      }
-      .width('100%')
-    } else {
-      Column() {
-        Text(this.todaySummary?.latestDynamic || this.todaySummary?.teacherFeedback || '老师暂未更新新的学习反馈。')
-          .fontSize(14)
-          .lineHeight(22)
-          .fontColor($r('app.color.text_secondary'))
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Start)
-    }
-  }
-
   private getSignStatusText(): string {
     if (this.todaySummary?.status === 'SIGNED_IN' || this.todaySummary?.status === 'SIGNED_OUT' || this.todaySummary?.status === 'IN_PROGRESS') {
       return '已签到';
@@ -659,11 +403,11 @@ export struct ParentHomePage {
   }
 
   private getSignStatusColor(): string {
-    return this.todaySummary?.status === 'NOT_SIGNED' ? '#A9794E' : '#5D8267';
+    return this.todaySummary?.status === 'NOT_SIGNED' ? HarmonyReport.caution : HarmonyReport.positive;
   }
 
   private getSignStatusBgColor(): string {
-    return this.todaySummary?.status === 'NOT_SIGNED' ? '#F6F0E9' : '#EEF4FA';
+    return this.todaySummary?.status === 'NOT_SIGNED' ? HarmonyReport.cautionSurface : HarmonyReport.positiveSurface;
   }
 
   private getHomeworkStatusText(): string {
@@ -680,23 +424,23 @@ export struct ParentHomePage {
   private getHomeworkStatusColor(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
     if (progress >= 100) {
-      return '#5D8267';
+      return HarmonyReport.positive;
     }
     if (progress > 0) {
-      return '#526F95';
+      return HarmonyColor.info;
     }
-    return '#8C9A93';
+    return HarmonyColor.textTertiary;
   }
 
   private getHomeworkStatusBgColor(): string {
     const progress = this.todaySummary?.homeworkProgress ?? 0;
     if (progress >= 100) {
-      return '#EEF4FA';
+      return HarmonyReport.positiveSurface;
     }
     if (progress > 0) {
-      return '#EEF4FA';
+      return HarmonyReport.accentSurface;
     }
-    return '#F5F1E8';
+    return HarmonyColor.surfaceSubtle;
   }
 
   private getSignOutStatusText(): string {
@@ -704,11 +448,11 @@ export struct ParentHomePage {
   }
 
   private getSignOutStatusColor(): string {
-    return this.todaySummary?.status === 'SIGNED_OUT' ? '#2F9E77' : '#8C9A93';
+    return this.todaySummary?.status === 'SIGNED_OUT' ? HarmonyReport.positive : HarmonyColor.textTertiary;
   }
 
   private getSignOutStatusBgColor(): string {
-    return this.todaySummary?.status === 'SIGNED_OUT' ? '#EEF4FA' : '#F5F1E8';
+    return this.todaySummary?.status === 'SIGNED_OUT' ? HarmonyReport.positiveSurface : HarmonyColor.surfaceSubtle;
   }
 }
 

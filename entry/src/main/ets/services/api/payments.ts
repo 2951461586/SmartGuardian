@@ -21,6 +21,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class PaymentService {
+  static readonly AGC_DOMAIN: string = 'payment';
+  static readonly AGC_FUNCTION: string = 'smartguardian-payment';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.PAYMENTS;
+
   /**
    * Create payment order
    * 

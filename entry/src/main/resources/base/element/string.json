@@ -25,6 +25,14 @@
       "value": "消息"
     },
     {
+      "name": "nav_services",
+      "value": "服务"
+    },
+    {
+      "name": "nav_timeline",
+      "value": "成长"
+    },
+    {
       "name": "nav_profile",
       "value": "我的"
     },
@@ -39,6 +47,10 @@
     {
       "name": "nav_reports",
       "value": "统计"
+    },
+    {
+      "name": "nav_students",
+      "value": "学生"
     },
     {
       "name": "form_today_guardian_display_name",
@@ -67,6 +79,10 @@
     {
       "name": "write_media_reason",
       "value": "需要保存二维码图片到相册"
+    },
+    {
+      "name": "location_reason",
+      "value": "用于考勤签到签退场景的定位授权与后续位置核验能力"
     },
     {
       "name": "scan_sign_in_title",

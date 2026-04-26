@@ -1,14 +1,11 @@
-﻿/**
- * SmartGuardian - Icon Action Button
- * Reusable icon capsule with optional badge count
- */
+import { HarmonyColor, harmonyShadowColor } from '../../common/HarmonyDesign';
 
 @Component
 export struct IconActionButton {
   @Prop icon: Resource | string | PixelMap = '';
-  @Prop iconColor: ResourceColor = '#18233F';
-  @Prop boxBgColor: ResourceColor = '#FFFFFF';
-  @Prop boxBorderColor: ResourceColor = '#E6ECF5';
+  @Prop iconColor: ResourceColor = HarmonyColor.inkStrong;
+  @Prop boxBgColor: ResourceColor = HarmonyColor.surface;
+  @Prop boxBorderColor: ResourceColor = HarmonyColor.line;
   @Prop badgeCount: number = 0;
   @Prop badgeColor: ResourceColor = $r('app.color.error');
   @Prop boxSize: number = 46;
@@ -37,7 +34,7 @@ export struct IconActionButton {
       })
       .shadow({
         radius: 10,
-        color: '#526F9510',
+        color: harmonyShadowColor(),
         offsetX: 0,
         offsetY: 4
       })
@@ -45,7 +42,7 @@ export struct IconActionButton {
       if (this.badgeCount > 0) {
         Text(this.badgeCount > 99 ? '99+' : `${this.badgeCount}`)
           .fontSize(10)
-          .fontColor(Color.White)
+          .fontColor(HarmonyColor.textInverse)
           .backgroundColor(this.badgeColor)
           .borderRadius(9)
           .padding({ left: 5, right: 5, top: 1, bottom: 1 })

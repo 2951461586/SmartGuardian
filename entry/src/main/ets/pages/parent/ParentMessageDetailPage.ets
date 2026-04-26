@@ -3,6 +3,7 @@
  * 显示消息详情
  */
 
+import { HeaderTheme, PageHeader } from '../../components/common';
 import { MessageDetail, MessageRecord } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { MessageStore } from '../../stores/messageStore';
@@ -42,26 +43,13 @@ struct ParentMessageDetailPage {
 
   build() {
     Column() {
-      // Header
-      Row() {
-        Image($r('app.media.ic_arrow_left'))
-          .width(24)
-          .height(24)
-          .fillColor($r('app.color.text_primary'))
-          .onClick(() => this.getUIContext().getRouter().back())
-
-        Text('消息详情')
-          .fontSize($r('app.float.page_title_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-
-        Text('').width(24)
-      }
-      .width('100%')
-      .padding($r('app.float.page_padding'))
-      .backgroundColor(Color.White)
+      PageHeader({
+        title: '消息详情',
+        subtitle: '查看通知完整内容与下发时间。',
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        theme: HeaderTheme.WHITE
+      })
 
       // Content
       if (this.message) {

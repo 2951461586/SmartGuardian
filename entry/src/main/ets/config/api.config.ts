@@ -1,39 +1,32 @@
-/**
+﻿/**
  * SmartGuardian - API Configuration
  * API and Mock data configuration
  */
+
+import { StorageKeys } from '../constants/app.constants';
 
 /**
  * API environment identifiers
  */
 export class ApiEnvironment {
   static readonly DEV_MOCK: string = 'DEV_MOCK';
-  static readonly TEST_REAL: string = 'TEST_REAL';
+  static readonly AGC_SERVERLESS: string = 'AGC_SERVERLESS';
 }
 
 /**
  * API environment configuration
  */
 export class ApiConfig {
-  static readonly API_ENV_STORAGE_KEY: string = 'smart_guardian_api_env';
-  static readonly API_BASE_URL_STORAGE_KEY: string = 'smart_guardian_api_base_url';
-  static readonly API_CONFIG_VERSION_STORAGE_KEY: string = 'smart_guardian_api_config_version';
-  private static readonly API_CONFIG_VERSION: number = 4;
-  private static readonly LEGACY_REAL_BASE_URLS: string[] = [
-    'http://106.12.35.30',
-    'http://106.12.35.30:8080'
-  ];
+  static readonly API_ENV_STORAGE_KEY: string = StorageKeys.API_ENV;
+  static readonly API_BASE_URL_STORAGE_KEY: string = StorageKeys.API_BASE_URL;
+  static readonly API_CONFIG_VERSION_STORAGE_KEY: string = StorageKeys.API_CONFIG_VERSION;
+  private static readonly API_CONFIG_VERSION: number = 6;
 
   /**
    * Default environment for fresh installs.
    * Keep mock as the baseline and let runtime config switch to real services.
    */
   static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
-
-  /**
-   * Default real backend base URL. Can be overridden at runtime.
-   */
-  static readonly TEST_BASE_URL: string = 'http://127.0.0.1:8080';
 
   static getCurrentEnv(): string {
     ApiConfig.ensureRuntimeConfigReady();
@@ -46,8 +39,15 @@ export class ApiConfig {
 
   static getConfiguredBaseUrl(): string {
     ApiConfig.ensureRuntimeConfigReady();
-    const runtimeUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY) ?? ApiConfig.TEST_BASE_URL;
-    return ApiConfig.normalizeBaseUrl(runtimeUrl);
+    const runtimeUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY);
+    if (runtimeUrl !== undefined && runtimeUrl !== null) {
+      return ApiConfig.normalizeBaseUrl(runtimeUrl);
+    }
+    const currentEnv = ApiConfig.normalizeEnv(AppStorage.get<string>(ApiConfig.API_ENV_STORAGE_KEY));
+    if (currentEnv === ApiEnvironment.AGC_SERVERLESS) {
+      return runtimeUrl ? ApiConfig.normalizeBaseUrl(runtimeUrl) : '';
+    }
+    return '';
   }
 
   static setConfiguredBaseUrl(url: string): void {
@@ -58,6 +58,8 @@ export class ApiConfig {
     ApiConfig.setCurrentEnv(env);
     if (baseUrl !== undefined) {
       ApiConfig.setConfiguredBaseUrl(baseUrl);
+    } else if (env === ApiEnvironment.AGC_SERVERLESS) {
+      AppStorage.delete(ApiConfig.API_BASE_URL_STORAGE_KEY);
     }
   }
 
@@ -68,9 +70,12 @@ export class ApiConfig {
   }
 
   static getEnvironmentLabel(): string {
-    return ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL ? '真实环境' : '模拟演示';
+    const env = ApiConfig.getCurrentEnv();
+    if (env === ApiEnvironment.AGC_SERVERLESS) {
+      return 'AGC Serverless';
+    }
+    return 'Mock Demo';
   }
-
   /**
    * Enable mock data mode
    */
@@ -78,11 +83,16 @@ export class ApiConfig {
     return ApiConfig.getCurrentEnv() === ApiEnvironment.DEV_MOCK;
   }
 
+  static isAgcEnabled(): boolean {
+    return ApiConfig.getCurrentEnv() === ApiEnvironment.AGC_SERVERLESS;
+  }
+
   /**
    * API base URL
    */
   static getBaseUrl(): string {
-    if (ApiConfig.getCurrentEnv() === ApiEnvironment.TEST_REAL) {
+    const env = ApiConfig.getCurrentEnv();
+    if (env === ApiEnvironment.AGC_SERVERLESS) {
       return ApiConfig.getConfiguredBaseUrl();
     }
     return '';
@@ -90,8 +100,10 @@ export class ApiConfig {
 
   static describeRuntimeConfig(): string {
     const env = ApiConfig.getCurrentEnv();
-    const baseUrl = env === ApiEnvironment.TEST_REAL ? ApiConfig.getConfiguredBaseUrl() : '(mock mode)';
-    return `env=${env}, mock=${ApiConfig.isMockEnabled()}, baseUrl=${baseUrl}`;
+    const baseUrl = env === ApiEnvironment.DEV_MOCK
+      ? '(mock mode)'
+      : (ApiConfig.getConfiguredBaseUrl() || '(unset)');
+    return `env=${env}, label=${ApiConfig.getEnvironmentLabel()}, mock=${ApiConfig.isMockEnabled()}, baseUrl=${baseUrl}`;
   }
 
   static ensureRuntimeConfigReady(): void {
@@ -100,10 +112,14 @@ export class ApiConfig {
     const storedBaseUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY);
 
     let nextEnv = ApiConfig.normalizeEnv(storedEnv);
-    let nextBaseUrl = ApiConfig.normalizeBaseUrl(storedBaseUrl ?? ApiConfig.TEST_BASE_URL);
+    let nextBaseUrl = storedBaseUrl ? ApiConfig.normalizeBaseUrl(storedBaseUrl) : '';
 
-    if (!storedBaseUrl || ApiConfig.LEGACY_REAL_BASE_URLS.includes(nextBaseUrl)) {
-      nextBaseUrl = ApiConfig.TEST_BASE_URL;
+    if (nextEnv === ApiEnvironment.AGC_SERVERLESS) {
+      if (!nextBaseUrl) {
+        nextBaseUrl = '';
+      }
+    } else {
+      nextBaseUrl = '';
     }
 
     if (storedVersion < ApiConfig.API_CONFIG_VERSION) {
@@ -126,18 +142,12 @@ export class ApiConfig {
   }
 
   private static normalizeEnv(env?: string | null): string {
-    if (env === ApiEnvironment.DEV_MOCK || env === ApiEnvironment.TEST_REAL) {
+    if (env === ApiEnvironment.DEV_MOCK ||
+      env === ApiEnvironment.AGC_SERVERLESS) {
       return env;
     }
     return ApiConfig.CURRENT_ENV;
   }
-
-  /**
-   * Compatibility fields for legacy wrappers.
-   * These remain static defaults; new code should call the methods above.
-   */
-  static readonly USE_MOCK_DATA: boolean = ApiConfig.CURRENT_ENV === ApiEnvironment.DEV_MOCK;
-  static readonly BASE_URL: string = ApiConfig.TEST_BASE_URL;
 
   /**
    * Request timeout in milliseconds
@@ -170,22 +180,3 @@ export class ApiConfig {
   static readonly CACHE_EXPIRATION: number = 300;
 }
 
-/**
- * Mock data switch for each service
- * @status PENDING - Not currently used, reserved for future mock integration
- * @note This class allows fine-grained control over which services use mock data
- */
-export class MockSwitch {
-  static readonly AUTH_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly STUDENT_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly SERVICE_PRODUCT_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly ORDER_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly SESSION_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly ATTENDANCE_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly HOMEWORK_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly MESSAGE_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly TIMELINE_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly PAYMENT_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly REPORT_SERVICE: boolean = ApiConfig.isMockEnabled();
-  static readonly CARD_SERVICE: boolean = ApiConfig.isMockEnabled();
-}

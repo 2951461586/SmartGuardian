@@ -1,13 +1,24 @@
-﻿/**
- * SmartGuardian - Teacher Schedule Page
- * Unified weekly schedule workspace
- */
-
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import {
+  BadgeSize,
+  Card,
+  EmptyType,
+  HeaderTheme,
+  IconActionButton,
+  PageHeader,
+  SectionHeader,
+  SessionBadge,
+  StatefulContainer,
+  StatCardRow,
+  StatRowItem,
+  ViewState,
+  WorkbenchListPageTemplate
+} from '../../components/common';
 import { SessionSchedule } from '../../models/service';
 import { SessionService } from '../../services/api/service';
-import { DateUtils } from '../../utils/dateUtils';
 import { UserStore } from '../../stores/userStore';
-import { BadgeSize, EmptyState, EmptyType, HeaderTheme, IconActionButton, LoadingSize, LoadingState, PageHeader, SectionHeader, SessionBadge, StatCard } from '../../components/common';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
+import { DateUtils } from '../../utils/dateUtils';
 
 interface ScheduleItem {
   id: number;
@@ -22,26 +33,50 @@ interface ScheduleItem {
 
 @Entry
 @Component
-export struct TeacherSchedulePage {
+struct TeacherSchedulePage {
+  build() {
+    Stack() {
+      TeacherSchedulePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct TeacherSchedulePageContent {
   @State currentWeekStart: Date = DateUtils.getStartOfWeek(new Date());
   @State selectedDate: Date = new Date();
   @State weekDates: Date[] = [];
   @State scheduleList: ScheduleItem[] = [];
   @State isLoading: boolean = false;
   @State errorMessage: string = '';
+  private scheduleDataSource: LazyArrayDataSource<ScheduleItem> = new LazyArrayDataSource<ScheduleItem>();
 
   aboutToAppear() {
     this.generateWeekDates();
     this.loadSchedule();
   }
 
-  generateWeekDates() {
+  private generateWeekDates(): void {
     this.weekDates = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(this.currentWeekStart);
       date.setDate(date.getDate() + i);
       this.weekDates.push(date);
     }
+  }
+
+  private shiftWeek(offset: number): void {
+    this.currentWeekStart.setDate(this.currentWeekStart.getDate() + offset * 7);
+    this.generateWeekDates();
+    this.selectedDate = new Date(this.currentWeekStart);
+    this.loadSchedule();
+  }
+
+  private selectDate(date: Date): void {
+    this.selectedDate = date;
+    this.loadSchedule();
   }
 
   async loadSchedule() {
@@ -56,27 +91,32 @@ export struct TeacherSchedulePage {
       });
 
       if (response.code === 0 && response.data) {
-        const sessions = Array.isArray(response.data) ? response.data : [];
-        this.scheduleList = sessions.map((session: SessionSchedule) => this.toScheduleItem(session));
+        this.scheduleList = response.data.map((session: SessionSchedule) => this.toScheduleItem(session));
+        this.scheduleDataSource.setItems(this.scheduleList);
       } else {
-        this.scheduleList = [];
+        this.clearScheduleData();
       }
     } catch (error) {
-      this.scheduleList = [];
-      this.errorMessage = '\u52a0\u8f7d\u6392\u8bfe\u5931\u8d25';
+      this.clearScheduleData();
+      this.errorMessage = '加载排课失败，请稍后重试。';
     } finally {
       this.isLoading = false;
     }
+  }
+
+  private clearScheduleData(): void {
+    this.scheduleList = [];
+    this.scheduleDataSource.clear();
   }
 
   private toScheduleItem(session: SessionSchedule): ScheduleItem {
     return {
       id: session.id,
       className: session.serviceProductName ?? session.sessionNo ?? `Session ${session.id}`,
-      sessionName: session.serviceProductName ?? '\u8bfe\u7a0b',
+      sessionName: session.serviceProductName ?? '课程',
       startTime: session.startTime,
       endTime: session.endTime,
-      location: session.location ?? '\u672a\u5b9a\u4f4d',
+      location: session.location ?? '待安排场地',
       studentCount: session.currentCount ?? 0,
       status: this.normalizeStatus(session.status)
     };
@@ -104,8 +144,12 @@ export struct TeacherSchedulePage {
   }
 
   private getWeekDayText(date: Date): string {
-    const weekdays = ['\u5468\u65e5', '\u5468\u4e00', '\u5468\u4e8c', '\u5468\u4e09', '\u5468\u56db', '\u5468\u4e94', '\u5468\u516d'];
+    const weekdays: string[] = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     return weekdays[date.getDay()];
+  }
+
+  private isSelectedDate(date: Date): boolean {
+    return this.formatDate(date) === this.formatDate(this.selectedDate);
   }
 
   private getTodayCount(): number {
@@ -120,59 +164,50 @@ export struct TeacherSchedulePage {
     return this.scheduleList.reduce((sum: number, item: ScheduleItem) => sum + item.studentCount, 0);
   }
 
-  private getStatusText(status: string): string {
-    if (status === 'IN_PROGRESS') {
-      return '\u8fdb\u884c\u4e2d';
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
     }
-    if (status === 'COMPLETED') {
-      return '\u5df2\u5b8c\u6210';
+    if (this.scheduleList.length === 0) {
+      return ViewState.EMPTY;
     }
-    if (status === 'CANCELLED') {
-      return '\u5df2\u53d6\u6d88';
-    }
-    return '\u5df2\u6392\u7a0b';
-  }
-
-  private getStatusColor(status: string): string {
-    if (status === 'IN_PROGRESS') {
-      return '#2F9E77';
-    }
-    if (status === 'COMPLETED') {
-      return '#7A879A';
-    }
-    if (status === 'CANCELLED') {
-      return '#D14343';
-    }
-    return '#526F95';
+    return ViewState.CONTENT;
   }
 
   build() {
     Column() {
-      PageHeader({
-        title: '\u6211\u7684\u8bfe\u8868',
-        subtitle: '\u67e5\u770b\u6bcf\u65e5\u8bfe\u7a0b\u5b89\u6392\u3001\u573a\u6b21\u548c\u5b66\u751f\u4eba\u6570',
-        theme: HeaderTheme.WHITE,
-        showBack: true,
-        onBackClick: (): void => this.getUIContext().getRouter().back(),
-        rightContent: this.buildHeaderAction
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildWeekSelectorSection,
+        content: this.buildScheduleContent
       })
-
-      this.buildOverviewPanel()
-      this.buildWeekSelector()
-      this.buildScheduleContent()
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
-  buildHeaderAction() {
+  private buildHeader() {
+    PageHeader({
+      title: '我的课表',
+      subtitle: '查看每日课程安排、班次状态和学生人数。',
+      theme: HeaderTheme.WHITE,
+      showBack: true,
+      onBackClick: (): void => this.getUIContext().getRouter().back(),
+      rightContent: this.buildHeaderAction
+    })
+  }
+
+  @Builder
+  private buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#526F95',
-      boxBgColor: Color.White,
-      boxBorderColor: '#E5EDF6',
+      iconColor: HarmonyColor.info,
+      boxBgColor: HarmonyColor.surface,
+      boxBorderColor: $r('app.color.divider'),
       onButtonClick: (): void => {
         this.loadSchedule();
       }
@@ -180,173 +215,127 @@ export struct TeacherSchedulePage {
   }
 
   @Builder
-  buildOverviewPanel() {
-    Row() {
-      StatCard({
-        value: `${this.getTodayCount()}`,
-        label: '\u5f53\u65e5\u8bfe\u7a0b',
-        icon: $r('app.media.ic_calendar'),
-        iconColor: '#526F95'
-      })
-      .layoutWeight(1)
+  private buildOverviewSection() {
+    StatCardRow({
+      items: this.getOverviewItems()
+    })
+  }
 
-      Blank().width(12)
-
-      StatCard({
-        value: `${this.getOngoingCount()}`,
-        label: '\u8fdb\u884c\u4e2d',
-        icon: $r('app.media.ic_attendance'),
-        iconColor: '#2F9E77'
-      })
-      .layoutWeight(1)
-
-      Blank().width(12)
-
-      StatCard({
-        value: `${this.getStudentCount()}`,
-        label: '\u5b66\u751f\u603b\u6570',
-        icon: $r('app.media.ic_user'),
-        iconColor: '#A9794E'
-      })
-      .layoutWeight(1)
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 12 })
+  private getOverviewItems(): StatRowItem[] {
+    return [
+      { value: `${this.getTodayCount()}`, label: '当日课程', icon: $r('app.media.ic_calendar'), iconColor: HarmonyColor.brandBlue },
+      { value: `${this.getOngoingCount()}`, label: '进行中', icon: $r('app.media.ic_attendance'), iconColor: HarmonyReport.positive },
+      { value: `${this.getStudentCount()}`, label: '学生总数', icon: $r('app.media.ic_user'), iconColor: HarmonyReport.caution }
+    ];
   }
 
   @Builder
-  buildWeekSelector() {
-    Column() {
-      Text('\u5468\u65e5\u7a97\u53e3')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-
-      Text(this.formatWeekRange())
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 6, bottom: 12 })
-
-      this.buildWeekSelectorContent()
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
+  private buildWeekSelectorSection() {
+    Card({
+      title: '周视图',
+      subtitle: this.formatWeekRange(),
+      content: this.buildWeekSelectorContent
     })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
 
   @Builder
-  buildWeekSelectorContent() {
+  private buildWeekSelectorContent() {
     Column() {
       Row() {
-          Text('\u4e0a\u4e00\u5468')
-            .fontSize(13)
-            .fontColor($r('app.color.text_secondary'))
-            .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-            .backgroundColor('#F7FAFD')
-            .borderRadius(16)
-            .onClick((): void => {
-              this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
-              this.generateWeekDates();
-              this.selectedDate = new Date(this.currentWeekStart);
-              this.loadSchedule();
-            })
-
+        this.buildWeekSwitchButton('上一周', -1)
         Blank().layoutWeight(1)
-
-          Text('\u4e0b\u4e00\u5468')
-            .fontSize(13)
-            .fontColor($r('app.color.text_secondary'))
-            .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-            .backgroundColor('#F7FAFD')
-            .borderRadius(16)
-            .onClick((): void => {
-              this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
-              this.generateWeekDates();
-              this.selectedDate = new Date(this.currentWeekStart);
-              this.loadSchedule();
-            })
+        this.buildWeekSwitchButton('下一周', 1)
       }
       .width('100%')
 
       Row() {
         ForEach(this.weekDates, (date: Date) => {
-          Column() {
-            Text(this.getWeekDayText(date))
-              .fontSize(11)
-              .fontColor(this.formatDate(date) === this.formatDate(this.selectedDate) ? $r('app.color.primary') : $r('app.color.text_secondary'))
-
-            Text(`${date.getDate()}`)
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.formatDate(date) === this.formatDate(this.selectedDate) ? $r('app.color.primary') : $r('app.color.text_primary'))
-              .margin({ top: 4 })
-          }
-          .layoutWeight(1)
-          .padding({ top: 10, bottom: 10 })
-          .backgroundColor(this.formatDate(date) === this.formatDate(this.selectedDate) ? '#EEF6F0' : Color.Transparent)
-          .borderRadius(16)
-          .onClick((): void => {
-            this.selectedDate = date;
-            this.loadSchedule();
-          })
-        })
+          this.buildDateChip(date)
+        }, (date: Date) => this.formatDate(date))
       }
       .width('100%')
       .margin({ top: 12 })
     }
+    .width('100%')
   }
 
   @Builder
-  buildScheduleContent() {
-    if (this.isLoading) {
-      LoadingState({
-        loadingSize: LoadingSize.LARGE,
-        fullscreen: false,
-        message: '\u6b63\u5728\u52a0\u8f7d\u8bfe\u8868...'
+  private buildWeekSwitchButton(label: string, offset: number) {
+    Text(label)
+      .fontSize(13)
+      .fontColor(HarmonyColor.textSecondary)
+      .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+      .backgroundColor(HarmonyColor.surfaceSubtle)
+      .borderRadius(16)
+      .onClick((): void => {
+        this.shiftWeek(offset);
       })
-    } else if (this.scheduleList.length === 0) {
-      EmptyState({
-        type: EmptyType.DEFAULT,
-        customTitle: '\u5f53\u5929\u6682\u65e0\u6392\u8bfe',
-        customDescription: this.errorMessage || '\u5f53\u524d\u65e5\u671f\u6ca1\u6709\u53ef\u5c55\u793a\u7684\u8bfe\u7a0b'
-      })
-    } else {
-      Scroll() {
-        Column() {
-          SectionHeader({
-            title: '\u8bfe\u7a0b\u5217\u8868',
-            subtitle: '\u6309\u65f6\u95f4\u987a\u5e8f\u5c55\u793a\u5f53\u524d\u9009\u62e9\u65e5\u671f\u7684\u6392\u8bfe'
-          })
+  }
 
-          ForEach(this.scheduleList, (item: ScheduleItem) => {
-            this.buildScheduleCard(item)
-          })
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, bottom: 24 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
+  @Builder
+  private buildDateChip(date: Date) {
+    Column() {
+      Text(this.getWeekDayText(date))
+        .fontSize(11)
+        .fontColor(this.isSelectedDate(date) ? HarmonyColor.info : HarmonyColor.textSecondary)
+
+      Text(`${date.getDate()}`)
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.isSelectedDate(date) ? HarmonyColor.info : HarmonyColor.textPrimary)
+        .margin({ top: 4 })
     }
+    .layoutWeight(1)
+    .padding({ top: 10, bottom: 10 })
+    .backgroundColor(this.isSelectedDate(date) ? $r('app.color.primary_light') : HarmonyColor.clear)
+    .borderRadius(16)
+    .onClick((): void => {
+      this.selectDate(date);
+    })
   }
 
   @Builder
-  buildScheduleCard(item: ScheduleItem) {
+  private buildScheduleContent() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在加载课表...',
+      emptyType: EmptyType.DEFAULT,
+      emptyTitle: '当天暂无排课',
+      emptyDescription: this.errorMessage.length > 0 ? this.errorMessage : '当前日期没有可展示的课程安排。',
+      emptyActionText: '刷新',
+      onEmptyAction: () => {
+        this.loadSchedule();
+      },
+      content: this.buildScheduleList
+    })
+      .layoutWeight(1)
+  }
+
+  @Builder
+  private buildScheduleList() {
+    List() {
+      ListItem() {
+        SectionHeader({
+          title: '课程列表',
+          subtitle: '按时间顺序展示当前选中日期的全部班次。'
+        })
+      }
+
+      LazyForEach(this.scheduleDataSource, (item: ScheduleItem) => {
+        ListItem() {
+          this.buildScheduleCard(item)
+        }
+      }, (item: ScheduleItem) => `${item.id}`)
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .divider({ strokeWidth: 0 })
+    .scrollBar(BarState.Off)
+    .cachedCount(8)
+  }
+
+  @Builder
+  private buildScheduleCard(item: ScheduleItem) {
     Column() {
       Row() {
         Column() {
@@ -368,7 +357,7 @@ export struct TeacherSchedulePage {
             .fontColor($r('app.color.text_secondary'))
             .margin({ top: 4 })
         }
-        .width(72)
+        .width(80)
         .alignItems(HorizontalAlign.Start)
         .margin({ right: 12 })
 
@@ -377,6 +366,11 @@ export struct TeacherSchedulePage {
             .fontSize($r('app.float.text_primary_size'))
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.text_primary'))
+
+          Text(item.className)
+            .fontSize($r('app.float.text_secondary_size'))
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 4 })
 
           Row() {
             Image($r('app.media.ic_location'))
@@ -404,24 +398,18 @@ export struct TeacherSchedulePage {
           badgeSize: BadgeSize.DEFAULT
         })
       }
+      .width('100%')
     }
     .width('100%')
     .padding(16)
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(20)
     .border({
       width: 1,
-      color: '#EEF3F8',
+      color: $r('app.color.divider'),
       radius: 20,
       style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 12,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 6
     })
     .margin({ bottom: 12 })
   }
 }
-

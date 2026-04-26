@@ -21,6 +21,7 @@ import { Student } from '../../models/user';
 import { AttendanceService } from '../../services/api/attendance';
 import { StudentService } from '../../services/api/auth';
 import { HomeworkService } from '../../services/api/homework';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import { LogUtil } from '../../utils/LogUtil';
 
 interface TeacherStudentDetailParams {
@@ -348,15 +349,15 @@ struct TeacherStudentDetailPage {
 
   private getAttendanceStatusColor(status: string, abnormalFlag?: boolean): string {
     if (abnormalFlag) {
-      return '#D97706';
+      return HarmonyReport.caution;
     }
     if (status === 'SIGNED_OUT' || status === 'SIGNED_IN') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'ABSENT') {
-      return '#DC2626';
+      return HarmonyReport.danger;
     }
-    return '#7A879A';
+    return HarmonyColor.textTertiary;
   }
 
   private getHomeworkStatusText(status: string): string {
@@ -374,12 +375,12 @@ struct TeacherStudentDetailPage {
 
   private getHomeworkStatusColor(status: string): string {
     if (status === 'COMPLETED' || status === 'CONFIRMED') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'IN_PROGRESS') {
-      return '#526F95';
+      return HarmonyReport.accent;
     }
-    return '#D97706';
+    return HarmonyReport.caution;
   }
 
   private formatTime(value?: string): string {

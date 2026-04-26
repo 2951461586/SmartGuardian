@@ -37,6 +37,25 @@ export class StorageKeys {
   static readonly USER_INFO = 'user_info';
   static readonly IS_LOGGED_IN = 'is_logged_in';
   static readonly PRIVACY_AGREED = 'privacy_agreed';
+  static readonly MAIN_CURRENT_INDEX = 'main_current_index';
+  static readonly MAIN_AUTH_LOCKED = 'main_auth_locked';
+  static readonly MAIN_NAVIGATION_SCOPE = 'main_navigation_scope';
+  static readonly WORKBENCH_MANIFEST = 'workbench_manifest';
+  static readonly API_ENV = 'smart_guardian_api_env';
+  static readonly API_BASE_URL = 'smart_guardian_api_base_url';
+  static readonly API_CONFIG_VERSION = 'smart_guardian_api_config_version';
+  static readonly AGC_RUNTIME_READY = 'smart_guardian_agc_runtime_ready';
+  static readonly AGC_CONFIG_READY = 'smart_guardian_agc_config_ready';
+  static readonly AGC_AAID = 'smart_guardian_agc_aaid';
+  static readonly AGC_APP_ID = 'smart_guardian_agc_app_id';
+  static readonly AGC_CLIENT_ID = 'smart_guardian_agc_client_id';
+  static readonly AGC_GATEWAY_TOKEN = 'smart_guardian_agc_gateway_token';
+  static readonly AGC_GATEWAY_TOKEN_EXPIRE_AT = 'smart_guardian_agc_gateway_token_expire_at';
+  static readonly AGC_AUTH_USER_UID = 'smart_guardian_agc_auth_user_uid';
+  static readonly AGC_AUTH_USER_PHONE = 'smart_guardian_agc_auth_user_phone';
+  static readonly AGC_RUNTIME_ERROR = 'smart_guardian_agc_runtime_error';
+  static readonly NOTIFICATION_TARGET_ROUTE = 'smart_guardian_notification_target_route';
+  static readonly NOTIFICATION_TARGET_PARAMS = 'smart_guardian_notification_target_params';
 
   // User preferences
   static readonly THEME = 'app_theme';
@@ -67,6 +86,22 @@ export class RouteUrls {
   static readonly PARENT_MESSAGES = 'pages/parent/ParentMessagesPage';
   static readonly PARENT_PROFILE = 'pages/parent/ParentProfilePage';
   static readonly PARENT_TIMELINE = 'pages/parent/ParentTimelinePage';
+  static readonly PARENT_QRCODE = 'pages/parent/ParentQRCodePage';
+  static readonly PARENT_HOMEWORK = 'pages/parent/ParentHomeworkPage';
+  static readonly PARENT_SESSIONS = 'pages/parent/ParentSessionsPage';
+  static readonly PARENT_SERVICE_DETAIL = 'pages/parent/ParentServiceDetailPage';
+  static readonly PARENT_ORDER_CREATE = 'pages/parent/ParentOrderCreatePage';
+  static readonly PARENT_ORDER_DETAIL = 'pages/parent/ParentOrderDetailPage';
+  static readonly PARENT_PAYMENT = 'pages/parent/ParentPaymentPage';
+  static readonly PARENT_LEAVE = 'pages/parent/ParentLeavePage';
+  static readonly PARENT_ALERTS = 'pages/parent/ParentAlertsPage';
+  static readonly PARENT_REFUND = 'pages/parent/ParentRefundPage';
+  static readonly PARENT_MESSAGE_DETAIL = 'pages/parent/ParentMessageDetailPage';
+  static readonly PARENT_PROFILE_EDIT = 'pages/parent/ParentProfileEditPage';
+  static readonly PARENT_CHILDREN = 'pages/parent/ParentChildrenPage';
+  static readonly PARENT_SETTINGS = 'pages/parent/ParentSettingsPage';
+  static readonly PARENT_HELP = 'pages/parent/ParentHelpPage';
+  static readonly PARENT_ABOUT = 'pages/parent/ParentAboutPage';
 
   // Teacher pages
   static readonly TEACHER_HOME = 'pages/teacher/TeacherHomePage';
@@ -74,6 +109,9 @@ export class RouteUrls {
   static readonly TEACHER_HOMEWORK = 'pages/teacher/TeacherHomeworkPage';
   static readonly TEACHER_SCHEDULE = 'pages/teacher/TeacherSchedulePage';
   static readonly TEACHER_SCAN = 'pages/teacher/TeacherScanPage';
+  static readonly TEACHER_MESSAGES = 'pages/teacher/TeacherMessagesPage';
+  static readonly TEACHER_PROFILE = 'pages/teacher/TeacherProfilePage';
+  static readonly TEACHER_STUDENT_DETAIL = 'pages/teacher/TeacherStudentDetailPage';
 
   // Common pages
   static readonly COMMON_QRCODE_SCAN = 'pages/common/QRCodeScanPage';
@@ -83,6 +121,14 @@ export class RouteUrls {
   static readonly ADMIN_STUDENTS = 'pages/admin/AdminStudentsPage';
   static readonly ADMIN_ORDERS = 'pages/admin/AdminOrdersPage';
   static readonly ADMIN_REPORTS = 'pages/admin/AdminReportsPage';
+  static readonly ADMIN_MESSAGES = 'pages/admin/AdminMessagesPage';
+  static readonly ADMIN_SERVICES = 'pages/admin/AdminServicesPage';
+  static readonly ADMIN_SESSIONS = 'pages/admin/AdminSessionsPage';
+  static readonly ADMIN_ALERTS = 'pages/admin/AdminAlertsPage';
+  static readonly ADMIN_REFUNDS = 'pages/admin/AdminRefundsPage';
+  static readonly ADMIN_STUDENT_EDIT = 'pages/admin/AdminStudentEditPage';
+  static readonly ADMIN_STUDENT_DETAIL = 'pages/admin/AdminStudentDetailPage';
+  static readonly ADMIN_PROFILE = 'pages/admin/AdminProfilePage';
 }
 
 /**

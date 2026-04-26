@@ -83,8 +83,6 @@ export interface AttendanceRecord {
   /** 考勤日期 (源自 Session.sessionDate) */
   attendanceDate?: string;
   
-  /** 签到方式 (旧字段，建议使用signInMethod) */
-  signMethod?: string;
 }
 
 /**

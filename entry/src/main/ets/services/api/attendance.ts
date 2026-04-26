@@ -11,7 +11,7 @@
 
 import { get, post } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
-import { AttendanceRecord, SignInRequest, SignOutRequest, LeaveRequest } from '../../models/attendance';
+import { AttendanceRecord, SignInRequest, SignOutRequest, LeaveRequest, LeaveRecord } from '../../models/attendance';
 import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
@@ -21,6 +21,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class AttendanceService {
+  static readonly AGC_DOMAIN: string = 'attendance';
+  static readonly AGC_FUNCTION: string = 'smartguardian-attendance';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.ATTENDANCE;
+
   /**
    * Get attendance records
    * 
@@ -100,7 +104,7 @@ export class AttendanceService {
    * @param data 请假请求数据
    * @returns 请假记录响应
    */
-  static async submitLeave(data: LeaveRequest): Promise<ApiResponse<AttendanceRecord>> {
-    return post<AttendanceRecord>(ApiEndpoints.ATTENDANCE_LEAVE, data);
+  static async submitLeave(data: LeaveRequest): Promise<ApiResponse<LeaveRecord>> {
+    return post<LeaveRecord>(ApiEndpoints.ATTENDANCE_LEAVE, data);
   }
 }

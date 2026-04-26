@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Page Header Component
- * HarmonyOS-inspired headers with pure blue-white surfaces and adaptive cards.
+ * Unified page headers with tokenized surfaces and role-aware gradients.
  */
 
 import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
@@ -76,8 +76,18 @@ export struct PageHeader {
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getActionBgColor())
     .borderRadius(HarmonyRadius.control)
-    .border({ width: 1, color: this.getActionBorderColor(), radius: HarmonyRadius.control, style: BorderStyle.Solid })
-    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
+    .border({
+      width: 1,
+      color: this.getActionBorderColor(),
+      radius: HarmonyRadius.control,
+      style: BorderStyle.Solid
+    })
+    .shadow({
+      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
+      color: harmonyShadowColor(),
+      offsetX: 0,
+      offsetY: 4
+    })
     .margin({ right: 12 })
     .onClick(() => {
       if (this.onBackClick) {
@@ -100,8 +110,18 @@ export struct PageHeader {
     .justifyContent(FlexAlign.Center)
     .backgroundColor(this.getActionBgColor())
     .borderRadius(HarmonyRadius.control)
-    .border({ width: 1, color: this.getActionBorderColor(), radius: HarmonyRadius.control, style: BorderStyle.Solid })
-    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
+    .border({
+      width: 1,
+      color: this.getActionBorderColor(),
+      radius: HarmonyRadius.control,
+      style: BorderStyle.Solid
+    })
+    .shadow({
+      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
+      color: harmonyShadowColor(),
+      offsetX: 0,
+      offsetY: 4
+    })
     .onClick(() => {
       if (this.onRightIconClick) {
         this.onRightIconClick();
@@ -120,19 +140,19 @@ export struct PageHeader {
   }
 
   private getTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White;
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : HarmonyColor.textInverse;
   }
 
   private getSubtitleColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFD9';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : HarmonyColor.textInverseStrong;
   }
 
   private getActionBgColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? '#FFFFFF' : '#FFFFFF20';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.surface : HarmonyColor.overlayInverseSoft;
   }
 
   private getActionBorderColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.line : '#FFFFFF2A';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.line : HarmonyColor.overlayInverseBorder;
   }
 
   private getPadding(): Padding {
@@ -155,7 +175,7 @@ export struct SimplePageHeader {
       Text(this.title)
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
-        .fontColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White)
+        .fontColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : HarmonyColor.textInverse)
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
@@ -179,7 +199,7 @@ export struct GreetingHeader {
       Row() {
         Column() {
           Row() {
-            Text('智慧学生托管系统')
+            Text('智慧学生托管')
               .fontSize(24)
               .fontWeight(FontWeight.Bold)
               .fontColor(this.getTextColor())
@@ -198,7 +218,7 @@ export struct GreetingHeader {
           .width('100%')
           .alignItems(VerticalAlign.Center)
 
-          Text(this.userName ? `你好，${this.userName}` : (this.greeting || '欢迎回来'))
+          Text(this.getGreetingTitle())
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getTextColor())
@@ -248,7 +268,12 @@ export struct GreetingHeader {
       bottomLeft: this.theme === HeaderTheme.WHITE ? 0 : 32,
       bottomRight: this.theme === HeaderTheme.WHITE ? 0 : 32
     })
-    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 0 : 18, color: harmonyShadowColor(), offsetX: 0, offsetY: 10 })
+    .shadow({
+      radius: this.theme === HeaderTheme.WHITE ? 0 : 18,
+      color: harmonyShadowColor(),
+      offsetX: 0,
+      offsetY: 10
+    })
   }
 
   @Builder
@@ -258,20 +283,25 @@ export struct GreetingHeader {
         .width(22)
         .height(22)
         .objectFit(ImageFit.Contain)
-        .fillColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White)
+        .fillColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : HarmonyColor.textInverse)
     }
     .width(48)
     .height(48)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.theme === HeaderTheme.WHITE ? '#FFFFFF' : '#FFFFFF20')
+    .backgroundColor(this.theme === HeaderTheme.WHITE ? HarmonyColor.surface : HarmonyColor.overlayInverseSoft)
     .borderRadius(HarmonyRadius.control)
     .border({
       width: 1,
-      color: this.theme === HeaderTheme.WHITE ? HarmonyColor.line : '#FFFFFF2A',
+      color: this.theme === HeaderTheme.WHITE ? HarmonyColor.line : HarmonyColor.overlayInverseBorder,
       radius: HarmonyRadius.control,
       style: BorderStyle.Solid
     })
-    .shadow({ radius: this.theme === HeaderTheme.WHITE ? 10 : 0, color: harmonyShadowColor(), offsetX: 0, offsetY: 4 })
+    .shadow({
+      radius: this.theme === HeaderTheme.WHITE ? 10 : 0,
+      color: harmonyShadowColor(),
+      offsetX: 0,
+      offsetY: 4
+    })
     .onClick(() => {
       if (this.onRightIconClick) {
         this.onRightIconClick();
@@ -279,41 +309,50 @@ export struct GreetingHeader {
     })
   }
 
+  private getGreetingTitle(): string {
+    if (this.userName.length > 0) {
+      return `你好，${this.userName}`;
+    }
+    if (this.greeting.length > 0) {
+      return this.greeting;
+    }
+    return '欢迎回来';
+  }
+
   private getTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : Color.White;
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textPrimary : HarmonyColor.textInverse;
   }
 
   private getSubtitleColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFD9';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : HarmonyColor.textInverseStrong;
   }
 
   private getMutedTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : '#FFFFFFB8';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.textSecondary : HarmonyColor.textInverseMuted;
   }
 
   private getAccentBgColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().light : '#FFFFFF20';
+    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().light : HarmonyColor.overlayInverseSoft;
   }
 
   private getAccentTextColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().primary : '#FFFFFF';
+    return this.theme === HeaderTheme.WHITE ? getCurrentRolePalette().primary : HarmonyColor.surface;
   }
 
   private getMetaBgColor(): ResourceColor {
-    return this.theme === HeaderTheme.WHITE ? '#FFFFFFC9' : '#FFFFFF18';
+    return this.theme === HeaderTheme.WHITE ? HarmonyColor.overlaySurface : HarmonyColor.overlayInverseSoft;
   }
 
   private getGradient(): LinearGradient {
     if (this.theme === HeaderTheme.WHITE) {
       return {
         angle: 165,
-        colors: [['#FFFFFF', 0], ['#F7FAFF', 0.55], [getCurrentRolePalette().light, 1]]
+        colors: [[HarmonyColor.surface, 0], [HarmonyColor.page, 0.55], [getCurrentRolePalette().light, 1]]
       };
     }
-
     return {
       angle: 145,
-      colors: [[getCurrentRolePalette().primary, 0], [getCurrentRolePalette().primaryDark, 0.58], ['#18233F', 1]]
+      colors: [[getCurrentRolePalette().primary, 0], [getCurrentRolePalette().primaryDark, 0.58], [HarmonyColor.inkStrong, 1]]
     };
   }
 

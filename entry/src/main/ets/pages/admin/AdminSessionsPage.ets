@@ -4,7 +4,10 @@
  */
 
 import {
-  Card,
+  AdminSessionListItemCard,
+  AdminSessionStudentsSheet,
+  AdminSessionsFilterCard,
+  AdminSessionsOverviewCard,
   EmptyState,
   EmptyType,
   HeaderTheme,
@@ -12,13 +15,13 @@ import {
   LoadingSize,
   LoadingState,
   PageHeader,
-  SectionHeader,
-  StatCard,
-  TabBar
+  SectionHeader
 } from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import { AutoScheduleRequest, SessionSchedule, SessionStudent, SessionWithStudents } from '../../models/service';
 import { SessionService } from '../../services/api/service';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
 import { LogUtil } from '../../utils/LogUtil';
 
 @Entry
@@ -33,6 +36,8 @@ struct AdminSessionsPage {
   @State selectedSessionDetail: SessionWithStudents | null = null;
 
   private readonly tabs: string[] = ['全部班次', '今日班次', '满载班次', '已结束'];
+  private sessionDataSource: LazyArrayDataSource<SessionSchedule> = new LazyArrayDataSource<SessionSchedule>();
+  private sessionStudentDataSource: LazyArrayDataSource<SessionStudent> = new LazyArrayDataSource<SessionStudent>();
 
   aboutToAppear() {
     ErrorHandlerUtil.setUIContext(this.getUIContext());
@@ -76,12 +81,15 @@ struct AdminSessionsPage {
 
       if (response.code === 0 && response.data) {
         this.sessions = this.filterSessions(response.data);
+        this.sessionDataSource.setItems(this.sessions);
       } else {
         this.sessions = [];
+        this.sessionDataSource.clear();
         this.errorMessage = response.message ? response.message : '班次加载失败';
       }
     } catch (error) {
       this.sessions = [];
+      this.sessionDataSource.clear();
       this.errorMessage = '班次加载失败，请稍后重试';
       LogUtil.error(`AdminSessionsPage loadSessions failed: ${String(error)}`);
     } finally {
@@ -163,6 +171,7 @@ struct AdminSessionsPage {
       const response = await SessionService.getSessionDetail(sessionId);
       if (response.code === 0 && response.data) {
         this.selectedSessionDetail = response.data;
+        this.sessionStudentDataSource.setItems(response.data.students);
         this.showStudentsSheet = true;
       } else {
         ErrorHandlerUtil.showErrorToast(response.message ? response.message : '班次详情加载失败');
@@ -213,15 +222,15 @@ struct AdminSessionsPage {
 
   private getStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'ENDED') {
-      return '#7A879A';
+      return HarmonyColor.textTertiary;
     }
     if (status === 'CANCELLED') {
-      return '#DC2626';
+      return HarmonyReport.danger;
     }
-    return '#526F95';
+    return HarmonyReport.accent;
   }
 
   build() {
@@ -241,18 +250,7 @@ struct AdminSessionsPage {
           message: '正在加载班次...'
         })
       } else {
-        Scroll() {
-          Column() {
-            this.buildOverviewPanel()
-            this.buildFilterPanel()
-            this.buildSessionList()
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+        this.buildPageList()
       }
     }
     .width('100%')
@@ -260,18 +258,40 @@ struct AdminSessionsPage {
     .backgroundColor($r('app.color.page_background'))
     .bindSheet($$this.showStudentsSheet, this.buildStudentsSheet(), {
       height: 420,
-      backgroundColor: Color.White,
+      backgroundColor: HarmonyColor.surface,
       dragBar: true
     })
+  }
+
+  @Builder
+  private buildPageList() {
+    List() {
+      ListItem() {
+        this.buildOverviewPanel()
+      }
+
+      ListItem() {
+        this.buildFilterPanel()
+      }
+
+      this.buildSessionListSections()
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .divider({ strokeWidth: 0 })
+    .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .cachedCount(8)
   }
 
   @Builder
   private buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_add'),
-      iconColor: Color.White,
-      boxBgColor: '#FFFFFF1F',
-      boxBorderColor: '#FFFFFF29',
+      iconColor: HarmonyColor.textInverse,
+      boxBgColor: HarmonyColor.overlayInverseSoft,
+      boxBorderColor: HarmonyColor.overlayInverseBorder,
       boxSize: 42,
       iconSize: 22,
       onButtonClick: () => {
@@ -282,61 +302,21 @@ struct AdminSessionsPage {
 
   @Builder
   private buildOverviewPanel() {
-    Column() {
-      SectionHeader({
-        title: '班次概览',
-        subtitle: '集中看清今日排班、满载情况和当前班次规模。'
-      })
-
-      Row() {
-        StatCard({
-          value: this.sessions.length,
-          label: '当前班次数',
-          icon: $r('app.media.ic_session'),
-          iconColor: '#526F95'
-        })
-        .layoutWeight(1)
-
-        StatCard({
-          value: this.getTodayCount(),
-          label: '今日班次',
-          icon: $r('app.media.ic_clock'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-        .margin({ left: 12, right: 12 })
-
-        StatCard({
-          value: this.getFullCount(),
-          label: '满载班次',
-          icon: $r('app.media.ic_alert_center'),
-          iconColor: '#D97706'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildFilterPanel() {
-    Card({
-      title: '班次筛选',
-      subtitle: '可按今日、满载和已结束状态快速查看排期压力。',
-      actionText: '自动排班',
-      onAction: () => {
-        this.autoGenerateSessions();
-      },
-      content: this.buildFilterContent
+    AdminSessionsOverviewCard({
+      totalCount: this.sessions.length,
+      todayCount: this.getTodayCount(),
+      fullCount: this.getFullCount()
     })
   }
 
   @Builder
-  private buildFilterContent() {
-    TabBar({
+  private buildFilterPanel() {
+    AdminSessionsFilterCard({
       tabs: this.tabs,
-      currentIndex: this.currentTab,
+      currentTab: this.currentTab,
+      onAutoSchedule: () => {
+        this.autoGenerateSessions();
+      },
       onTabChange: (index: number) => {
         this.currentTab = index;
         this.loadSessions();
@@ -345,14 +325,16 @@ struct AdminSessionsPage {
   }
 
   @Builder
-  private buildSessionList() {
-    Column() {
+  private buildSessionListSections() {
+    ListItem() {
       SectionHeader({
         title: '班次列表',
         subtitle: this.errorMessage ? this.errorMessage : `当前共 ${this.sessions.length} 个班次`
       })
+    }
 
-      if (this.sessions.length === 0) {
+    if (this.sessions.length === 0) {
+      ListItem() {
         EmptyState({
           type: EmptyType.DEFAULT,
           customTitle: '暂无班次',
@@ -362,162 +344,30 @@ struct AdminSessionsPage {
             this.createQuickSession();
           }
         })
-      } else {
-        Column() {
-          ForEach(this.sessions, (session: SessionSchedule) => {
-            this.buildSessionItem(session);
+      }
+    } else {
+      LazyForEach(this.sessionDataSource, (session: SessionSchedule) => {
+        ListItem() {
+          AdminSessionListItemCard({
+            session: session,
+            statusText: this.getStatusText(session.status),
+            statusColor: this.getStatusColor(session.status),
+            onOpenStudents: (sessionId: number) => {
+              this.openStudentsSheet(sessionId);
+            }
           })
+            .margin({ bottom: 12 })
         }
-        .width('100%')
-      }
+      }, (session: SessionSchedule) => `${session.id}`)
     }
-    .width('100%')
-  }
-
-  @Builder
-  private buildSessionItem(session: SessionSchedule) {
-    Column() {
-      Row() {
-        Column() {
-          Text(`${session.serviceProductName ? session.serviceProductName : '托管班次'} · ${session.sessionNo ? session.sessionNo : session.id}`)
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(`${session.sessionDate} ${session.startTime} - ${session.endTime}`)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Text(this.getStatusText(session.status))
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.getStatusColor(session.status))
-      }
-      .width('100%')
-
-      Row() {
-        this.buildMetricColumn('当前人数', `${Number(session.currentCount ?? 0)}`)
-        this.buildMetricColumn('最大容量', `${Number(session.maxCapacity ?? session.capacity ?? 0)}`)
-        this.buildMetricColumn('教师', session.teacherName ? session.teacherName : '--')
-      }
-      .width('100%')
-      .margin({ top: 14 })
-
-      Text(`地点：${session.location ? session.location : '--'}`)
-        .width('100%')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 12 })
-
-      Text('查看学生名单')
-        .fontSize(13)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.primary'))
-        .margin({ top: 12 })
-        .onClick(() => {
-          this.openStudentsSheet(session.id);
-        })
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .margin({ bottom: 12 })
-  }
-
-  @Builder
-  private buildMetricColumn(label: string, value: string) {
-    Column() {
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
   private buildStudentsSheet() {
-    Column() {
-      if (this.selectedSessionDetail) {
-        Text(this.selectedSessionDetail.serviceProductName ? this.selectedSessionDetail.serviceProductName : '班次学生名单')
-          .fontSize(18)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 8, bottom: 8 })
-
-        Text(`${this.selectedSessionDetail.sessionDate} · ${this.selectedSessionDetail.startTime} - ${this.selectedSessionDetail.endTime}`)
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ bottom: 16 })
-
-        if (this.selectedSessionDetail.students.length === 0) {
-          Text('当前班次还没有学生名单。')
-            .fontSize(14)
-            .fontColor($r('app.color.text_secondary'))
-        } else {
-          Scroll() {
-            Column() {
-              ForEach(this.selectedSessionDetail.students, (student: SessionStudent) => {
-                Row() {
-                  Column() {
-                    Text(student.studentName)
-                      .fontSize(15)
-                      .fontWeight(FontWeight.Medium)
-                      .fontColor($r('app.color.text_primary'))
-
-                    Text(`学号：${student.studentNo}`)
-                      .fontSize(12)
-                      .fontColor($r('app.color.text_secondary'))
-                      .margin({ top: 4 })
-                  }
-                  .alignItems(HorizontalAlign.Start)
-                  .layoutWeight(1)
-
-                  Text(student.attendanceStatus)
-                    .fontSize(12)
-                    .fontColor($r('app.color.primary'))
-                }
-                .width('100%')
-                .padding({ top: 10, bottom: 10 })
-              })
-            }
-            .width('100%')
-          }
-          .width('100%')
-          .layoutWeight(1)
-        }
-      } else {
-        Text('暂无班次详情')
-          .fontSize(14)
-          .fontColor($r('app.color.text_secondary'))
-      }
-    }
-    .width('100%')
-    .height('100%')
-    .padding(20)
+    AdminSessionStudentsSheet({
+      sessionDetail: this.selectedSessionDetail,
+      studentItems: this.selectedSessionDetail ? this.selectedSessionDetail.students : []
+    })
   }
 }
 

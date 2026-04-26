@@ -26,9 +26,24 @@ import {
   Card,
   StatCard
 } from '../../components/common';
+import { RouteUrls } from '../../constants/app.constants';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
+
+@Entry
+@Component
+struct ParentOrdersPage {
+  build() {
+    Stack() {
+      ParentOrdersPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
 
 @Component
-export struct ParentOrdersPage {
+export struct ParentOrdersPageContent {
   @StorageLink('order_list') orders: Order[] = [];
 
   @State isLoading: boolean = false;
@@ -39,6 +54,7 @@ export struct ParentOrdersPage {
   private lastLoadTime: number = 0;
   private readonly CACHE_DURATION: number = 5 * 60 * 1000;
   private tabs: string[] = ['全部', '待审核', '进行中', '已完成'];
+  private orderDataSource: LazyArrayDataSource<Order> = new LazyArrayDataSource<Order>();
 
   aboutToAppear() {
     this.loadOrdersWithCache();
@@ -48,6 +64,7 @@ export struct ParentOrdersPage {
     const cachedOrders = OrderStore.getOrderList();
     if (cachedOrders.length > 0) {
       this.orders = cachedOrders;
+      this.orderDataSource.setItems(cachedOrders);
       LogUtil.info('ParentOrdersPage', `Using cached orders: ${cachedOrders.length} items`);
     }
 
@@ -83,13 +100,18 @@ export struct ParentOrdersPage {
         const rawOrders = resp.data.list ?? [];
         OrderStore.setOrderList(rawOrders);
         this.orders = rawOrders;
+        this.orderDataSource.setItems(rawOrders);
         this.lastLoadTime = Date.now();
         LogUtil.info('ParentOrdersPage', `Loaded and cached ${this.orders.length} orders`);
       } else {
+        this.orders = [];
+        this.orderDataSource.clear();
         this.errorMessage = resp.message || ErrorMessages.ORDER_LOAD_FAILED;
       }
     } catch (error) {
       this.errorMessage = ErrorMessages.ORDER_LOAD_FAILED;
+      this.orders = [];
+      this.orderDataSource.clear();
       LogUtil.error('ParentOrdersPage', 'Load orders failed');
     } finally {
       this.isLoading = false;
@@ -127,7 +149,7 @@ export struct ParentOrdersPage {
     try {
       OrderStore.setCurrentOrder(order);
       this.getUIContext().getRouter().pushUrl({
-        url: 'pages/parent/ParentPaymentPage',
+        url: RouteUrls.PARENT_PAYMENT,
         params: {
           orderId: order.id
         }
@@ -143,7 +165,7 @@ export struct ParentOrdersPage {
     OrderStore.setCurrentOrder(order);
     try {
       this.getUIContext().getRouter().pushUrl({
-        url: 'pages/parent/ParentOrderDetailPage',
+        url: RouteUrls.PARENT_ORDER_DETAIL,
         params: {
           orderId: order.id,
           orderNo: order.orderNo
@@ -178,7 +200,7 @@ export struct ParentOrdersPage {
         value: `${this.orders.length}`,
         label: '当前列表',
         icon: $r('app.media.ic_order'),
-        iconColor: '#4F7CFF'
+        iconColor: HarmonyReport.accent
       })
       .layoutWeight(1)
 
@@ -188,7 +210,7 @@ export struct ParentOrdersPage {
         value: `${this.getPendingCount()}`,
         label: '待审核',
         icon: $r('app.media.ic_warning'),
-        iconColor: '#F2994A'
+        iconColor: HarmonyReport.caution
       })
       .layoutWeight(1)
 
@@ -198,7 +220,7 @@ export struct ParentOrdersPage {
         value: `${this.getPayableCount()}`,
         label: '待支付',
         icon: $r('app.media.ic_money'),
-        iconColor: '#2F9B52'
+        iconColor: HarmonyReport.positive
       })
       .layoutWeight(1)
     }
@@ -253,59 +275,64 @@ export struct ParentOrdersPage {
 
   @Builder
   buildOrderList() {
-    Scroll() {
-      Column() {
-        SectionHeader({
-          title: '订单列表',
-          subtitle: '支持查看详情与处理待支付订单'
-        })
+    Column() {
+      SectionHeader({
+        title: '订单列表',
+        subtitle: '支持查看详情与处理待支付订单'
+      })
+      .margin({ left: 16, right: 16 })
 
-        ForEach(this.orders, (order: Order) => {
-          Column() {
-            OrderListItem({
-              order: order,
-              mode: OrderItemMode.SIMPLE,
-              onItemClick: () => {
-                this.openOrderDetail(order);
+      List({ space: 12 }) {
+        LazyForEach(this.orderDataSource, (order: Order) => {
+          ListItem() {
+            Column() {
+              OrderListItem({
+                order: order,
+                mode: OrderItemMode.SIMPLE,
+                onItemClick: () => {
+                  this.openOrderDetail(order);
+                }
+              })
+
+              if (this.canPay(order)) {
+                Button(this.payingOrderId === order.id ? '处理中...' : '立即支付')
+                  .width('100%')
+                  .height(46)
+                  .fontSize(15)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(HarmonyColor.textInverse)
+                  .backgroundColor($r('app.color.primary'))
+                  .borderRadius(14)
+                  .margin({ top: 10 })
+                  .enabled(this.payingOrderId !== order.id)
+                  .opacity(this.payingOrderId === order.id ? 0.75 : 1)
+                  .onClick(() => {
+                    this.handlePayOrder(order);
+                  })
               }
-            })
-
-            if (this.canPay(order)) {
-              Button(this.payingOrderId === order.id ? '处理中...' : '立即支付')
-                .width('100%')
-                .height(46)
-                .fontSize(15)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(Color.White)
-                .backgroundColor($r('app.color.primary'))
-                .borderRadius(14)
-                .margin({ top: 10 })
-                .enabled(this.payingOrderId !== order.id)
-                .opacity(this.payingOrderId === order.id ? 0.75 : 1)
-                .onClick(() => {
-                  this.handlePayOrder(order);
-                })
             }
+            .width('100%')
+            .padding(18)
+            .backgroundColor(HarmonyColor.surface)
+            .borderRadius(20)
+            .shadow({
+              radius: 12,
+              color: harmonyShadowColor(),
+              offsetX: 0,
+              offsetY: 4
+            })
           }
-          .width('100%')
-          .padding(18)
-          .backgroundColor(Color.White)
-          .borderRadius(20)
-          .margin({ bottom: 12 })
-          .shadow({
-            radius: 12,
-            color: '#0F000000',
-            offsetX: 0,
-            offsetY: 4
-          })
-        })
+        }, (order: Order) => `${order.id}`)
       }
       .width('100%')
+      .layoutWeight(1)
       .padding({ left: 16, right: 16, bottom: 20 })
+      .divider({ strokeWidth: 0 })
+      .scrollBar(BarState.Off)
+      .cachedCount(6)
     }
     .width('100%')
     .layoutWeight(1)
-    .scrollBar(BarState.Off)
   }
 }
 

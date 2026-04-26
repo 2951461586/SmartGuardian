@@ -1,0 +1,6 @@
+{
+  "domain": "card",
+  "functionName": "smartguardian-card",
+  "routePrefixes": ["/api/v1/cards"],
+  "collections": ["form_cards", "student_timelines", "alerts"]
+}

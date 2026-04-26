@@ -16,6 +16,7 @@ import {
   MessageRecord,
   MessageQueryParams,
   MessageStatistics,
+  MessageUnreadCount,
   MessageDetail,
   SendMessageParams,
   BatchMarkReadParams
@@ -30,6 +31,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class MessageService {
+  static readonly AGC_DOMAIN: string = 'message';
+  static readonly AGC_FUNCTION: string = 'smartguardian-message';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.MESSAGES;
+
   /**
    * Get message list
    * 
@@ -59,8 +64,8 @@ export class MessageService {
    * @param messageId 消息ID
    * @returns 操作响应
    */
-  static async markAsRead(messageId: number): Promise<ApiResponse<void>> {
-    return post<void>(ApiEndpoints.messageRead(messageId));
+  static async markAsRead(messageId: number): Promise<ApiResponse<MessageRecord>> {
+    return post<MessageRecord>(ApiEndpoints.messageRead(messageId));
   }
 
   /**
@@ -101,8 +106,8 @@ export class MessageService {
    * @description 获取未读消息数量
    * @returns 未读数量响应
    */
-  static async getUnreadCount(): Promise<ApiResponse<{ count: number }>> {
-    return get<{ count: number }>(ApiEndpoints.MESSAGES_UNREAD_COUNT);
+  static async getUnreadCount(): Promise<ApiResponse<MessageUnreadCount>> {
+    return get<MessageUnreadCount>(ApiEndpoints.MESSAGES_UNREAD_COUNT);
   }
 
   /**

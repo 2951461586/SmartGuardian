@@ -1,25 +1,34 @@
+﻿import {
+  Card,
+  ProfileActionGrid,
+  ProfileActionItem,
+  ProfileHeroCard,
+  ProfileHighlightBanner,
+  ProfileMetricItem,
+  ProfileMetricStrip,
+  ProfileSettingsList,
+  ProfileUtilityButton,
+  ProfileWorkspaceTemplate
+} from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { RouteUrls, StorageKeys } from '../../constants/app.constants';
 import { AuthService } from '../../services/api/auth';
 import { UserStore } from '../../stores/userStore';
 
-interface AdminProfileAction {
-  title: string;
-  subtitle: string;
-  icon: Resource;
-  bgColor: string;
-  iconColor: string;
-  route?: string;
-  tabIndex?: number;
-}
-
-interface AdminProfileMetric {
-  label: string;
-  value: string;
-  bgColor: string;
-  valueColor: string;
+@Entry
+@Component
+struct AdminProfilePage {
+  build() {
+    Stack() {
+      AdminProfilePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
 }
 
 @Component
-export struct AdminProfilePage {
+export struct AdminProfilePageContent {
   @State userName: string = '';
   @State mobile: string = '';
   @State avatar: string = '';
@@ -40,9 +49,9 @@ export struct AdminProfilePage {
       console.warn('AdminProfilePage logout api failed:', String(error));
     }
     UserStore.clearUserInfo();
-    AppStorage.setOrCreate('main_auth_locked', true);
+    AppStorage.setOrCreate(StorageKeys.MAIN_AUTH_LOCKED, true);
     try {
-      this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+      this.getUIContext().getRouter().replaceUrl({ url: RouteUrls.LOGIN });
     } catch (error) {
       console.error('AdminProfilePage logout redirect failed:', String(error));
     }
@@ -57,315 +66,171 @@ export struct AdminProfilePage {
   }
 
   build() {
-    Scroll() {
-      Column() {
-        this.buildProfileHeader()
-        this.buildOperationStats()
-        this.buildManagementGrid()
-        this.buildSecuritySection()
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 14, bottom: 30 })
-    }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-    .backgroundColor($r('app.color.page_background'))
-  }
-
-  @Builder
-  private buildProfileHeader() {
     Column() {
-      Row() {
-        Image(this.avatar || $r('app.media.ic_default_avatar'))
-          .width(76)
-          .height(76)
-          .borderRadius(38)
-          .objectFit(ImageFit.Cover)
-          .border({ width: 3, color: '#E3DDED', radius: 38, style: BorderStyle.Solid })
-
-        Column() {
-          Row() {
-            Text(this.userName || '机构管理员')
-              .fontSize(24)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#0F172A')
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-            Text('机构')
-              .fontSize(12)
-              .fontWeight(FontWeight.Medium)
-              .fontColor('#7B6D96')
-              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-              .backgroundColor('#F2F0F7')
-              .borderRadius(999)
-              .margin({ left: 8 })
-          }
-
-          Text(this.mobile || '未绑定手机号')
-            .fontSize(14)
-            .fontColor('#52637A')
-            .margin({ top: 8 })
-
-          Text('阳光托管中心 · 高级机构')
-            .fontSize(12)
-            .fontColor('#7B6D96')
-            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor('#FFFFFFCC')
-            .borderRadius(999)
-            .margin({ top: 10 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-        .margin({ left: 14 })
-
-        Column() {
-          this.buildRoundTool($r('app.media.ic_settings'))
-          Blank().height(10)
-          this.buildRoundTool($r('app.media.ic_message'))
-        }
-      }
-      .width('100%')
-
-      Image($r('app.media.sg_illustration_education'))
-        .width(148)
-        .height(88)
-        .objectFit(ImageFit.Contain)
-        .opacity(0.26)
-        .alignSelf(ItemAlign.End)
-        .margin({ top: -34, right: 2, bottom: -8 })
-    }
-    .width('100%')
-    .padding({ left: 20, right: 18, top: 18, bottom: 10 })
-    .linearGradient({ angle: 135, colors: [['#FFFFFF', 0], ['#F7F4FB', 1]] })
-    .borderRadius(28)
-    .border({ width: 1, color: '#DED8EA', radius: 28, style: BorderStyle.Solid })
-    .shadow({ radius: 16, color: '#7B6D9610', offsetX: 0, offsetY: 8 })
-  }
-
-  @Builder
-  private buildRoundTool(icon: Resource) {
-    Column() {
-      Image(icon)
-        .width(20)
-        .height(20)
-        .objectFit(ImageFit.Contain)
-        .fillColor('#7B6D96')
-    }
-    .width(42)
-    .height(42)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(16)
-    .border({ width: 1, color: '#E6ECF5', radius: 16, style: BorderStyle.Solid })
-  }
-
-  @Builder
-  private buildOperationStats() {
-    Column() {
-      this.buildSectionHeader('经营概况', '查看详情')
-      Row() {
-        ForEach(this.getMetrics(), (metric: AdminProfileMetric) => {
-          this.buildMetric(metric)
-        })
-      }
-      .width('100%')
-      .margin({ top: 14 })
-    }
-    .width('100%')
-    .padding(18)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(24)
-    .border({ width: 1, color: '#E6ECF5', radius: 24, style: BorderStyle.Solid })
-    .shadow({ radius: 12, color: '#526F950D', offsetX: 0, offsetY: 6 })
-    .margin({ top: 14 })
-  }
-
-  @Builder
-  private buildMetric(metric: AdminProfileMetric) {
-    Column() {
-      Text(metric.value)
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(metric.valueColor)
-      Text(metric.label)
-        .fontSize(12)
-        .fontColor('#667085')
-        .margin({ top: 8 })
-    }
-    .layoutWeight(1)
-    .height(88)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor(metric.bgColor)
-    .borderRadius(20)
-    .margin({ right: 8 })
-  }
-
-  @Builder
-  private buildManagementGrid() {
-    Column() {
-      this.buildSectionHeader('管理入口', '')
-      this.buildActionRow(this.getActions().slice(0, 2))
-      this.buildActionRow(this.getActions().slice(2, 4))
-      this.buildActionRow(this.getActions().slice(4, 6))
-    }
-    .width('100%')
-    .padding(18)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(24)
-    .border({ width: 1, color: '#E6ECF5', radius: 24, style: BorderStyle.Solid })
-    .shadow({ radius: 12, color: '#526F950D', offsetX: 0, offsetY: 6 })
-    .margin({ top: 14 })
-  }
-
-  @Builder
-  private buildActionRow(actions: AdminProfileAction[]) {
-    Row() {
-      ForEach(actions, (action: AdminProfileAction) => {
-        this.buildActionItem(action)
+      ProfileWorkspaceTemplate({
+        hero: this.buildHeroSection,
+        summary: this.buildSummarySection,
+        actions: this.buildActionSection,
+        support: this.buildSupportSection
       })
     }
     .width('100%')
-    .margin({ top: 14 })
+    .height('100%')
   }
 
   @Builder
-  private buildActionItem(action: AdminProfileAction) {
-    Row() {
-      Column() {
-        Image(action.icon)
-          .width(21)
-          .height(21)
-          .objectFit(ImageFit.Contain)
-          .fillColor(action.iconColor)
-      }
-      .width(46)
-      .height(46)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(action.bgColor)
-      .borderRadius(16)
+  private buildHeroSection() {
+    Column() {
+      ProfileHeroCard({
+        userName: this.userName || '机构管理员',
+        roleLabel: '机构端',
+        mobile: this.mobile || '未绑定手机号',
+        avatar: this.avatar,
+        primaryMeta: '学生、订单、班次和经营数据统一收口',
+        secondaryMeta: '阳光托管中心 · AGC Serverless',
+        metaChips: ['学生档案', '订单审核', '经营报表'],
+        illustration: $r('app.media.sg_illustration_education'),
+        actionContent: this.buildHeroActions
+      })
 
-      Column() {
-        Text(action.title)
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#0F172A')
-        Text(action.subtitle)
-          .fontSize(12)
-          .fontColor('#667085')
-          .margin({ top: 5 })
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-      .margin({ left: 10 })
+      ProfileHighlightBanner({
+        title: '机构驾驶舱',
+        subtitle: '围绕班次负载、消息提醒和经营指标统一查看。',
+        actionText: '打开报表',
+        onAction: () => {
+          this.openRoute(RouteUrls.ADMIN_REPORTS);
+        }
+      })
+        .margin({ top: 14 })
     }
-    .layoutWeight(1)
-    .height(78)
-    .padding({ left: 10, right: 10 })
-    .onClick(() => {
-      if (action.tabIndex !== undefined) {
-        AppStorage.setOrCreate('main_current_index', action.tabIndex);
-      } else if (action.route) {
-        this.openRoute(action.route);
+    .width('100%')
+  }
+
+  @Builder
+  private buildHeroActions() {
+    Column() {
+      ProfileUtilityButton({
+        icon: $r('app.media.ic_message'),
+        onClickAction: () => {
+          this.openRoute(RouteUrls.ADMIN_MESSAGES);
+        }
+      })
+
+      Blank().height(10)
+
+      ProfileUtilityButton({
+        icon: $r('app.media.ic_report'),
+        onClickAction: () => {
+          this.openRoute(RouteUrls.ADMIN_REPORTS);
+        }
+      })
+    }
+  }
+
+  @Builder
+  private buildSummarySection() {
+    Card({
+      title: '经营指标',
+      subtitle: '聚焦收入、待处理订单、班次负载和风险提醒。',
+      actionText: '查看报表',
+      onAction: () => {
+        this.openRoute(RouteUrls.ADMIN_REPORTS);
+      },
+      content: this.buildSummaryContent
+    })
+  }
+
+  @Builder
+  private buildSummaryContent() {
+    ProfileMetricStrip({
+      metrics: this.getOperationMetrics()
+    })
+  }
+
+  @Builder
+  private buildActionSection() {
+    Card({
+      title: '管理入口',
+      subtitle: '学生、服务、订单和告警都进入统一治理入口。',
+      content: this.buildActionContent
+    })
+  }
+
+  @Builder
+  private buildActionContent() {
+    ProfileActionGrid({
+      rows: this.getPrimaryActionRows(),
+      onSelect: (route: string) => {
+        this.openRoute(route);
       }
     })
   }
 
   @Builder
-  private buildSecuritySection() {
+  private buildSupportSection() {
+    Card({
+      title: '运营支持',
+      subtitle: '消息、退款和服务配置等配套能力统一放在这里。',
+      content: this.buildSupportContent
+    })
+  }
+
+  @Builder
+  private buildSupportContent() {
     Column() {
-      this.buildSectionHeader('账号安全', '')
-      this.buildListRow('权限管理', '角色、审批人和菜单权限', $r('app.media.ic_lock'))
-      this.buildListRow('机构资料', '基础信息、联系方式和服务范围', $r('app.media.ic_info'))
-      this.buildListRow('通知设置', '运营提醒、订单和异常通知', $r('app.media.ic_notification'))
-      this.buildListRow('关于平台', '版本 1.0.0', $r('app.media.ic_about'))
+      ProfileSettingsList({
+        items: this.getSupportActions(),
+        onSelect: (route: string) => {
+          this.openRoute(route);
+        }
+      })
 
       Button('退出登录')
         .width('100%')
         .height(48)
         .fontSize(15)
         .fontWeight(FontWeight.Medium)
-        .fontColor('#A75A61')
-        .backgroundColor('#F8EEEE')
+        .fontColor(HarmonyReport.danger)
+        .backgroundColor(HarmonyReport.dangerSurface)
         .borderRadius(18)
         .margin({ top: 14 })
         .onClick(() => this.handleLogout())
     }
     .width('100%')
-    .padding(18)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(24)
-    .border({ width: 1, color: '#E6ECF5', radius: 24, style: BorderStyle.Solid })
-    .shadow({ radius: 12, color: '#526F950D', offsetX: 0, offsetY: 6 })
-    .margin({ top: 14 })
   }
 
-  @Builder
-  private buildListRow(title: string, subtitle: string, icon: Resource) {
-    Row() {
-      Image(icon)
-        .width(21)
-        .height(21)
-        .objectFit(ImageFit.Contain)
-        .fillColor('#66738A')
-      Column() {
-        Text(title)
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#0F172A')
-        Text(subtitle)
-          .fontSize(12)
-          .fontColor('#667085')
-          .margin({ top: 5 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .margin({ left: 12 })
-      Image($r('app.media.ic_arrow_right'))
-        .width(18)
-        .height(18)
-        .objectFit(ImageFit.Contain)
-        .fillColor('#98A2B3')
-    }
-    .width('100%')
-    .height(64)
-  }
-
-  @Builder
-  private buildSectionHeader(title: string, actionText: string) {
-    Row() {
-      Text(title)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#0F172A')
-      Blank()
-      if (actionText) {
-        Text(actionText)
-          .fontSize(13)
-          .fontColor('#667085')
-      }
-    }
-    .width('100%')
-    .alignItems(VerticalAlign.Center)
-  }
-
-  private getMetrics(): AdminProfileMetric[] {
+  private getOperationMetrics(): ProfileMetricItem[] {
     return [
-      { label: '今日收入', value: '￥8.6k', bgColor: '#F6F0E9', valueColor: '#A9794E' },
-      { label: '班次负载', value: '82%', bgColor: '#F2F0F7', valueColor: '#7B6D96' },
-      { label: '待处理', value: '12', bgColor: '#EEF4FA', valueColor: '#526F95' }
+      { label: '今日收入', value: '¥12.6k', icon: $r('app.media.ic_money'), color: HarmonyReport.caution },
+      { label: '待处理订单', value: '12', icon: $r('app.media.ic_order'), color: HarmonyColor.brandBlue },
+      { label: '班次负载', value: '82%', icon: $r('app.media.ic_calendar'), color: HarmonyReport.positive },
+      { label: '机构消息', value: '28', icon: $r('app.media.ic_message'), color: HarmonyColor.brandBlue },
+      { label: '风险告警', value: '3', icon: $r('app.media.ic_notification'), color: HarmonyReport.danger }
     ];
   }
 
-  private getActions(): AdminProfileAction[] {
+  private getPrimaryActionRows(): ProfileActionItem[][] {
     return [
-      { title: '学生档案', subtitle: '维护学生与监护人', icon: $r('app.media.ic_child'), bgColor: '#EEF4FA', iconColor: '#526F95', tabIndex: 1 },
-      { title: '服务产品', subtitle: '托管项目与价格', icon: $r('app.media.ic_service'), bgColor: '#F6F0E9', iconColor: '#A9794E', route: 'pages/admin/AdminServicesPage' },
-      { title: '班次排课', subtitle: '教室与教师容量', icon: $r('app.media.ic_session'), bgColor: '#EEF6F0', iconColor: '#5D8267', route: 'pages/admin/AdminSessionsPage' },
-      { title: '订单管理', subtitle: '审批、支付与退款', icon: $r('app.media.ic_order'), bgColor: '#F2F0F7', iconColor: '#7B6D96', tabIndex: 2 },
-      { title: '告警中心', subtitle: '异常与风险处理', icon: $r('app.media.ic_alert_center'), bgColor: '#F8EEEE', iconColor: '#A75A61', route: 'pages/admin/AdminAlertsPage' },
-      { title: '数据统计', subtitle: '经营报表分析', icon: $r('app.media.ic_report'), bgColor: '#EEF4FA', iconColor: '#526F95', tabIndex: 3 }
+      [
+        { title: '学生档案', subtitle: '维护学生和监护关系', icon: $r('app.media.ic_child'), bgColor: '', iconColor: HarmonyColor.brandBlue, route: RouteUrls.ADMIN_STUDENTS },
+        { title: '服务产品', subtitle: '管理托管产品和价格', icon: $r('app.media.ic_service'), bgColor: '', iconColor: HarmonyReport.caution, route: RouteUrls.ADMIN_SERVICES }
+      ],
+      [
+        { title: '班次排期', subtitle: '协调教室、教师和容量', icon: $r('app.media.ic_calendar'), bgColor: '', iconColor: HarmonyReport.positive, route: RouteUrls.ADMIN_SESSIONS },
+        { title: '订单管理', subtitle: '处理支付、审核和状态流转', icon: $r('app.media.ic_order'), bgColor: '', iconColor: HarmonyColor.brandBlue, route: RouteUrls.ADMIN_ORDERS }
+      ],
+      [
+        { title: '数据报表', subtitle: '查看经营指标和趋势变化', icon: $r('app.media.ic_report'), bgColor: '', iconColor: HarmonyColor.brandBlue, route: RouteUrls.ADMIN_REPORTS },
+        { title: '告警中心', subtitle: '统一处理异常和风险事项', icon: $r('app.media.ic_notification'), bgColor: '', iconColor: HarmonyReport.danger, route: RouteUrls.ADMIN_ALERTS }
+      ]
+    ];
+  }
+
+  private getSupportActions(): ProfileActionItem[] {
+    return [
+      { title: '机构消息', subtitle: '查看系统通知和运营消息', icon: $r('app.media.ic_message'), bgColor: '', iconColor: HarmonyColor.textSecondary, route: RouteUrls.ADMIN_MESSAGES },
+      { title: '退款处理', subtitle: '收口退款审核和售后跟进', icon: $r('app.media.ic_refund'), bgColor: '', iconColor: HarmonyColor.textSecondary, route: RouteUrls.ADMIN_REFUNDS },
+      { title: '服务配置', subtitle: '维护服务产品和运营参数', icon: $r('app.media.ic_service'), bgColor: '', iconColor: HarmonyColor.textSecondary, route: RouteUrls.ADMIN_SERVICES }
     ];
   }
 }

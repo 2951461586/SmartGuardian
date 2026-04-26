@@ -4,10 +4,12 @@
  */
 
 import { PaymentCreateRequest, PaymentOrder, PaymentCallbackRequest } from '../../models/payment';
+import { RouteUrls } from '../../constants/app.constants';
 import { PaymentService } from '../../services/api/payments';
 import { Order } from '../../models/service';
 import { OrderStore } from '../../stores/orderStore';
 import { LogUtil } from '../../utils/LogUtil';
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
 
 interface RouterParams {
   orderId?: number;
@@ -121,7 +123,7 @@ struct ParentPaymentPage {
 
     try {
       this.getUIContext().getRouter().replaceUrl({
-        url: 'pages/parent/ParentOrderDetailPage',
+        url: RouteUrls.PARENT_ORDER_DETAIL,
         params: {
           orderId: this.orderId
         }
@@ -205,7 +207,7 @@ struct ParentPaymentPage {
       Text('支付订单')
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor(HarmonyColor.textInverse)
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
@@ -228,19 +230,19 @@ struct ParentPaymentPage {
       Row() {
         Text('¥')
           .fontSize(24)
-          .fontColor('#F44336')
+          .fontColor(HarmonyReport.danger)
           .fontWeight(FontWeight.Bold)
 
         Text(this.amount.toFixed(2))
           .fontSize(40)
-          .fontColor('#F44336')
+          .fontColor(HarmonyReport.danger)
           .fontWeight(FontWeight.Bold)
       }
       .margin({ top: 12 })
     }
     .width('100%')
     .padding(24)
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius($r('app.float.card_border_radius'))
     .justifyContent(FlexAlign.Center)
   }
@@ -260,7 +262,7 @@ struct ParentPaymentPage {
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ top: 12 })
   }
@@ -327,7 +329,7 @@ struct ParentPaymentPage {
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
-    .backgroundColor('#FFF3E0')
+    .backgroundColor(HarmonyReport.cautionSurface)
     .borderRadius($r('app.float.card_border_radius'))
     .margin({ top: 12 })
   }
@@ -343,11 +345,11 @@ struct ParentPaymentPage {
         Row() {
           Text('¥')
             .fontSize($r('app.float.text_primary_size'))
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
 
           Text(this.amount.toFixed(2))
             .fontSize(24)
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
             .fontWeight(FontWeight.Bold)
         }
       }
@@ -358,7 +360,7 @@ struct ParentPaymentPage {
         .width(160)
         .height(44)
         .fontSize($r('app.float.text_primary_size'))
-        .fontColor(Color.White)
+        .fontColor(HarmonyColor.textInverse)
         .backgroundColor($r('app.color.primary'))
         .borderRadius(22)
         .enabled(!this.isPaying && this.paymentOrder === null)
@@ -366,10 +368,10 @@ struct ParentPaymentPage {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .shadow({
       radius: 10,
-      color: '#1A000000',
+      color: harmonyShadowColor(),
       offsetY: -2
     })
   }

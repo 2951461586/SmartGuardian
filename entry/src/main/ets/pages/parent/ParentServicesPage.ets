@@ -4,11 +4,25 @@
  */
 
 import { ServiceProductService } from '../../services/api/service';
+import { HarmonyColor } from '../../common/HarmonyDesign';
+import { RouteUrls } from '../../constants/app.constants';
 import { ServiceProduct } from '../../models/service';
+import { ServiceProductCard } from '../../components/common';
 
 @Entry
 @Component
-export struct ParentServicesPage {
+struct ParentServicesPage {
+  build() {
+    Stack() {
+      ParentServicesPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct ParentServicesPageContent {
   @State serviceList: ServiceProduct[] = [];
   @State isLoading: boolean = false;
   @State selectedCategory: string = 'ALL';
@@ -30,7 +44,7 @@ export struct ParentServicesPage {
       });
 
       if (resp.code === 0 && resp.data) {
-        this.serviceList = Array.isArray(resp.data) ? resp.data : [];
+        this.serviceList = resp.data;
       } else {
         this.serviceList = [];
       }
@@ -40,6 +54,43 @@ export struct ParentServicesPage {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  private getFilteredServiceList(): ServiceProduct[] {
+    const keyword = this.searchKeyword.trim().toLowerCase();
+    return this.serviceList.filter((service: ServiceProduct) => {
+      if (this.selectedCategory !== 'ALL' && service.serviceType !== this.selectedCategory) {
+        return false;
+      }
+
+      if (keyword.length === 0) {
+        return true;
+      }
+
+      const name = (service.serviceName || '').toLowerCase();
+      const description = (service.description || '').toLowerCase();
+      const serviceType = (service.serviceType || '').toLowerCase();
+      return name.indexOf(keyword) >= 0 || description.indexOf(keyword) >= 0 || serviceType.indexOf(keyword) >= 0;
+    });
+  }
+
+  private getCategoryName(category: string): string {
+    if (category === 'ALL') {
+      return '全部';
+    }
+    if (category === 'AFTER_SCHOOL') {
+      return '课后托管';
+    }
+    if (category === 'HOLIDAY') {
+      return '假期托管';
+    }
+    if (category === 'FULL_DAY') {
+      return '全天托管';
+    }
+    if (category === 'WEEKEND') {
+      return '周末托管';
+    }
+    return category;
   }
 
   build() {
@@ -66,14 +117,14 @@ export struct ParentServicesPage {
         text: this.searchKeyword
       })
         .fontSize($r('app.float.text_primary_size'))
-        .backgroundColor(Color.Transparent)
+        .backgroundColor(HarmonyColor.clear)
         .flexGrow(1)
         .margin({ left: 8, right: 8 })
         .onChange((value: string) => {
           this.searchKeyword = value;
         })
         .onSubmit(() => {
-          this.loadServiceList();
+          this.searchKeyword = this.searchKeyword.trim();
         })
 
       if (this.searchKeyword) {
@@ -89,7 +140,7 @@ export struct ParentServicesPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
   }
 
   @Builder
@@ -101,7 +152,7 @@ export struct ParentServicesPage {
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(this.selectedCategory === category ? $r('app.color.primary') : $r('app.color.text_secondary'))
             .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-            .backgroundColor(this.selectedCategory === category ? $r('app.color.primary_light') : Color.Transparent)
+            .backgroundColor(this.selectedCategory === category ? $r('app.color.primary_light') : HarmonyColor.clear)
             .borderRadius(16)
             .onClick(() => {
               this.selectedCategory = category;
@@ -113,7 +164,7 @@ export struct ParentServicesPage {
     .width('100%')
     .scrollBar(BarState.Off)
     .padding({ left: 12, right: 12 })
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
   }
 
   @Builder
@@ -126,7 +177,7 @@ export struct ParentServicesPage {
       .width('100%')
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
-    } else if (this.serviceList.length === 0) {
+    } else if (this.getFilteredServiceList().length === 0) {
       Column() {
         Image($r('app.media.ic_empty'))
           .width(120)
@@ -143,136 +194,37 @@ export struct ParentServicesPage {
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
     } else {
-      Scroll() {
-        Column() {
-          ForEach(this.serviceList, (service: ServiceProduct) => {
-            this.buildServiceCard(service)
-          })
-        }
-        .width('100%')
-        .padding($r('app.float.page_padding'))
+      List({ space: 12 }) {
+        ForEach(this.getFilteredServiceList(), (service: ServiceProduct) => {
+          ListItem() {
+            ServiceProductCard({
+              service: service,
+              showActions: true,
+              primaryActionText: '立即预约',
+              secondaryActionText: '查看详情',
+              onPrimaryAction: (): void => {
+                this.getUIContext().getRouter().pushUrl({
+                  url: RouteUrls.PARENT_ORDER_CREATE,
+                  params: { serviceId: service.id, serviceName: service.serviceName, price: service.price }
+                });
+              },
+              onSecondaryAction: (): void => {
+                this.getUIContext().getRouter().pushUrl({
+                  url: RouteUrls.PARENT_SERVICE_DETAIL,
+                  params: { serviceId: service.id }
+                });
+              }
+            })
+          }
+        }, (service: ServiceProduct) => `${service.id}`)
       }
       .width('100%')
       .layoutWeight(1)
+      .padding({ left: 12, right: 12, top: 12, bottom: 16 })
+      .divider({ strokeWidth: 0 })
       .scrollBar(BarState.Off)
+      .cachedCount(6)
     }
-  }
-
-  @Builder
-  buildServiceCard(service: ServiceProduct) {
-    Column() {
-      Row() {
-        Column() {
-          Text(service.serviceName || service.name || '')
-            .fontSize($r('app.float.text_primary_size'))
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(service.description || '')
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Text(`￥${service.price}`)
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.primary'))
-      }
-      .width('100%')
-      .margin({ bottom: 12 })
-
-      Row() {
-        Column() {
-          Row() {
-            Text('服务类型：')
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_tertiary'))
-            Text(this.getCategoryName(service.serviceType || ''))
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-          }
-
-          Row() {
-            Text('服务时段：')
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_tertiary'))
-            Text(`${service.signInStartTime || service.startTime || ''} - ${service.signOutEndTime || service.endTime || ''}`)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-          }
-
-          Row() {
-            Text('剩余额度：')
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_tertiary'))
-            Text(`${(service.maxStudents || 0) - (service.currentStudents || 0)}`)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor(((service.maxStudents || 0) - (service.currentStudents || 0)) > 0 ? $r('app.color.success') : $r('app.color.error'))
-          }
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ bottom: 12 })
-
-      Row() {
-        Button('立即预约')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor(Color.White)
-          .backgroundColor($r('app.color.primary'))
-          .borderRadius($r('app.float.button_radius'))
-          .layoutWeight(1)
-          .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({
-              url: 'pages/parent/ParentOrderCreatePage',
-              params: { serviceId: service.id }
-            });
-          })
-
-        Button('查看详情')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.primary'))
-          .backgroundColor($r('app.color.primary_light'))
-          .borderRadius($r('app.float.button_radius'))
-          .margin({ left: 12 })
-          .layoutWeight(1)
-          .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({
-              url: 'pages/parent/ParentServiceDetailPage',
-              params: { serviceId: service.id }
-            });
-          })
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ bottom: $r('app.float.card_margin') })
-  }
-
-  getCategoryName(category: string): string {
-    if (category === 'ALL') {
-      return '全部';
-    }
-    if (category === 'AFTER_SCHOOL') {
-      return '课后托管';
-    }
-    if (category === 'HOLIDAY') {
-      return '假期托管';
-    }
-    if (category === 'FULL_DAY') {
-      return '全天托管';
-    }
-    if (category === 'WEEKEND') {
-      return '周末托管';
-    }
-    return category;
   }
 }
 

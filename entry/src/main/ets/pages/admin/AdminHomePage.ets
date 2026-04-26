@@ -3,18 +3,24 @@
  * Admin dashboard with the new light campus style
  */
 
+import { HarmonyReport } from '../../common/HarmonyDesign';
+import { getRolePalette } from '../../common/RoleTheme';
 import {
-  Card,
-  EmptyState,
-  EmptyType,
+  ActivityFeedItem,
+  AdminHomeOperationsSection,
+  AdminHomeWorkbenchSection,
   GreetingHeader,
   HeaderTheme,
   IconActionButton,
+  DashboardPageTemplate,
   LoadingSize,
   LoadingState,
-  StatCard
+  AdminSummaryHeroCard,
+  StatRowItem,
 } from '../../components/common';
+import { RouteUrls, StorageKeys } from '../../constants/app.constants';
 import { ErrorMessages } from '../../constants/ErrorMessages';
+import { UserRole } from '../../models/common';
 import { WorkbenchManifest, WorkbenchModule } from '../../models/workbench';
 import { StudentService } from '../../services/api/auth';
 import { MessageService } from '../../services/api/message';
@@ -37,8 +43,20 @@ interface ActivityItem {
   time: string;
 }
 
+@Entry
 @Component
-export struct AdminHomePage {
+struct AdminHomePage {
+  build() {
+    Stack() {
+      AdminHomePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct AdminHomePageContent {
   @State userName: string = '';
   @State isLoading: boolean = true;
   @State errorMessage: string = '';
@@ -63,7 +81,7 @@ export struct AdminHomePage {
   }
 
   private loadWorkbenchManifest(): void {
-    const manifest = AppStorage.get<WorkbenchManifest>('workbench_manifest');
+    const manifest = AppStorage.get<WorkbenchManifest>(StorageKeys.WORKBENCH_MANIFEST);
     if (manifest && (manifest.roleType === 'ORG_ADMIN' || manifest.roleType === 'ADMIN')) {
       this.workbenchManifest = manifest;
     }
@@ -88,9 +106,7 @@ export struct AdminHomePage {
 
       const totalStudents = studentsResp.code === 0 && studentsResp.data ? studentsResp.data.total : 0;
       const presentStudents = attendanceResp.code === 0 && attendanceResp.data ? attendanceResp.data.presentCount : 0;
-      const attendanceRate = attendanceResp.code === 0 && attendanceResp.data
-        ? Math.round((attendanceResp.data.attendanceRate ?? 0) * 100)
-        : 0;
+      const attendanceRate = attendanceResp.code === 0 && attendanceResp.data ? Number(attendanceResp.data.attendanceRate ?? 0) : 0;
       const pendingOrders = ordersResp.code === 0 && ordersResp.data ? (ordersResp.data.list?.length ?? 0) : 0;
       const unreadMessages = messagesResp.code === 0 && messagesResp.data ? messagesResp.data.count : 0;
       const netIncome = financeResp.code === 0 && financeResp.data ? Number(financeResp.data.netIncome ?? 0) : 0;
@@ -127,25 +143,34 @@ export struct AdminHomePage {
 
   build() {
     Column() {
-      GreetingHeader({
-        userName: this.userName,
-        greeting: this.workbenchManifest?.summary.description ?? '集中查看学生、订单流转和经营指标。',
-        theme: HeaderTheme.WHITE,
-        badgeText: '机构端',
-        metaText: this.workbenchManifest?.visual.slogan ?? `今日出勤率：${this.stats.attendanceRate}%`
-      }) {
-        this.buildHeaderActions()
-      }
-
       if (this.isLoading) {
         LoadingState({ loadingSize: LoadingSize.DEFAULT })
       } else {
-        this.buildContent()
+        DashboardPageTemplate({
+          scrollable: true,
+          enableWideContent: true,
+          header: this.buildHeader,
+          hero: this.buildHeroCard,
+          primary: this.buildWorkbenchSection,
+          secondary: this.buildOperationsSection
+        })
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  private buildHeader() {
+    GreetingHeader({
+      userName: this.userName,
+      greeting: this.workbenchManifest?.summary.description ?? '集中查看学生、订单流转和经营指标。',
+      theme: HeaderTheme.WHITE,
+      badgeText: '机构端',
+      metaText: this.workbenchManifest?.visual.slogan ?? `今日出勤率：${this.stats.attendanceRate}%`
+    }) {
+      this.buildHeaderActions()
+    }
   }
 
   @Builder
@@ -154,241 +179,43 @@ export struct AdminHomePage {
       icon: $r('app.media.ic_notification'),
       badgeCount: this.stats.unreadMessages,
       onButtonClick: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminMessagesPage' });
+        this.pushPage(RouteUrls.ADMIN_MESSAGES);
       }
     })
-  }
-
-  @Builder
-  private buildContent() {
-    Scroll() {
-      Column() {
-        this.buildHeroCard()
-        this.buildOverviewPanel()
-        this.buildControlDeck()
-        this.buildStatsSection()
-        this.buildActivityCard()
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 24 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
   }
 
   @Builder
   private buildHeroCard() {
-    Row() {
-      Column() {
-        Text('经营总览')
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#7B6D96')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F2F0F7')
-          .borderRadius(999)
-
-        Text(`￥${this.stats.netIncome.toFixed(0)}`)
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 14 })
-
-        Text('当前统计周期净收入')
-          .fontSize(14)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-
-        Row() {
-          this.buildHeroMetric(`${this.stats.attendanceRate}%`, '出勤率')
-          Blank().width(12)
-          this.buildHeroMetric(`${this.stats.pendingOrders}`, '待处理')
-        }
-        .width('100%')
-        .margin({ top: 16 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Column() {
-        Text('今日摘要')
-          .fontSize(12)
-          .fontColor('#7B6D96')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F2F0F7')
-          .borderRadius(999)
-
-        Image($r('app.media.sg_illustration_education'))
-          .width(108)
-          .height(92)
-          .objectFit(ImageFit.Contain)
-          .opacity(0.88)
-          .margin({ top: 16 })
-      }
-      .alignItems(HorizontalAlign.End)
-    }
-    .width('100%')
-    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
-    .linearGradient({
-      angle: 145,
-      colors: [['#FFFFFF', 0], ['#F6F4FA', 1]]
-    })
-    .border({
-      width: 1,
-      color: '#DED8EA',
-      radius: 28,
-      style: BorderStyle.Solid
-    })
-    .borderRadius(28)
-    .shadow({
-      radius: 18,
-      color: '#7B6D9612',
-      offsetX: 0,
-      offsetY: 10
+    AdminSummaryHeroCard({
+      netIncome: `￥${this.stats.netIncome.toFixed(0)}`,
+      attendanceRate: `${this.stats.attendanceRate}%`,
+      pendingOrders: `${this.stats.pendingOrders}`
     })
     .margin({ bottom: 14 })
   }
 
-  @Builder
-  private buildHeroMetric(value: string, label: string) {
-    Column() {
-      Text(value)
-        .fontSize(22)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#574A72')
-
-      Text(label)
-        .fontSize(12)
-        .fontColor('#66738A')
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-    .backgroundColor('#FFFFFFCC')
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  private getTopOverviewItems(): StatRowItem[] {
+    return [
+      { value: `${this.stats.totalStudents}`, label: '学生总数', icon: $r('app.media.ic_user'), iconColor: getRolePalette(UserRole.ORG_ADMIN).primary },
+      { value: `${this.stats.presentStudents}`, label: '今日到校', icon: $r('app.media.ic_attendance'), iconColor: HarmonyReport.positive }
+    ];
   }
 
-  @Builder
-  private buildOverviewPanel() {
-    Column() {
-      Row() {
-        StatCard({
-          value: `${this.stats.totalStudents}`,
-          label: '学生总数',
-          icon: $r('app.media.ic_user'),
-          iconColor: '#7B6D96'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: `${this.stats.presentStudents}`,
-          label: '今日到校',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-
-      Row() {
-        StatCard({
-          value: `${this.stats.pendingOrders}`,
-          label: '待处理订单',
-          icon: $r('app.media.ic_order'),
-          iconColor: '#E8A23A'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: `${this.stats.unreadMessages}`,
-          label: '未读提醒',
-          icon: $r('app.media.ic_message'),
-          iconColor: '#6E5BAA'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 10 })
-    }
-    .width('100%')
-    .margin({ bottom: 14 })
+  private getBottomOverviewItems(): StatRowItem[] {
+    return [
+      { value: `${this.stats.pendingOrders}`, label: '待处理订单', icon: $r('app.media.ic_order'), iconColor: HarmonyReport.caution },
+      { value: `${this.stats.unreadMessages}`, label: '未读提醒', icon: $r('app.media.ic_message'), iconColor: getRolePalette(UserRole.ORG_ADMIN).primaryDark }
+    ];
   }
 
-  @Builder
-  private buildControlDeck() {
-    Card({
-      title: this.workbenchManifest?.summary.title ?? '控制台入口',
-      subtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '围绕学生、订单、服务和告警进入管理流程。',
-      content: this.buildQuickActions
-    })
-  }
-
-  @Builder
-  private buildQuickActions() {
-    Column() {
-      Row() {
-        ForEach(this.getFirstActionRow(), (module: WorkbenchModule) => {
-          this.buildManifestFeatureItem(module)
-        })
-      }
-      .width('100%')
-
-      if (this.getSecondActionRow().length > 0) {
-        Row() {
-          ForEach(this.getSecondActionRow(), (module: WorkbenchModule) => {
-            this.buildManifestFeatureItem(module)
-          })
-        }
-        .width('100%')
-        .margin({ top: 14 })
-      }
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildManifestFeatureItem(module: WorkbenchModule) {
-    this.buildFeatureItem(module.name, this.getModuleSubtitle(module.code), this.getModuleIcon(module.code), this.getModuleBgColor(module.code), this.getModuleIconColor(module.code), () => {
-      this.openWorkbenchModule(module);
-    })
-  }
-
-  @Builder
-  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
-    Column() {
-      Column() {
-        Image(icon)
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor(iconColor)
-      }
-      .width(52)
-      .height(52)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(bgColor)
-      .borderRadius(18)
-
-      Text(title)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ top: 10 })
-
-      Text(subtitle)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
-    .onClick(() => onClick())
+  private getActivityFeedItems(): ActivityFeedItem[] {
+    return this.recentActivities.map((item: ActivityItem): ActivityFeedItem => {
+      return {
+        title: item.title,
+        content: item.content,
+        time: item.time
+      };
+    });
   }
 
   private getActionModules(): WorkbenchModule[] {
@@ -407,14 +234,6 @@ export struct AdminHomePage {
       { code: 'refunds', name: '退款管理', route: '/admin/refunds', enabled: true },
       { code: 'profile', name: '我的', route: '/admin/profile', enabled: true }
     ];
-  }
-
-  private getFirstActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(0, 5);
-  }
-
-  private getSecondActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(5, 10);
   }
 
   private getModuleSubtitle(code: string): string {
@@ -442,50 +261,52 @@ export struct AdminHomePage {
   }
 
   private getModuleBgColor(code: string): string {
-    if (code === 'students' || code === 'sessions') return '#F1EDFB';
-    if (code === 'alerts') return '#FFF0F1';
-    return '#F2F0F7';
+    if (code === 'students' || code === 'sessions') return getRolePalette(UserRole.ORG_ADMIN).light;
+    if (code === 'alerts') return HarmonyReport.dangerSurface;
+    if (code === 'refunds') return HarmonyReport.cautionSurface;
+    if (code === 'reports') return HarmonyReport.positiveSurface;
+    return getRolePalette(UserRole.ORG_ADMIN).soft;
   }
 
   private getModuleIconColor(code: string): string {
-    if (code === 'students' || code === 'sessions') return '#6E5BAA';
-    if (code === 'reports') return '#2F9E77';
-    if (code === 'alerts') return '#D94B5A';
-    if (code === 'refunds') return '#8A6A4E';
-    return '#7B6D96';
+    if (code === 'students' || code === 'sessions') return getRolePalette(UserRole.ORG_ADMIN).primary;
+    if (code === 'reports') return HarmonyReport.positive;
+    if (code === 'alerts') return HarmonyReport.danger;
+    if (code === 'refunds') return HarmonyReport.caution;
+    return getRolePalette(UserRole.ORG_ADMIN).primaryDark;
   }
 
   private openWorkbenchModule(module: WorkbenchModule): void {
     if (module.code === 'home') {
-      AppStorage.setOrCreate('main_current_index', 0);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
       return;
     }
     if (module.code === 'students') {
-      AppStorage.setOrCreate('main_current_index', 1);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 1);
       return;
     }
     if (module.code === 'orders') {
-      AppStorage.setOrCreate('main_current_index', 2);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 2);
       return;
     }
     if (module.code === 'reports') {
-      AppStorage.setOrCreate('main_current_index', 3);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 3);
       return;
     }
     if (module.code === 'profile') {
-      AppStorage.setOrCreate('main_current_index', 4);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 4);
       return;
     }
     if (module.code === 'messages') {
-      this.pushPage('pages/admin/AdminMessagesPage');
+      this.pushPage(RouteUrls.ADMIN_MESSAGES);
     } else if (module.code === 'services') {
-      this.pushPage('pages/admin/AdminServicesPage');
+      this.pushPage(RouteUrls.ADMIN_SERVICES);
     } else if (module.code === 'sessions') {
-      this.pushPage('pages/admin/AdminSessionsPage');
+      this.pushPage(RouteUrls.ADMIN_SESSIONS);
     } else if (module.code === 'alerts') {
-      this.pushPage('pages/admin/AdminAlertsPage');
+      this.pushPage(RouteUrls.ADMIN_ALERTS);
     } else if (module.code === 'refunds') {
-      this.pushPage('pages/admin/AdminRefundsPage');
+      this.pushPage(RouteUrls.ADMIN_REFUNDS);
     }
   }
 
@@ -498,120 +319,35 @@ export struct AdminHomePage {
   }
 
   @Builder
-  private buildStatsSection() {
-    Card({
-      title: '运营概览',
-      subtitle: this.errorMessage ? this.errorMessage : '集中查看学生规模、考勤、订单流转和营收情况。',
-      content: this.buildStatsContent
+  private buildWorkbenchSection() {
+    AdminHomeWorkbenchSection({
+      overviewTopItems: this.getTopOverviewItems(),
+      overviewBottomItems: this.getBottomOverviewItems(),
+      quickActionTitle: this.workbenchManifest?.summary.title ?? '控制台入口',
+      quickActionSubtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '围绕学生、订单、服务和告警进入管理流程。',
+      modules: this.getActionModules(),
+      subtitleResolver: (code: string): string => this.getModuleSubtitle(code),
+      iconResolver: (code: string): Resource => this.getModuleIcon(code),
+      bgColorResolver: (code: string): string => this.getModuleBgColor(code),
+      iconColorResolver: (code: string): string => this.getModuleIconColor(code),
+      onModuleClick: (module: WorkbenchModule): void => this.openWorkbenchModule(module)
     })
   }
 
   @Builder
-  private buildStatsContent() {
-    Column() {
-      Row() {
-        StatCard({
-          value: this.stats.totalStudents,
-          label: '学生',
-          icon: $r('app.media.ic_user'),
-          iconColor: '#6E5BAA'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.stats.presentStudents,
-          label: '到校',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
+  private buildOperationsSection() {
+    AdminHomeOperationsSection({
+      operationsSubtitle: this.errorMessage ? this.errorMessage : '集中查看学生规模、考勤、订单流转和营收情况。',
+      totalStudents: this.stats.totalStudents,
+      presentStudents: this.stats.presentStudents,
+      attendanceRateText: `${this.stats.attendanceRate}%`,
+      netIncomeText: `￥${this.stats.netIncome.toFixed(0)}`,
+      activityItems: this.getActivityFeedItems(),
+      activityActionText: '打开报表',
+      onActivityAction: (): void => {
+        AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 2);
       }
-      .width('100%')
-
-      Row() {
-        StatCard({
-          value: `${this.stats.attendanceRate}%`,
-          label: '出勤率',
-          icon: $r('app.media.ic_home'),
-          iconColor: '#7B6D96'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: `￥${this.stats.netIncome.toFixed(0)}`,
-          label: '净收入',
-          icon: $r('app.media.ic_money'),
-          iconColor: '#E8A23A'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 12 })
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildActivityCard() {
-    Card({
-      title: '实时动态',
-      subtitle: '聚焦今天需要关注的重点事项。',
-      actionText: '打开报表',
-      onAction: () => {
-        AppStorage.setOrCreate('main_current_index', 2);
-      },
-      content: this.buildActivityContent
     })
-  }
-
-  @Builder
-  private buildActivityContent() {
-    if (this.recentActivities.length > 0) {
-      Column() {
-        ForEach(this.recentActivities, (item: ActivityItem, index: number) => {
-          Row() {
-            Column() {
-              Text(item.title)
-                .fontSize(16)
-                .fontWeight(FontWeight.Medium)
-                .fontColor($r('app.color.text_primary'))
-
-              Text(item.content)
-                .fontSize(13)
-                .fontColor($r('app.color.text_secondary'))
-                .lineHeight(20)
-                .margin({ top: 4 })
-            }
-            .alignItems(HorizontalAlign.Start)
-            .layoutWeight(1)
-
-            Text(item.time)
-              .fontSize(12)
-              .fontColor($r('app.color.text_tertiary'))
-          }
-          .width('100%')
-          .alignItems(VerticalAlign.Top)
-          .padding({ top: 4, bottom: 4 })
-
-          if (index < this.recentActivities.length - 1) {
-            Divider()
-              .color($r('app.color.divider'))
-              .margin({ top: 10, bottom: 10 })
-          }
-        })
-      }
-      .width('100%')
-    } else {
-      EmptyState({
-        type: EmptyType.DEFAULT,
-        customTitle: '暂无实时动态',
-        customDescription: '完成真实环境联调后，这里会展示更多运营信号。'
-      })
-    }
   }
 }
 

@@ -3,10 +3,11 @@
  * 孩子管理页面
  */
 
+import { HarmonyColor } from '../../common/HarmonyDesign';
 import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
 import { StudentStore } from '../../stores/studentStore';
-import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
+import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHeader } from '../../components/common';
 
 @Entry
 @Component
@@ -38,26 +39,13 @@ struct ParentChildrenPage {
 
   build() {
     Column() {
-      // Header
-      Row() {
-        Image($r('app.media.ic_arrow_left'))
-          .width(24)
-          .height(24)
-          .fillColor($r('app.color.text_primary'))
-          .onClick(() => this.getUIContext().getRouter().back())
-
-        Text('我的孩子')
-          .fontSize($r('app.float.page_title_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-
-        Text('').width(24)
-      }
-      .width('100%')
-      .padding($r('app.float.page_padding'))
-      .backgroundColor(Color.White)
+      PageHeader({
+        title: '我的孩子',
+        subtitle: '查看当前登录家长名下的学生档案。',
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        theme: HeaderTheme.WHITE
+      })
 
       // Content
       if (this.isLoading) {
@@ -96,7 +84,7 @@ struct ParentChildrenPage {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(Color.White)
+              .backgroundColor(HarmonyColor.surface)
               .borderRadius(12)
               .margin({ bottom: 12 })
             }

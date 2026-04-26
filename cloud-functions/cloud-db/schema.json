@@ -1,0 +1,710 @@
+{
+  "database": "smartguardian-cloud-db",
+  "collections": [
+    {
+      "name": "organizations",
+      "primaryKey": "id",
+      "required": ["id", "orgCode", "orgName", "status", "createdAt", "updatedAt"],
+      "unique": [["orgCode"]],
+      "indexes": ["status"],
+      "fields": {
+        "id": { "type": "number" },
+        "orgCode": { "type": "string" },
+        "orgName": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "contactPhone": { "type": "string" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "users",
+      "primaryKey": "id",
+      "required": ["id", "username", "password", "realName", "mobile", "roleType", "orgId", "status", "createdAt", "updatedAt"],
+      "unique": [["username"], ["mobile"]],
+      "indexes": ["roleType", "orgId", "status"],
+      "foreignKeys": [
+        { "field": "orgId", "collection": "organizations", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "realName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "roleType": { "type": "string", "enum": ["PARENT", "TEACHER", "ADMIN"] },
+        "avatar": { "type": "string" },
+        "orgId": { "type": "number" },
+        "schoolId": { "type": "number" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "user_profiles",
+      "primaryKey": "id",
+      "required": ["id", "userId", "displayName", "createdAt", "updatedAt"],
+      "unique": [["userId"]],
+      "indexes": ["userId"],
+      "foreignKeys": [
+        { "field": "userId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "userId": { "type": "number" },
+        "displayName": { "type": "string" },
+        "bio": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "user_roles",
+      "primaryKey": "id",
+      "required": ["id", "userId", "roleType", "scope", "createdAt", "updatedAt"],
+      "indexes": ["userId", "roleType"],
+      "foreignKeys": [
+        { "field": "userId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "userId": { "type": "number" },
+        "roleType": { "type": "string", "enum": ["PARENT", "TEACHER", "ADMIN"] },
+        "scope": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "user_sessions",
+      "primaryKey": "id",
+      "required": ["id", "userId", "token", "sessionStatus", "expireAt", "createdAt", "updatedAt"],
+      "unique": [["token"]],
+      "indexes": ["userId", "sessionStatus", "expireAt", "deviceId", "notificationProvider"],
+      "foreignKeys": [
+        { "field": "userId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "userId": { "type": "number" },
+        "token": { "type": "string" },
+        "sessionStatus": { "type": "string", "enum": ["ACTIVE", "LOGGED_OUT", "EXPIRED"] },
+        "deviceId": { "type": "string" },
+        "notificationToken": { "type": "string" },
+        "notificationProvider": { "type": "string" },
+        "authUid": { "type": "string" },
+        "authPhone": { "type": "string" },
+        "clientVersion": { "type": "string" },
+        "clientPlatform": { "type": "string" },
+        "lastActiveAt": { "type": "string" },
+        "expireAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "students",
+      "primaryKey": "id",
+      "required": ["id", "studentNo", "name", "schoolId", "guardianUserId", "orgId", "status", "createdAt", "updatedAt"],
+      "unique": [["studentNo"]],
+      "indexes": ["schoolId", "guardianUserId", "orgId", "status", "classId"],
+      "foreignKeys": [
+        { "field": "guardianUserId", "collection": "users", "refField": "id" },
+        { "field": "orgId", "collection": "organizations", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentNo": { "type": "string" },
+        "name": { "type": "string" },
+        "schoolId": { "type": "number" },
+        "classId": { "type": "number" },
+        "className": { "type": "string" },
+        "grade": { "type": "string" },
+        "gender": { "type": "string", "enum": ["MALE", "FEMALE"] },
+        "birthDate": { "type": "string" },
+        "guardianUserId": { "type": "number" },
+        "healthNotes": { "type": "string" },
+        "orgId": { "type": "number" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "GRADUATED"] },
+        "schoolName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "guardians",
+      "primaryKey": "id",
+      "required": ["id", "userId", "realName", "mobile", "orgId", "createdAt", "updatedAt"],
+      "unique": [["userId"]],
+      "indexes": ["orgId", "mobile"],
+      "foreignKeys": [
+        { "field": "userId", "collection": "users", "refField": "id" },
+        { "field": "orgId", "collection": "organizations", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "userId": { "type": "number" },
+        "realName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "orgId": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "student_guardians",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "userId", "relation", "isPrimary", "authorizedPickup", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "userId", "relation"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" },
+        { "field": "userId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "userId": { "type": "number" },
+        "relation": { "type": "string", "enum": ["FATHER", "MOTHER", "GRANDPA", "GRANDMA", "OTHER"] },
+        "isPrimary": { "type": "boolean" },
+        "authorizedPickup": { "type": "boolean" },
+        "pickupCode": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "service_products",
+      "primaryKey": "id",
+      "required": ["id", "serviceName", "serviceType", "price", "status", "orgId", "createdAt", "updatedAt"],
+      "indexes": ["serviceType", "status", "orgId"],
+      "foreignKeys": [
+        { "field": "orgId", "collection": "organizations", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "serviceName": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "unit": { "type": "string" },
+        "gradeRange": { "type": "string" },
+        "capacity": { "type": "number" },
+        "maxStudents": { "type": "number" },
+        "currentStudents": { "type": "number" },
+        "serviceStartDate": { "type": "string" },
+        "serviceEndDate": { "type": "string" },
+        "signInStartTime": { "type": "string" },
+        "signInEndTime": { "type": "string" },
+        "signOutStartTime": { "type": "string" },
+        "signOutEndTime": { "type": "string" },
+        "orgId": { "type": "number" },
+        "orgName": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "FULL"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "orders",
+      "primaryKey": "id",
+      "required": ["id", "orderNo", "studentId", "serviceProductId", "orderStatus", "amount", "paidAmount", "payStatus", "createdAt", "updatedAt"],
+      "unique": [["orderNo"]],
+      "indexes": ["studentId", "serviceProductId", "orderStatus", "payStatus", "createdAt"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" },
+        { "field": "serviceProductId", "collection": "service_products", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "orderNo": { "type": "string" },
+        "studentId": { "type": "number" },
+        "serviceProductId": { "type": "number" },
+        "orderStatus": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "COMPLETED", "REFUNDED"] },
+        "amount": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "payStatus": { "type": "string", "enum": ["UNPAID", "PARTIAL", "PAID", "REFUNDING", "REFUNDED"] },
+        "auditStatus": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "actualAmount": { "type": "number" },
+        "payTime": { "type": "string" },
+        "auditTime": { "type": "string" },
+        "auditUserId": { "type": "number" },
+        "auditRemark": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "order_items",
+      "primaryKey": "id",
+      "required": ["id", "orderId", "serviceProductId", "quantity", "unitPrice", "createdAt", "updatedAt"],
+      "indexes": ["orderId", "serviceProductId"],
+      "foreignKeys": [
+        { "field": "orderId", "collection": "orders", "refField": "id" },
+        { "field": "serviceProductId", "collection": "service_products", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "orderId": { "type": "number" },
+        "serviceProductId": { "type": "number" },
+        "quantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "order_audits",
+      "primaryKey": "id",
+      "required": ["id", "orderId", "auditStatus", "auditorId", "auditRemark", "createdAt", "updatedAt"],
+      "indexes": ["orderId", "auditorId", "auditStatus"],
+      "foreignKeys": [
+        { "field": "orderId", "collection": "orders", "refField": "id" },
+        { "field": "auditorId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "orderId": { "type": "number" },
+        "auditStatus": { "type": "string", "enum": ["APPROVED", "REJECTED"] },
+        "auditorId": { "type": "number" },
+        "auditRemark": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "sessions",
+      "primaryKey": "id",
+      "required": ["id", "sessionDate", "startTime", "endTime", "serviceProductId", "currentCount", "status", "createdAt", "updatedAt"],
+      "indexes": ["sessionDate", "serviceProductId", "teacherUserId", "status"],
+      "foreignKeys": [
+        { "field": "serviceProductId", "collection": "service_products", "refField": "id" },
+        { "field": "teacherUserId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "sessionDate": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "teacherUserId": { "type": "number" },
+        "capacity": { "type": "number" },
+        "currentCount": { "type": "number" },
+        "sessionNo": { "type": "string" },
+        "serviceProductId": { "type": "number" },
+        "maxCapacity": { "type": "number" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["SCHEDULED", "ONGOING", "ENDED", "CANCELLED", "IN_PROGRESS", "COMPLETED"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "session_students",
+      "primaryKey": "id",
+      "required": ["id", "sessionId", "studentId", "createdAt", "updatedAt"],
+      "indexes": ["sessionId", "studentId"],
+      "foreignKeys": [
+        { "field": "sessionId", "collection": "sessions", "refField": "id" },
+        { "field": "studentId", "collection": "students", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "sessionId": { "type": "number" },
+        "studentId": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "session_teachers",
+      "primaryKey": "id",
+      "required": ["id", "sessionId", "teacherUserId", "createdAt", "updatedAt"],
+      "indexes": ["sessionId", "teacherUserId"],
+      "foreignKeys": [
+        { "field": "sessionId", "collection": "sessions", "refField": "id" },
+        { "field": "teacherUserId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "sessionId": { "type": "number" },
+        "teacherUserId": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "attendance_records",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "sessionId", "status", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "sessionId", "attendanceDate", "status", "abnormalFlag"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" },
+        { "field": "sessionId", "collection": "sessions", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "sessionId": { "type": "number" },
+        "signInTime": { "type": "string" },
+        "signOutTime": { "type": "string" },
+        "signInMethod": { "type": "string" },
+        "signOutMethod": { "type": "string" },
+        "signInLocation": { "type": "string" },
+        "signOutLocation": { "type": "string" },
+        "operatorUserId": { "type": "number" },
+        "abnormalFlag": { "type": "boolean" },
+        "abnormalType": { "type": "string" },
+        "abnormalDesc": { "type": "string" },
+        "status": { "type": "string", "enum": ["NOT_SIGNED", "SIGNED_IN", "SIGNED_OUT", "ABSENT", "LATE", "LEAVE"] },
+        "attendanceDate": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "leave_requests",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "leaveDate", "leaveType", "reason", "status", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "leaveDate", "status"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "leaveDate": { "type": "string" },
+        "leaveType": { "type": "string" },
+        "reason": { "type": "string" },
+        "attachments": { "type": "array" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED"] },
+        "reviewerId": { "type": "number" },
+        "reviewRemark": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "homework_tasks",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "taskDate", "status", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "sessionId", "taskDate", "status"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" },
+        { "field": "sessionId", "collection": "sessions", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "taskDate": { "type": "string" },
+        "subject": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "sourceType": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CONFIRMED"] },
+        "taskNo": { "type": "string" },
+        "sessionId": { "type": "number" },
+        "teacherId": { "type": "number" },
+        "attachments": { "type": "array" },
+        "completedTime": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "homework_feedback",
+      "primaryKey": "id",
+      "required": ["id", "taskId", "feedbackContent", "createdAt", "updatedAt"],
+      "indexes": ["taskId", "studentId", "status"],
+      "foreignKeys": [
+        { "field": "taskId", "collection": "homework_tasks", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "taskId": { "type": "number" },
+        "teacherId": { "type": "number" },
+        "teacherName": { "type": "string" },
+        "studentId": { "type": "number" },
+        "feedbackContent": { "type": "string" },
+        "performance": { "type": "string", "enum": ["EXCELLENT", "GOOD", "AVERAGE", "NEEDS_IMPROVEMENT"] },
+        "attachments": { "type": "array" },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CONFIRMED"] },
+        "guardianConfirmTime": { "type": "string" },
+        "guardianRemark": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "messages",
+      "primaryKey": "id",
+      "required": ["id", "userId", "msgType", "title", "content", "readStatus", "createdAt", "updatedAt"],
+      "indexes": ["userId", "msgType", "readStatus", "createdAt"],
+      "foreignKeys": [
+        { "field": "userId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "userId": { "type": "number" },
+        "msgType": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "bizType": { "type": "string" },
+        "bizId": { "type": "number" },
+        "readStatus": { "type": "boolean" },
+        "readAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "message_receipts",
+      "primaryKey": "id",
+      "required": ["id", "messageId", "receiverUserId", "readStatus", "createdAt", "updatedAt"],
+      "indexes": ["messageId", "receiverUserId", "readStatus"],
+      "foreignKeys": [
+        { "field": "messageId", "collection": "messages", "refField": "id" },
+        { "field": "receiverUserId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "messageId": { "type": "number" },
+        "receiverUserId": { "type": "number" },
+        "readStatus": { "type": "boolean" },
+        "readAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "alerts",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "studentName", "alertType", "severity", "title", "description", "status", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "alertType", "severity", "status", "createdAt"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "studentName": { "type": "string" },
+        "alertType": { "type": "string" },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "suggestedAction": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "ACKNOWLEDGED", "RESOLVED", "DISMISSED"] },
+        "acknowledgedBy": { "type": "number" },
+        "acknowledgedAt": { "type": "string" },
+        "resolvedBy": { "type": "number" },
+        "resolvedAt": { "type": "string" },
+        "resolution": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "alert_actions",
+      "primaryKey": "id",
+      "required": ["id", "alertId", "actionType", "operatorId", "createdAt", "updatedAt"],
+      "indexes": ["alertId", "actionType", "operatorId"],
+      "foreignKeys": [
+        { "field": "alertId", "collection": "alerts", "refField": "id" },
+        { "field": "operatorId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "alertId": { "type": "number" },
+        "actionType": { "type": "string", "enum": ["ACKNOWLEDGE", "RESOLVE", "DISMISS"] },
+        "operatorId": { "type": "number" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "refunds",
+      "primaryKey": "id",
+      "required": ["id", "orderNo", "orderId", "studentId", "studentName", "serviceProductId", "serviceName", "refundAmount", "reason", "reasonType", "status", "appliedAt", "createdAt", "updatedAt"],
+      "indexes": ["orderId", "studentId", "status", "createdAt"],
+      "foreignKeys": [
+        { "field": "orderId", "collection": "orders", "refField": "id" },
+        { "field": "studentId", "collection": "students", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "orderNo": { "type": "string" },
+        "orderId": { "type": "number" },
+        "studentId": { "type": "number" },
+        "studentName": { "type": "string" },
+        "serviceProductId": { "type": "number" },
+        "serviceName": { "type": "string" },
+        "refundAmount": { "type": "number" },
+        "reason": { "type": "string" },
+        "reasonType": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "PROCESSING", "COMPLETED", "CANCELLED"] },
+        "appliedAt": { "type": "string" },
+        "reviewedBy": { "type": "number" },
+        "reviewedAt": { "type": "string" },
+        "reviewRemark": { "type": "string" },
+        "processedAt": { "type": "string" },
+        "completedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "refund_audits",
+      "primaryKey": "id",
+      "required": ["id", "refundId", "auditStatus", "auditorId", "createdAt", "updatedAt"],
+      "indexes": ["refundId", "auditStatus", "auditorId"],
+      "foreignKeys": [
+        { "field": "refundId", "collection": "refunds", "refField": "id" },
+        { "field": "auditorId", "collection": "users", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "refundId": { "type": "number" },
+        "auditStatus": { "type": "string" },
+        "auditorId": { "type": "number" },
+        "remark": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "payments",
+      "primaryKey": "id",
+      "required": ["id", "orderId", "paymentNo", "payChannel", "payAmount", "payStatus", "createdAt", "updatedAt"],
+      "unique": [["paymentNo"]],
+      "indexes": ["orderId", "payStatus", "payChannel", "createdAt"],
+      "foreignKeys": [
+        { "field": "orderId", "collection": "orders", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "orderId": { "type": "number" },
+        "paymentNo": { "type": "string" },
+        "payChannel": { "type": "string" },
+        "payAmount": { "type": "number" },
+        "payStatus": { "type": "string", "enum": ["CREATED", "PROCESSING", "SUCCESS", "FAILED", "CLOSED", "REFUNDED"] },
+        "payTime": { "type": "string" },
+        "expireTime": { "type": "string" },
+        "payUrl": { "type": "string" },
+        "qrCode": { "type": "string" },
+        "thirdTradeNo": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "payment_callbacks",
+      "primaryKey": "id",
+      "required": ["id", "paymentId", "paymentNo", "tradeStatus", "createdAt", "updatedAt"],
+      "indexes": ["paymentId", "tradeStatus", "createdAt"],
+      "foreignKeys": [
+        { "field": "paymentId", "collection": "payments", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "paymentId": { "type": "number" },
+        "paymentNo": { "type": "string" },
+        "tradeStatus": { "type": "string", "enum": ["SUCCESS", "FAILED", "CLOSED", "REFUNDED"] },
+        "thirdTradeNo": { "type": "string" },
+        "payTime": { "type": "string" },
+        "rawPayload": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "student_timelines",
+      "primaryKey": "id",
+      "required": ["id", "studentId", "timelineType", "title", "content", "timestamp", "createdAt", "updatedAt"],
+      "indexes": ["studentId", "timelineType", "timestamp"],
+      "foreignKeys": [
+        { "field": "studentId", "collection": "students", "refField": "id" }
+      ],
+      "fields": {
+        "id": { "type": "number" },
+        "studentId": { "type": "number" },
+        "timelineType": { "type": "string", "enum": ["ATTENDANCE", "HOMEWORK", "MESSAGE", "ORDER", "NOTE"] },
+        "bizId": { "type": "number" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "bizDate": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "operatorUserId": { "type": "number" },
+        "operatorName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "daily_reports",
+      "primaryKey": "id",
+      "required": ["id", "reportDate", "reportType", "orgId", "payload", "createdAt", "updatedAt"],
+      "indexes": ["reportDate", "reportType", "orgId"],
+      "fields": {
+        "id": { "type": "number" },
+        "reportDate": { "type": "string" },
+        "reportType": { "type": "string", "enum": ["ATTENDANCE", "FINANCE", "PERFORMANCE"] },
+        "orgId": { "type": "number" },
+        "payload": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "report_snapshots",
+      "primaryKey": "id",
+      "required": ["id", "reportType", "orgId", "payload", "generatedAt", "createdAt", "updatedAt"],
+      "indexes": ["reportType", "orgId", "generatedAt"],
+      "fields": {
+        "id": { "type": "number" },
+        "reportType": { "type": "string" },
+        "orgId": { "type": "number" },
+        "payload": { "type": "object" },
+        "generatedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "form_cards",
+      "primaryKey": "id",
+      "required": ["id", "cardType", "targetRole", "payload", "createdAt", "updatedAt"],
+      "indexes": ["cardType", "targetRole", "studentId"],
+      "fields": {
+        "id": { "type": "number" },
+        "cardType": { "type": "string" },
+        "targetRole": { "type": "string" },
+        "studentId": { "type": "number" },
+        "payload": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    {
+      "name": "workbench_manifests",
+      "primaryKey": "id",
+      "required": ["id", "roleType", "version", "status", "payload", "createdAt", "updatedAt"],
+      "indexes": ["roleType", "version", "status"],
+      "fields": {
+        "id": { "type": "number" },
+        "roleType": { "type": "string", "enum": ["PARENT", "TEACHER", "ADMIN"] },
+        "version": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "payload": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  ]
+}

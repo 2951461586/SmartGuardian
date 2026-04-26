@@ -7,7 +7,7 @@
  */
 
 import { get } from '../../utils/request';
-import { ApiResponse, PageResponse } from '../../models/common';
+import { ApiResponse } from '../../models/common';
 import { TimelineItem, TimelineQueryParams } from '../../models/timeline';
 import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
@@ -18,6 +18,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class TimelineService {
+  static readonly AGC_DOMAIN: string = 'timeline';
+  static readonly AGC_FUNCTION: string = 'smartguardian-timeline';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.TIMELINE;
+
   /**
    * Get student timeline
    * 
@@ -26,7 +30,7 @@ export class TimelineService {
    * @param params 查询参数（分页、时间范围等）
    * @returns 时间线数据响应（支持分页或数组形式）
    */
-  static async getStudentTimeline(studentId: number, params?: TimelineQueryParams): Promise<ApiResponse<PageResponse<TimelineItem> | TimelineItem[]>> {
-    return get<PageResponse<TimelineItem> | TimelineItem[]>(ApiEndpoints.studentTimeline(studentId), params);
+  static async getStudentTimeline(studentId: number, params?: TimelineQueryParams): Promise<ApiResponse<TimelineItem[]>> {
+    return get<TimelineItem[]>(ApiEndpoints.studentTimeline(studentId), params);
   }
 }

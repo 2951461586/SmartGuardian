@@ -1,0 +1,6 @@
+{
+  "domain": "session",
+  "functionName": "smartguardian-session",
+  "routePrefixes": ["/api/v1/sessions"],
+  "collections": ["sessions", "session_students", "session_teachers"]
+}

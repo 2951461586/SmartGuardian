@@ -29,6 +29,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class HomeworkService {
+  static readonly AGC_DOMAIN: string = 'homework';
+  static readonly AGC_FUNCTION: string = 'smartguardian-homework';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.HOMEWORK_TASKS;
+
   /**
    * Get homework tasks list
    * 

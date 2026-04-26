@@ -12,6 +12,8 @@ local.properties
 .env
 .env.*
 !.env.example
+**/agconnect-services.json
+**/agc-apiclient*.json
 
 # IDE
 .idea/

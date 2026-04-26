@@ -1,9 +1,18 @@
-$files = Get-ChildItem -Path "E:\hm-demo\SmartGuardian\docs" -Recurse -Filter *.md
-foreach ($f in $files) {
-  $c = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8
-  $n = $c -replace '(>\s*版本：)V\d+\.\d+', '$1V1.2'
-  $n = $n -replace '(\*\*版本\*\*：)V\d+\.\d+', '$1V1.2'
-  if ($n -ne $c) {
-    Set-Content -LiteralPath $f.FullName -Value $n -Encoding UTF8
+$ErrorActionPreference = 'Stop'
+
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
+$docsRoot = Join-Path $repoRoot 'docs'
+
+if (-not (Test-Path $docsRoot)) {
+  throw "Docs directory not found: $docsRoot"
+}
+
+$files = Get-ChildItem -Path $docsRoot -Recurse -Filter *.md
+foreach ($file in $files) {
+  $content = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+  $normalized = $content -replace '(>\s*版本：)V\d+\.\d+', '$1V1.2'
+  $normalized = $normalized -replace '(\*\*版本\*\*：)V\d+\.\d+', '$1V1.2'
+  if ($normalized -ne $content) {
+    Set-Content -LiteralPath $file.FullName -Value $normalized -Encoding UTF8
   }
 }

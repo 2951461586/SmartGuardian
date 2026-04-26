@@ -6,6 +6,7 @@
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 import { LogUtil } from '../../utils/LogUtil';
 import { UserStore } from '../../stores/userStore';
+import { HarmonyColor } from '../../common/HarmonyDesign';
 
 @Entry
 @Component
@@ -68,7 +69,7 @@ struct ParentHelpPage {
       }
       .width('100%')
       .padding($r('app.float.page_padding'))
-      .backgroundColor(Color.White)
+      .backgroundColor(HarmonyColor.surface)
 
       Scroll() {
         Column() {
@@ -87,7 +88,7 @@ struct ParentHelpPage {
           }
           .width('100%')
           .padding(16)
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .margin({ bottom: 16 })
 
@@ -105,7 +106,7 @@ struct ParentHelpPage {
           }
           .width('100%')
           .padding(16)
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .margin({ bottom: 16 })
 
@@ -148,7 +149,7 @@ struct ParentHelpPage {
               .width('100%')
               .height(44)
               .fontSize(16)
-              .fontColor(Color.White)
+              .fontColor(HarmonyColor.textInverse)
               .backgroundColor($r('app.color.primary'))
               .borderRadius(22)
               .margin({ top: 16 })
@@ -160,7 +161,7 @@ struct ParentHelpPage {
           }
           .width('100%')
           .padding(16)
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
         }
         .width('100%')

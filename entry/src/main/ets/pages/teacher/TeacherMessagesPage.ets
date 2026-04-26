@@ -8,12 +8,26 @@ import { MessageService } from '../../services/api/message';
 import { PageHeader, HeaderTheme, TabBar, Card, SectionHeader, MessageListItem, EmptyState, EmptyType, LoadingState, LoadingSize, IconActionButton, TabItem, StatCard } from '../../components/common';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 
 type TeacherMessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE';
 
 @Entry
 @Component
-export struct TeacherMessagesPage {
+struct TeacherMessagesPage {
+  build() {
+    Stack() {
+      TeacherMessagesPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct TeacherMessagesPageContent {
   @State messages: MessageRecord[] = [];
   @State filteredMessages: MessageRecord[] = [];
   @State isLoading: boolean = true;
@@ -22,6 +36,7 @@ export struct TeacherMessagesPage {
 
   private readonly tabs: string[] = ['\u5168\u90e8', '\u7cfb\u7edf\u901a\u77e5', '\u8003\u52e4\u63d0\u9192'];
   private readonly tabTypes: TeacherMessageTab[] = ['ALL', 'SYSTEM', 'ATTENDANCE'];
+  private messageDataSource: LazyArrayDataSource<MessageRecord> = new LazyArrayDataSource<MessageRecord>();
 
   async aboutToAppear() {
     await this.loadMessages();
@@ -41,10 +56,13 @@ export struct TeacherMessagesPage {
         this.messages = [];
       }
       this.filterMessages();
+      await HarmonyCapabilityService.syncMessageBadge(this.getUnreadCount());
     } catch (error) {
       LogUtil.error('TeacherMessagesPage', `Load messages failed: ${String(error)}`);
       this.messages = [];
       this.filteredMessages = [];
+      this.messageDataSource.clear();
+      await HarmonyCapabilityService.syncMessageBadge(0);
     } finally {
       this.isLoading = false;
     }
@@ -72,6 +90,7 @@ export struct TeacherMessagesPage {
       this.filterMessages();
       MessageStore.setMessageList(this.messages);
       MessageStore.setUnreadCount(this.getUnreadCount());
+      await HarmonyCapabilityService.syncMessageBadge(this.getUnreadCount());
     } catch (error) {
       LogUtil.error('TeacherMessagesPage', `Mark as read failed: ${String(error)}`);
     }
@@ -95,6 +114,7 @@ export struct TeacherMessagesPage {
       this.filterMessages();
       MessageStore.setMessageList(this.messages);
       MessageStore.setUnreadCount(0);
+      await HarmonyCapabilityService.syncMessageBadge(0);
     } catch (error) {
       LogUtil.error('TeacherMessagesPage', `Mark all as read failed: ${String(error)}`);
     }
@@ -103,10 +123,12 @@ export struct TeacherMessagesPage {
   private filterMessages(): void {
     if (this.selectedTab === 'ALL') {
       this.filteredMessages = this.messages;
+      this.messageDataSource.setItems(this.filteredMessages);
       return;
     }
 
     this.filteredMessages = this.messages.filter((message: MessageRecord) => message.msgType === this.selectedTab);
+    this.messageDataSource.setItems(this.filteredMessages);
   }
 
   private handleTabChange(index: number): void {
@@ -161,9 +183,9 @@ export struct TeacherMessagesPage {
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#526F95',
-      boxBgColor: Color.White,
-      boxBorderColor: '#E5EDF6',
+      iconColor: HarmonyColor.brandBlue,
+      boxBgColor: HarmonyColor.surface,
+      boxBorderColor: HarmonyColor.line,
       onButtonClick: (): void => {
         this.loadMessages();
       }
@@ -177,7 +199,7 @@ export struct TeacherMessagesPage {
         value: `${this.messages.length}`,
         label: '\u5168\u90e8\u6d88\u606f',
         icon: $r('app.media.ic_message'),
-        iconColor: '#526F95'
+        iconColor: HarmonyColor.brandBlue
       })
       .layoutWeight(1)
 
@@ -187,7 +209,7 @@ export struct TeacherMessagesPage {
         value: `${this.getUnreadCount()}`,
         label: '\u672a\u8bfb\u6d88\u606f',
         icon: $r('app.media.ic_notification'),
-        iconColor: '#A9794E'
+        iconColor: HarmonyReport.caution
       })
       .layoutWeight(1)
     }
@@ -233,32 +255,40 @@ export struct TeacherMessagesPage {
         }
       })
     } else {
-      Scroll() {
-        Column() {
+      List({ space: 12 }) {
+        ListItem() {
           SectionHeader({
             title: '\u6d88\u606f\u5217\u8868',
             subtitle: '\u70b9\u5f00\u67e5\u770b\u8be6\u60c5\uff0c\u5df2\u8bfb\u72b6\u6001\u4f1a\u540c\u6b65\u66f4\u65b0'
           })
-
-          ForEach(this.filteredMessages, (message: MessageRecord) => {
-            MessageListItem({
-              message: message,
-              onMarkRead: (): void => {
-                this.markAsRead(message.id);
-              },
-              onItemClick: (): void => {
-                this.markAsRead(message.id);
-              }
-            })
-          })
         }
-        .width('100%')
-        .padding({ left: 16, right: 16, bottom: 20 })
+
+        LazyForEach(this.messageDataSource, (message: MessageRecord) => {
+          ListItem() {
+            this.buildMessageListItem(message)
+          }
+        }, (message: MessageRecord) => `${message.id}`)
       }
       .width('100%')
       .layoutWeight(1)
+      .padding({ left: 16, right: 16, bottom: 20 })
+      .divider({ strokeWidth: 0 })
       .scrollBar(BarState.Off)
+      .cachedCount(8)
     }
+  }
+
+  @Builder
+  private buildMessageListItem(message: MessageRecord) {
+    MessageListItem({
+      message: message,
+      onMarkRead: (): void => {
+        this.markAsRead(message.id);
+      },
+      onItemClick: (): void => {
+        this.markAsRead(message.id);
+      }
+    })
   }
 }
 

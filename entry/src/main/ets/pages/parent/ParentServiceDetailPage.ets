@@ -3,9 +3,10 @@
  * Service product detail view with booking functionality
  */
 
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
 import { ServiceProduct } from '../../models/service';
+import { RouteUrls } from '../../constants/app.constants';
 import { ServiceProductService } from '../../services/api/service';
-import { UserStore } from '../../stores/userStore';
 
 interface RouterParams {
   serviceId: number;
@@ -48,7 +49,7 @@ struct ParentServiceDetailPage {
 
     try {
       this.getUIContext().getRouter().pushUrl({
-        url: 'pages/parent/ParentOrderCreatePage',
+        url: RouteUrls.PARENT_ORDER_CREATE,
         params: {
           serviceId: this.serviceDetail.id,
           serviceName: this.serviceDetail.serviceName,
@@ -108,7 +109,7 @@ struct ParentServiceDetailPage {
       Text('服务详情')
         .fontSize($r('app.float.page_title_size'))
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor(HarmonyColor.textInverse)
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
@@ -163,7 +164,7 @@ struct ParentServiceDetailPage {
       }
       .width('100%')
       .height(200)
-      .backgroundColor(Color.White)
+      .backgroundColor(HarmonyColor.surface)
       .justifyContent(FlexAlign.Center)
 
       // Service basic info
@@ -178,12 +179,12 @@ struct ParentServiceDetailPage {
         Row() {
           Text('¥')
             .fontSize($r('app.float.text_primary_size'))
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
             .fontWeight(FontWeight.Bold)
 
           Text(this.serviceDetail?.price?.toString() || '0')
             .fontSize(28)
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
             .fontWeight(FontWeight.Bold)
 
           Text(`/${this.serviceDetail?.unit || '次'}`)
@@ -198,15 +199,15 @@ struct ParentServiceDetailPage {
             .fontSize($r('app.float.badge_text_size'))
             .fontColor($r('app.color.primary'))
             .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-            .backgroundColor('#E3F2FD')
+            .backgroundColor(HarmonyReport.accentSurface)
             .borderRadius(4)
 
           if (this.serviceDetail?.gradeRange) {
             Text(this.serviceDetail.gradeRange)
               .fontSize($r('app.float.badge_text_size'))
-              .fontColor('#666666')
+              .fontColor(HarmonyColor.textSecondary)
               .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-              .backgroundColor('#F5F5F5')
+              .backgroundColor(HarmonyColor.surfaceSubtle)
               .borderRadius(4)
               .margin({ left: 8 })
           }
@@ -215,7 +216,7 @@ struct ParentServiceDetailPage {
       }
       .width('100%')
       .padding($r('app.float.card_padding'))
-      .backgroundColor(Color.White)
+      .backgroundColor(HarmonyColor.surface)
     }
     .width('100%')
   }
@@ -244,7 +245,7 @@ struct ParentServiceDetailPage {
       })
     }
     .width('100%')
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .margin({ top: 8 })
   }
 
@@ -288,7 +289,7 @@ struct ParentServiceDetailPage {
     }
     .width('100%')
     .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .margin({ top: 8 })
   }
 
@@ -352,7 +353,7 @@ struct ParentServiceDetailPage {
       }
     }
     .width('100%')
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .margin({ top: 8 })
     .borderRadius($r('app.float.card_border_radius'))
   }
@@ -369,11 +370,11 @@ struct ParentServiceDetailPage {
         Row() {
           Text('¥')
             .fontSize($r('app.float.text_primary_size'))
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
 
           Text(this.serviceDetail?.price?.toString() || '0')
             .fontSize(24)
-            .fontColor('#F44336')
+            .fontColor(HarmonyReport.danger)
             .fontWeight(FontWeight.Bold)
         }
       }
@@ -385,17 +386,17 @@ struct ParentServiceDetailPage {
         .width(160)
         .height(44)
         .fontSize($r('app.float.text_primary_size'))
-        .fontColor(Color.White)
+        .fontColor(HarmonyColor.textInverse)
         .backgroundColor($r('app.color.primary'))
         .borderRadius(22)
         .onClick(() => this.handleBookNow())
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .shadow({
       radius: 10,
-      color: '#1A000000',
+      color: harmonyShadowColor(),
       offsetY: -2
     })
   }

@@ -1,37 +1,74 @@
-﻿/**
+/**
  * SmartGuardian - Parent Alerts Page
- * Alert and warning center for parents
+ * Parent-facing alert center on the shared workbench template.
  */
 
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import {
+  EmptyType,
+  HeaderTheme,
+  IconActionButton,
+  PageHeader,
+  ParentAlertDetailSheetCard,
+  ParentAlertListItemCard,
+  ParentAlertResponseCard,
+  SectionHeader,
+  StatefulContainer,
+  StatCardRow,
+  StatRowItem,
+  ViewState,
+  WorkbenchListPageTemplate
+} from '../../components/common';
 import { AlertRecord, AlertStatistics } from '../../models/alert';
 import { AlertService } from '../../services/api/alert';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
 
 @Entry
 @Component
 struct ParentAlertsPage {
+  build() {
+    Stack() {
+      ParentAlertsPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct ParentAlertsPageContent {
   @State alerts: AlertRecord[] = [];
-  @State isLoading: boolean = false;
   @State statistics: AlertStatistics | null = null;
+  @State isLoading: boolean = false;
+  @State errorMessage: string = '';
   @State showDetailDialog: boolean = false;
   @State selectedAlert: AlertRecord | null = null;
+  private alertDataSource: LazyArrayDataSource<AlertRecord> = new LazyArrayDataSource<AlertRecord>();
 
   aboutToAppear() {
-    this.loadAlerts();
-    this.loadStatistics();
+    this.loadPageData();
+  }
+
+  private async loadPageData(): Promise<void> {
+    await this.loadAlerts();
+    await this.loadStatistics();
   }
 
   async loadAlerts() {
     this.isLoading = true;
+    this.errorMessage = '';
     try {
       const resp = await AlertService.getActiveAlerts(1, 50);
       if (resp.code === 0 && resp.data) {
         this.alerts = resp.data.list ?? [];
+        this.alertDataSource.setItems(this.alerts);
       } else {
-        this.alerts = [];
+        this.clearAlerts();
       }
     } catch (error) {
       console.error('Failed to load alerts:', String(error));
-      this.alerts = [];
+      this.clearAlerts();
+      this.errorMessage = '预警信息加载失败，请稍后重试。';
     } finally {
       this.isLoading = false;
     }
@@ -56,8 +93,7 @@ struct ParentAlertsPage {
       const resp = await AlertService.acknowledgeAlert({ alertId: alertId });
       if (resp.code === 0) {
         this.showDetailDialog = false;
-        this.loadAlerts();
-        this.loadStatistics();
+        await this.loadPageData();
       }
     } catch (error) {
       console.error('Failed to acknowledge alert:', String(error));
@@ -69,332 +105,262 @@ struct ParentAlertsPage {
       const resp = await AlertService.dismissAlert(alertId);
       if (resp.code === 0) {
         this.showDetailDialog = false;
-        this.loadAlerts();
-        this.loadStatistics();
+        await this.loadPageData();
       }
     } catch (error) {
       console.error('Failed to dismiss alert:', String(error));
     }
   }
 
+  private clearAlerts(): void {
+    this.alerts = [];
+    this.alertDataSource.clear();
+  }
+
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
+    }
+    if (this.errorMessage.length > 0) {
+      return ViewState.ERROR;
+    }
+    if (this.alerts.length === 0) {
+      return ViewState.EMPTY;
+    }
+    return ViewState.CONTENT;
+  }
+
+  private getOverviewItems(): StatRowItem[] {
+    return [
+      {
+        value: `${this.statistics?.active ?? 0}`,
+        label: '活跃预警',
+        icon: $r('app.media.ic_warning'),
+        iconColor: HarmonyReport.danger
+      },
+      {
+        value: `${this.statistics?.acknowledged ?? 0}`,
+        label: '已确认',
+        icon: $r('app.media.ic_info'),
+        iconColor: HarmonyReport.caution
+      },
+      {
+        value: `${this.statistics?.resolved ?? 0}`,
+        label: '已处理',
+        icon: $r('app.media.ic_attendance'),
+        iconColor: HarmonyReport.positive
+      }
+    ];
+  }
+
   build() {
     Column() {
-      this.buildHeader()
-
-      if (this.statistics) {
-        this.buildStatistics()
-      }
-
-      if (this.isLoading) {
-        this.buildLoading()
-      } else {
-        this.buildAlertList()
-      }
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildControlSection,
+        content: this.buildAlertsContent
+      })
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
     .bindSheet($$this.showDetailDialog, this.buildDetailSheet(), {
-      height: 420,
-      backgroundColor: Color.White,
+      height: 460,
+      backgroundColor: HarmonyColor.surface,
       dragBar: true
     })
   }
 
   @Builder
-  buildHeader() {
-    Row() {
-      Image($r('app.media.ic_arrow_left'))
-        .width(24)
-        .height(24)
-        .onClick(() => this.getUIContext().getRouter().back())
-
-      Text('异常预警')
-        .fontSize($r('app.float.page_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .layoutWeight(1)
-        .textAlign(TextAlign.Center)
-
-      Blank().width(24)
-    }
-    .width('100%')
-    .padding($r('app.float.page_padding'))
-    .backgroundColor($r('app.color.primary'))
-    .padding({ top: Number($r('app.float.status_bar_height')) + 10 })
-  }
-
-  @Builder
-  buildStatistics() {
-    Column() {
-      Row() {
-        this.buildStatItem('活跃预警', this.statistics?.active || 0, '#FF5722')
-        this.buildStatItem('已确认', this.statistics?.acknowledged || 0, '#FF9800')
-        this.buildStatItem('已解决', this.statistics?.resolved || 0, '#4CAF50')
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceAround)
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .margin({ bottom: 8 })
-  }
-
-  @Builder
-  buildStatItem(label: string, count: number, color: string) {
-    Column() {
-      Text(count.toString())
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(color)
-
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .alignItems(HorizontalAlign.Center)
-  }
-
-  @Builder
-  buildLoading() {
-    Column() {
-      LoadingProgress()
-        .width(50)
-        .height(50)
-        .color($r('app.color.primary'))
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
-  }
-
-  @Builder
-  buildAlertList() {
-    if (this.alerts.length === 0) {
-      Column() {
-        Image($r('app.media.ic_empty'))
-          .width(120)
-          .height(120)
-
-        Text('暂无预警信息')
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 16 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
-    } else {
-      Scroll() {
-        Column() {
-          ForEach(this.alerts, (alert: AlertRecord) => {
-            this.buildAlertItem(alert)
-          })
-        }
-        .width('100%')
-        .padding($r('app.float.page_padding'))
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-    }
-  }
-
-  @Builder
-  buildAlertItem(alert: AlertRecord) {
-    Column() {
-      Row() {
-        Column() {
-          Text(alert.title)
-            .fontSize($r('app.float.text_primary_size'))
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(alert.studentName)
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Column() {
-          Text(this.getSeverityText(alert.severity))
-            .fontSize(12)
-            .fontColor(Color.White)
-            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-            .backgroundColor(this.getSeverityColor(alert.severity))
-            .borderRadius(4)
-
-          Text(this.formatTime(alert.createdAt))
-            .fontSize(12)
-            .fontColor('#999999')
-            .margin({ top: 4 })
-        }
-        .alignItems(HorizontalAlign.End)
-      }
-      .width('100%')
-
-      Text(alert.description)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 8 })
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-      if (alert.suggestedAction) {
-        Row() {
-          Image($r('app.media.ic_info'))
-            .width(16)
-            .height(16)
-
-          Text('建议操作：' + alert.suggestedAction)
-            .fontSize(12)
-            .fontColor('#2196F3')
-            .margin({ left: 4 })
-            .layoutWeight(1)
-        }
-        .width('100%')
-        .margin({ top: 8 })
-        .padding(8)
-        .backgroundColor('#E3F2FD')
-        .borderRadius(4)
-      }
-    }
-    .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius($r('app.float.card_border_radius'))
-    .margin({ bottom: 12 })
-    .onClick(() => {
-      this.selectedAlert = alert;
-      this.showDetailDialog = true;
+  private buildHeader() {
+    PageHeader({
+      title: '异常预警',
+      subtitle: '集中查看需要家长关注的异常、提醒与安全风险。',
+      showBack: true,
+      theme: HeaderTheme.WHITE,
+      onBackClick: () => this.getUIContext().getRouter().back(),
+      rightContent: this.buildHeaderAction
     })
   }
 
   @Builder
-  buildDetailSheet() {
+  private buildHeaderAction() {
+    IconActionButton({
+      icon: $r('app.media.ic_refresh'),
+      iconColor: HarmonyColor.info,
+      boxBgColor: HarmonyColor.surface,
+      boxBorderColor: HarmonyColor.line,
+      onButtonClick: () => {
+        this.loadPageData();
+      }
+    })
+  }
+
+  @Builder
+  private buildOverviewSection() {
+    StatCardRow({
+      items: this.getOverviewItems()
+    })
+  }
+
+  @Builder
+  private buildControlSection() {
+    ParentAlertResponseCard({
+      onRefresh: () => {
+        this.loadPageData();
+      }
+    })
+  }
+
+  @Builder
+  private buildAlertsContent() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在同步预警中心...',
+      emptyType: EmptyType.DEFAULT,
+      emptyTitle: '暂无预警信息',
+      emptyDescription: '当前没有需要家长处理的活跃预警。',
+      errorMessage: this.errorMessage,
+      onRetry: () => {
+        this.loadPageData();
+      },
+      content: this.buildAlertList
+    })
+      .layoutWeight(1)
+  }
+
+  @Builder
+  private buildAlertList() {
+    List() {
+      ListItem() {
+        SectionHeader({
+          title: '预警列表',
+          subtitle: '点击卡片可查看详情并直接处理。'
+        })
+      }
+
+      LazyForEach(this.alertDataSource, (alert: AlertRecord) => {
+        ListItem() {
+          this.buildAlertCard(alert)
+        }
+      }, (alert: AlertRecord) => `${alert.id}`)
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .divider({ strokeWidth: 0 })
+    .scrollBar(BarState.Off)
+    .cachedCount(8)
+  }
+
+  @Builder
+  private buildAlertCard(alert: AlertRecord) {
+    ParentAlertListItemCard({
+      alert: alert,
+      severityTextResolver: (severity: string): string => this.getSeverityText(severity),
+      severityColorResolver: (severity: string): string => this.getSeverityColor(severity),
+      severityBgColorResolver: (severity: string): string => this.getSeverityBgColor(severity),
+      timeResolver: (value: string): string => this.formatTime(value),
+      onAlertClick: (currentAlert: AlertRecord): void => {
+        this.selectedAlert = currentAlert;
+        this.showDetailDialog = true;
+      }
+    })
+  }
+
+  @Builder
+  private buildDetailSheet() {
     Column() {
       if (this.selectedAlert) {
         Text('预警详情')
           .fontSize($r('app.float.card_title_size'))
           .fontWeight(FontWeight.Bold)
-          .margin({ top: 16, bottom: 16 })
+          .fontColor(HarmonyColor.textPrimary)
+          .margin({ top: 16, bottom: 12 })
 
-        Column() {
-          this.buildDetailRow('标题', this.selectedAlert.title)
-          this.buildDetailRow('学生', this.selectedAlert.studentName)
-          this.buildDetailRow('类型', this.getAlertTypeText(this.selectedAlert.alertType))
-          this.buildDetailRow('严重程度', this.getSeverityText(this.selectedAlert.severity))
-          this.buildDetailRow('描述', this.selectedAlert.description)
-
-          if (this.selectedAlert.suggestedAction) {
-            this.buildDetailRow('建议操作', this.selectedAlert.suggestedAction)
+        ParentAlertDetailSheetCard({
+          alert: this.selectedAlert,
+          severityTextResolver: (severity: string): string => this.getSeverityText(severity),
+          typeTextResolver: (type: string): string => this.getAlertTypeText(type),
+          onDismiss: (alertId: number): void => {
+            this.dismissAlert(alertId);
+          },
+          onAcknowledge: (alertId: number): void => {
+            this.acknowledgeAlert(alertId);
           }
-        }
-        .width('100%')
-        .padding(16)
-
-        Row() {
-          Button('忽略')
-            .fontSize(14)
-            .fontColor($r('app.color.primary'))
-            .backgroundColor('#E3F2FD')
-            .layoutWeight(1)
-            .onClick(() => {
-              if (this.selectedAlert) {
-                this.dismissAlert(this.selectedAlert.id);
-              }
-            })
-
-          Button('已知悉')
-            .fontSize(14)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.primary'))
-            .layoutWeight(1)
-            .margin({ left: 12 })
-            .onClick(() => {
-              if (this.selectedAlert) {
-                this.acknowledgeAlert(this.selectedAlert.id);
-              }
-            })
-        }
-        .width('100%')
-        .padding(16)
+        })
       }
     }
     .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
   }
 
-  @Builder
-  buildDetailRow(label: string, value: string) {
-    Row() {
-      Text(label)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_secondary'))
-        .width(80)
-
-      Text(value)
-        .fontSize($r('app.float.text_primary_size'))
-        .fontColor($r('app.color.text_primary'))
-        .layoutWeight(1)
+  private getSeverityText(severity: string): string {
+    if (severity === 'LOW') {
+      return '低';
     }
-    .width('100%')
-    .margin({ top: 8, bottom: 8 })
-  }
-
-  getSeverityText(severity: string): string {
-    switch (severity) {
-      case 'LOW':
-        return '低';
-      case 'MEDIUM':
-        return '中';
-      case 'HIGH':
-        return '高';
-      case 'CRITICAL':
-        return '紧急';
-      default:
-        return '未知';
+    if (severity === 'MEDIUM') {
+      return '中';
     }
-  }
-
-  getSeverityColor(severity: string): string {
-    switch (severity) {
-      case 'LOW':
-        return '#4CAF50';
-      case 'MEDIUM':
-        return '#FF9800';
-      case 'HIGH':
-        return '#FF5722';
-      case 'CRITICAL':
-        return '#D32F2F';
-      default:
-        return '#9E9E9E';
+    if (severity === 'HIGH') {
+      return '高';
     }
-  }
-
-  getAlertTypeText(type: string): string {
-    switch (type) {
-      case 'ATTENDANCE_ANOMALY':
-        return '考勤异常';
-      case 'SAFETY_CONCERN':
-        return '安全隐患';
-      case 'ACADEMIC_PERFORMANCE':
-        return '学业表现';
-      case 'BEHAVIORAL_ISSUE':
-        return '行为问题';
-      case 'FEE_DUE':
-        return '费用到期';
-      case 'SYSTEM':
-        return '系统提醒';
-      default:
-        return '其他';
+    if (severity === 'CRITICAL') {
+      return '紧急';
     }
+    return '未知';
   }
 
-  formatTime(time: string): string {
+  private getSeverityColor(severity: string): string {
+    if (severity === 'LOW') {
+      return HarmonyReport.positive;
+    }
+    if (severity === 'MEDIUM') {
+      return HarmonyReport.caution;
+    }
+    if (severity === 'HIGH' || severity === 'CRITICAL') {
+      return HarmonyReport.danger;
+    }
+    return HarmonyColor.textSecondary;
+  }
+
+  private getSeverityBgColor(severity: string): string {
+    if (severity === 'LOW') {
+      return HarmonyReport.positiveSurface;
+    }
+    if (severity === 'MEDIUM') {
+      return HarmonyReport.cautionSurface;
+    }
+    if (severity === 'HIGH' || severity === 'CRITICAL') {
+      return HarmonyReport.dangerSurface;
+    }
+    return HarmonyColor.surfaceSubtle;
+  }
+
+  private getAlertTypeText(type: string): string {
+    if (type === 'ATTENDANCE_ANOMALY') {
+      return '考勤异常';
+    }
+    if (type === 'SAFETY_CONCERN') {
+      return '安全隐患';
+    }
+    if (type === 'ACADEMIC_PERFORMANCE') {
+      return '学业表现';
+    }
+    if (type === 'BEHAVIORAL_ISSUE') {
+      return '行为问题';
+    }
+    if (type === 'FEE_DUE') {
+      return '费用到期';
+    }
+    if (type === 'SYSTEM') {
+      return '系统提醒';
+    }
+    return '其他';
+  }
+
+  private formatTime(time: string): string {
     if (!time) {
       return '';
     }
@@ -402,7 +368,6 @@ struct ParentAlertsPage {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-
     if (hours < 1) {
       return '刚刚';
     }
@@ -412,4 +377,3 @@ struct ParentAlertsPage {
     return time.substring(0, 10);
   }
 }
-

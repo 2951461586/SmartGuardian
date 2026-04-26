@@ -6,13 +6,29 @@
 import { MessageRecord, MessageStatistics } from '../../models/message';
 import { MessageService } from '../../services/api/message';
 import { PageHeader, TabBar, EmptyState, LoadingState, EmptyType, LoadingSize, HeaderTheme, MessageListItem, Card, SectionHeader, StatCard, TabItem } from '../../components/common';
+import { RouteUrls } from '../../constants/app.constants';
 import { MessageStore } from '../../stores/messageStore';
 import { LogUtil } from '../../utils/LogUtil';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 
 type MessageTab = 'ALL' | 'SYSTEM' | 'ATTENDANCE' | 'HOMEWORK' | 'ORDER';
 
+@Entry
 @Component
-export struct ParentMessagesPage {
+struct ParentMessagesPage {
+  build() {
+    Stack() {
+      ParentMessagesPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct ParentMessagesPageContent {
   @StorageLink('message_list') messages: MessageRecord[] = [];
   @StorageLink('unread_count') unreadCount: number = 0;
 
@@ -26,6 +42,7 @@ export struct ParentMessagesPage {
   private readonly CACHE_DURATION: number = 2 * 60 * 1000;
   private tabs: string[] = ['\u5168\u90e8', '\u7cfb\u7edf', '\u8003\u52e4', '\u4f5c\u4e1a', '\u8ba2\u5355'];
   private tabTypes: MessageTab[] = ['ALL', 'SYSTEM', 'ATTENDANCE', 'HOMEWORK', 'ORDER'];
+  private messageDataSource: LazyArrayDataSource<MessageRecord> = new LazyArrayDataSource<MessageRecord>();
 
   aboutToAppear() {
     this.loadMessagesWithCache();
@@ -40,6 +57,7 @@ export struct ParentMessagesPage {
       this.messages = cachedMessages;
       this.unreadCount = cachedUnread;
       this.filterMessages();
+      await HarmonyCapabilityService.syncMessageBadge(cachedUnread);
       LogUtil.info('ParentMessagesPage', `Using cached messages: ${cachedMessages.length} items`);
     }
 
@@ -70,13 +88,16 @@ export struct ParentMessagesPage {
         this.unreadCount = unread;
         this.lastLoadTime = Date.now();
         this.filterMessages();
+        await HarmonyCapabilityService.syncMessageBadge(unread);
         LogUtil.info('ParentMessagesPage', `Loaded ${messageList.length} messages, unread: ${unread}`);
       } else {
         this.applyEmptyMessages();
+        await HarmonyCapabilityService.syncMessageBadge(0);
       }
     } catch (error) {
       LogUtil.error('ParentMessagesPage', `Load messages failed: ${String(error)}`);
       this.applyEmptyMessages();
+      await HarmonyCapabilityService.syncMessageBadge(0);
     } finally {
       this.isLoading = false;
     }
@@ -100,8 +121,8 @@ export struct ParentMessagesPage {
     try {
       await MessageService.markAsRead(messageId);
       MessageStore.markMessageAsRead(messageId);
-      this.loadMessagesWithCache();
-      this.loadStatistics();
+      await this.loadMessagesWithCache();
+      await this.loadStatistics();
       LogUtil.info('ParentMessagesPage', `Marked message ${messageId} as read`);
     } catch (error) {
       LogUtil.error('ParentMessagesPage', `Mark message as read failed: ${String(error)}`);
@@ -134,6 +155,7 @@ export struct ParentMessagesPage {
       this.messages = updatedMessages;
       this.unreadCount = 0;
       this.filterMessages();
+      await HarmonyCapabilityService.syncMessageBadge(0);
       this.loadStatistics();
       LogUtil.info('ParentMessagesPage', 'Marked all messages as read');
     } catch (error) {
@@ -145,6 +167,7 @@ export struct ParentMessagesPage {
     this.messages = [];
     this.unreadCount = 0;
     this.filteredMessages = [];
+    this.messageDataSource.clear();
     MessageStore.setMessageList([]);
     MessageStore.setUnreadCount(0);
   }
@@ -158,10 +181,12 @@ export struct ParentMessagesPage {
   private filterMessages(): void {
     if (this.selectedTab === 'ALL') {
       this.filteredMessages = this.messages;
+      this.messageDataSource.setItems(this.filteredMessages);
       return;
     }
 
     this.filteredMessages = this.messages.filter((message: MessageRecord) => message.msgType === this.selectedTab);
+    this.messageDataSource.setItems(this.filteredMessages);
   }
 
   private getTotalCount(): number {
@@ -214,7 +239,7 @@ export struct ParentMessagesPage {
 
     try {
       this.getUIContext().getRouter().pushUrl({
-        url: 'pages/parent/ParentMessageDetailPage',
+        url: RouteUrls.PARENT_MESSAGE_DETAIL,
         params: {
           messageId: message.id
         }
@@ -236,7 +261,7 @@ export struct ParentMessagesPage {
             .height(32)
             .fontSize(12)
             .fontColor($r('app.color.primary'))
-            .backgroundColor('#EEF4FA')
+            .backgroundColor(HarmonyColor.surfaceSubtle)
             .borderRadius(16)
             .padding({ left: 12, right: 12 })
             .onClick(() => this.markAllAsRead())
@@ -259,7 +284,7 @@ export struct ParentMessagesPage {
         value: `${this.getTotalCount()}`,
         label: '\u5168\u90e8\u6d88\u606f',
         icon: $r('app.media.ic_message'),
-        iconColor: '#4F7CFF'
+        iconColor: HarmonyReport.accent
       })
       .layoutWeight(1)
 
@@ -269,7 +294,7 @@ export struct ParentMessagesPage {
         value: `${this.getUnreadStatCount()}`,
         label: '\u672a\u8bfb\u6d88\u606f',
         icon: $r('app.media.ic_notification'),
-        iconColor: '#F2994A'
+        iconColor: HarmonyReport.caution
       })
       .layoutWeight(1)
 
@@ -279,7 +304,7 @@ export struct ParentMessagesPage {
         value: `${this.getCurrentTabCount()}`,
         label: this.getCurrentTabLabel(),
         icon: $r('app.media.ic_home'),
-        iconColor: '#2F9B52'
+        iconColor: HarmonyReport.positive
       })
       .layoutWeight(1)
     }
@@ -332,31 +357,37 @@ export struct ParentMessagesPage {
 
   @Builder
   buildMessageList() {
-    Scroll() {
-      Column() {
-        SectionHeader({
-          title: '\u6d88\u606f\u5217\u8868',
-          subtitle: '\u70b9\u5f00\u53ef\u67e5\u770b\u8be6\u60c5\uff0c\u4e5f\u53ef\u76f4\u63a5\u6807\u8bb0\u5df2\u8bfb'
-        })
+    Column() {
+      SectionHeader({
+        title: '\u6d88\u606f\u5217\u8868',
+        subtitle: '\u70b9\u5f00\u53ef\u67e5\u770b\u8be6\u60c5\uff0c\u4e5f\u53ef\u76f4\u63a5\u6807\u8bb0\u5df2\u8bfb'
+      })
+      .margin({ left: 16, right: 16 })
 
-        ForEach(this.filteredMessages, (message: MessageRecord) => {
-          MessageListItem({
-            message: message,
-            onMarkRead: () => {
-              this.markAsRead(message.id);
-            },
-            onItemClick: () => {
-              this.openMessageDetail(message);
-            }
-          })
-        })
+      List({ space: 12 }) {
+        LazyForEach(this.messageDataSource, (message: MessageRecord) => {
+          ListItem() {
+            MessageListItem({
+              message: message,
+              onMarkRead: () => {
+                this.markAsRead(message.id);
+              },
+              onItemClick: () => {
+                this.openMessageDetail(message);
+              }
+            })
+          }
+        }, (message: MessageRecord) => `${message.id}`)
       }
       .width('100%')
+      .layoutWeight(1)
       .padding({ left: 16, right: 16, bottom: 20 })
+      .divider({ strokeWidth: 0 })
+      .scrollBar(BarState.Off)
+      .cachedCount(6)
     }
     .width('100%')
     .layoutWeight(1)
-    .scrollBar(BarState.Off)
   }
 
   private getEmptyStatistics(): MessageStatistics {

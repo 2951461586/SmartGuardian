@@ -64,11 +64,11 @@ export struct StatusBadge {
   /** 是否显示 */
   @Prop visible: boolean = true;
   /** 自定义文本 */
-  @Prop customText?: string;
+  @Prop customText: string = '';
   /** 自定义文字颜色 */
-  @Prop customTextColor?: string;
+  @Prop customTextColor: string = '';
   /** 自定义背景颜色 */
-  @Prop customBgColor?: string;
+  @Prop customBgColor: string = '';
 
   build() {
     if (!this.visible || !this.value) {
@@ -94,21 +94,21 @@ export struct StatusBadge {
   }
 
   private getDisplayText(): string {
-    if (this.customText) {
+    if (this.customText.length > 0) {
       return this.customText;
     }
     return StatusMappingHelper.getStatusText(this.type, this.value);
   }
 
   private getTextColor(): string {
-    if (this.customTextColor) {
+    if (this.customTextColor.length > 0) {
       return this.customTextColor;
     }
     return StatusMappingHelper.getStatusColor(this.type, this.value);
   }
 
   private getBgColor(): string {
-    if (this.customBgColor) {
+    if (this.customBgColor.length > 0) {
       return this.customBgColor;
     }
     return StatusMappingHelper.getStatusBgColor(this.type, this.value);

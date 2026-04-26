@@ -38,6 +38,7 @@ export class ApiEndpoints {
   static readonly AUTH_ME = `${API_BASE}/auth/me`;
   /** 刷新Token */
   static readonly AUTH_REFRESH = `${API_BASE}/auth/refresh`;
+  static readonly AUTH_SESSION_DEVICE = `${API_BASE}/auth/session-device`;
 
   /** 用户模块基础路径 */
   static readonly USERS = `${API_BASE}/users`;

@@ -9,6 +9,8 @@ import { OrderStore } from '../../stores/orderStore';
 import { StudentStore } from '../../stores/studentStore';
 import { UserStore } from '../../stores/userStore';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
+import { HarmonyColor } from '../../common/HarmonyDesign';
 
 @Entry
 @Component
@@ -29,9 +31,14 @@ struct ParentSettingsPage {
     this.language = preferences.language === 'en_US' ? 'English' : '简体中文';
   }
 
-  private updateNotificationPreference(enabled: boolean): void {
+  private async updateNotificationPreference(enabled: boolean): Promise<void> {
     this.notificationEnabled = enabled;
     UserStore.updateUserPreferences({ enableNotifications: enabled });
+    if (!enabled) {
+      await HarmonyCapabilityService.disableNotifications();
+      return;
+    }
+    await HarmonyCapabilityService.syncMessageBadge(MessageStore.getUnreadCount());
   }
 
   private updateAttendanceReminder(enabled: boolean): void {
@@ -81,7 +88,7 @@ struct ParentSettingsPage {
       }
       .width('100%')
       .padding($r('app.float.page_padding'))
-      .backgroundColor(Color.White)
+      .backgroundColor(HarmonyColor.surface)
 
       // Settings List
       Scroll() {
@@ -111,7 +118,7 @@ struct ParentSettingsPage {
             .padding(16)
           }
           .width('100%')
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .margin({ bottom: 12 })
 
@@ -140,7 +147,7 @@ struct ParentSettingsPage {
             .padding(16)
           }
           .width('100%')
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .margin({ bottom: 12 })
 
@@ -164,7 +171,7 @@ struct ParentSettingsPage {
           }
           .width('100%')
           .padding(16)
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .onClick(() => {
             this.switchLanguage();
@@ -185,7 +192,7 @@ struct ParentSettingsPage {
           }
           .width('100%')
           .padding(16)
-          .backgroundColor(Color.White)
+          .backgroundColor(HarmonyColor.surface)
           .borderRadius(12)
           .margin({ top: 12 })
           .onClick(() => {

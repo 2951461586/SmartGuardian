@@ -9,6 +9,9 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
 import { AttendanceService } from '../../services/api/attendance';
 import { SignInRequest, SignOutRequest } from '../../models/attendance';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
+import { HarmonyLocationService } from '../../services/HarmonyLocationService';
+import { RouteUrls } from '../../constants/app.constants';
 import { LogUtil } from '../../utils/LogUtil';
 import { PermissionUtil } from '../../utils/PermissionUtil';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
@@ -137,16 +140,20 @@ struct TeacherScanPage {
 
   async performSignIn(data: QRCodeData): Promise<void> {
     try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const locationLabel = await HarmonyLocationService.captureAttendanceLocation(context);
       const request: SignInRequest = {
         studentId: data.studentId,
         sessionId: this.currentSessionId,
-        signMethod: 'QR_CODE'
+        signMethod: 'QR_CODE',
+        location: locationLabel
       };
 
       const resp = await AttendanceService.signIn(request);
 
       if (resp.code === 0) {
         this.successMessage = `${data.studentName}${$r('app.string.teacher_scan_sign_in_success_suffix').toString()}`;
+        await HarmonyCapabilityService.notifyAttendanceResult('签到成功', data.studentName, RouteUrls.TEACHER_ATTENDANCE);
         ErrorHandlerUtil.showSuccessToast(this.successMessage);
       } else {
         this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_in_failed').toString();
@@ -161,16 +168,20 @@ struct TeacherScanPage {
 
   async performSignOut(data: QRCodeData): Promise<void> {
     try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const locationLabel = await HarmonyLocationService.captureAttendanceLocation(context);
       const request: SignOutRequest = {
         studentId: data.studentId,
         sessionId: this.currentSessionId,
-        signMethod: 'QR_CODE'
+        signMethod: 'QR_CODE',
+        location: locationLabel
       };
 
       const resp = await AttendanceService.signOut(request);
 
       if (resp.code === 0) {
         this.successMessage = `${data.studentName}${$r('app.string.teacher_scan_sign_out_success_suffix').toString()}`;
+        await HarmonyCapabilityService.notifyAttendanceResult('签退成功', data.studentName, RouteUrls.TEACHER_ATTENDANCE);
         ErrorHandlerUtil.showSuccessToast(this.successMessage);
       } else {
         this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_out_failed').toString();

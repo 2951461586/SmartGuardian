@@ -1,8 +1,9 @@
-﻿/**
+/**
  * SmartGuardian - Admin Services Page
  * Admin service product management workspace
  */
 
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import {
   Card,
   EmptyState,
@@ -14,9 +15,9 @@ import {
   PageHeader,
   SectionHeader,
   StatCard,
-  TabBar
+  TabBar,
+  ServiceProductCard
 } from '../../components/common';
-import { PageResponse } from '../../models/common';
 import { ServiceProduct, ServiceProductCreateRequest } from '../../models/service';
 import { ServiceProductService } from '../../services/api/service';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
@@ -51,16 +52,6 @@ struct AdminServicesPage {
     return undefined;
   }
 
-  private parseProducts(data: ServiceProduct[] | PageResponse<ServiceProduct>): ServiceProduct[] {
-    const result: ServiceProduct[] = [];
-    const pageData = data as PageResponse<ServiceProduct>;
-    const sourceList: ServiceProduct[] = pageData.list !== undefined ? pageData.list : data as ServiceProduct[];
-    for (let i = 0; i < sourceList.length; i++) {
-      result.push(sourceList[i]);
-    }
-    return result;
-  }
-
   async loadProducts() {
     this.isLoading = true;
     this.errorMessage = '';
@@ -73,7 +64,7 @@ struct AdminServicesPage {
       });
 
       if (response.code === 0 && response.data) {
-        this.products = this.parseProducts(response.data as ServiceProduct[] | PageResponse<ServiceProduct>);
+        this.products = response.data;
       } else {
         this.products = [];
         this.errorMessage = response.message ? response.message : '服务产品加载失败';
@@ -163,48 +154,6 @@ struct AdminServicesPage {
     return `${ratio}%`;
   }
 
-  private getServiceTypeText(serviceType: string): string {
-    if (serviceType === 'NOON_CARE') {
-      return '午间托管';
-    }
-    if (serviceType === 'AFTER_SCHOOL_CARE' || serviceType === 'AFTER_SCHOOL') {
-      return '课后托管';
-    }
-    if (serviceType === 'HOLIDAY') {
-      return '假期托管';
-    }
-    if (serviceType === 'PICKUP') {
-      return '接送服务';
-    }
-    return serviceType;
-  }
-
-  private getStatusText(status: string): string {
-    if (status === 'ACTIVE') {
-      return '启用中';
-    }
-    if (status === 'INACTIVE') {
-      return '已停用';
-    }
-    if (status === 'FULL') {
-      return '已满员';
-    }
-    return status;
-  }
-
-  private getStatusColor(status: string): string {
-    if (status === 'ACTIVE') {
-      return '#2F9E77';
-    }
-    if (status === 'INACTIVE') {
-      return '#7A879A';
-    }
-    if (status === 'FULL') {
-      return '#D97706';
-    }
-    return '#526F95';
-  }
-
   build() {
     Column() {
       PageHeader({
@@ -222,18 +171,9 @@ struct AdminServicesPage {
           message: '正在加载服务产品...'
         })
       } else {
-        Scroll() {
-          Column() {
-            this.buildOverviewPanel()
-            this.buildFilterPanel()
-            this.buildProductList()
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+        this.buildOverviewPanel()
+        this.buildFilterPanel()
+        this.buildProductList()
       }
     }
     .width('100%')
@@ -245,9 +185,9 @@ struct AdminServicesPage {
   private buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_add'),
-      iconColor: Color.White,
-      boxBgColor: '#FFFFFF1F',
-      boxBorderColor: '#FFFFFF29',
+      iconColor: HarmonyColor.textInverse,
+      boxBgColor: HarmonyColor.overlayInverseSoft,
+      boxBorderColor: HarmonyColor.overlayInverseBorder,
       boxSize: 42,
       iconSize: 22,
       onButtonClick: () => {
@@ -269,7 +209,7 @@ struct AdminServicesPage {
           value: this.products.length,
           label: '当前服务数',
           icon: $r('app.media.ic_service'),
-          iconColor: '#526F95'
+          iconColor: HarmonyReport.accent
         })
         .layoutWeight(1)
 
@@ -277,7 +217,7 @@ struct AdminServicesPage {
           value: this.countByStatus('ACTIVE'),
           label: '启用中',
           icon: $r('app.media.ic_success'),
-          iconColor: '#2F9E77'
+          iconColor: HarmonyReport.positive
         })
         .layoutWeight(1)
         .margin({ left: 12, right: 12 })
@@ -286,13 +226,14 @@ struct AdminServicesPage {
           value: this.getUtilizationText(),
           label: '容量使用率',
           icon: $r('app.media.ic_report'),
-          iconColor: '#D97706'
+          iconColor: HarmonyReport.caution
         })
         .layoutWeight(1)
       }
       .width('100%')
     }
     .width('100%')
+    .padding({ left: 16, right: 16, top: 16 })
   }
 
   @Builder
@@ -302,6 +243,7 @@ struct AdminServicesPage {
       subtitle: '按服务状态切换当前产品池，快速定位启用、停用和满员服务。',
       content: this.buildFilterContent
     })
+    .margin({ left: 16, right: 16, top: 14 })
   }
 
   @Builder
@@ -328,104 +270,31 @@ struct AdminServicesPage {
         EmptyState({
           type: EmptyType.DEFAULT,
           customTitle: '暂无服务产品',
-          customDescription: this.errorMessage ? this.errorMessage : '可以先创建一个模板服务，把服务台账补起来。',
+          customDescription: this.errorMessage ? this.errorMessage : '可以先创建一个模板服务，把服务台账补齐起来。',
           actionText: '快速创建',
           onAction: () => {
             this.createQuickProduct();
           }
         })
       } else {
-        Column() {
+        List({ space: 12 }) {
           ForEach(this.products, (product: ServiceProduct) => {
-            this.buildProductItem(product);
-          })
+            ListItem() {
+              ServiceProductCard({
+                service: product,
+                showActions: false
+              })
+            }
+          }, (product: ServiceProduct) => `${product.id}`)
         }
         .width('100%')
+        .divider({ strokeWidth: 0 })
+        .scrollBar(BarState.Off)
+        .cachedCount(6)
+        .padding({ left: 16, right: 16, bottom: 24, top: 12 })
       }
     }
     .width('100%')
-  }
-
-  @Builder
-  private buildProductItem(product: ServiceProduct) {
-    Column() {
-      Row() {
-        Column() {
-          Text(product.serviceName)
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(`${this.getServiceTypeText(product.serviceType)} · ${product.gradeRange ? product.gradeRange : '全年级'}`)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Text(this.getStatusText(product.status))
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.getStatusColor(product.status))
-      }
-      .width('100%')
-
-      Text(product.description ? product.description : '暂无服务说明')
-        .width('100%')
-        .fontSize(13)
-        .lineHeight(20)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 12 })
-
-      Row() {
-        this.buildMetricColumn('价格', `¥${Number(product.price).toFixed(0)}`)
-        this.buildMetricColumn('已报名', `${Number(product.currentStudents ?? 0)}`)
-        this.buildMetricColumn('总容量', `${Number(product.capacity ?? product.maxStudents ?? 0)}`)
-      }
-      .width('100%')
-      .margin({ top: 14 })
-
-      Text(`服务周期：${product.serviceStartDate ? product.serviceStartDate : '--'} 至 ${product.serviceEndDate ? product.serviceEndDate : '--'}`)
-        .width('100%')
-        .fontSize(12)
-        .fontColor($r('app.color.text_tertiary'))
-        .margin({ top: 12 })
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .margin({ bottom: 12 })
-  }
-
-  @Builder
-  private buildMetricColumn(label: string, value: string) {
-    Column() {
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
     .layoutWeight(1)
-    .alignItems(HorizontalAlign.Start)
   }
 }
-

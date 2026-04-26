@@ -21,6 +21,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class CardService {
+  static readonly AGC_DOMAIN: string = 'card';
+  static readonly AGC_FUNCTION: string = 'smartguardian-card';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.CARDS;
+
   /**
    * Get today status card data
    *

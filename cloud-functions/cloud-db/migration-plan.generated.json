@@ -1,0 +1,1108 @@
+{
+  "generatedAt": "2026-04-26T10:02:36.333Z",
+  "database": "smartguardian-cloud-db",
+  "collectionCount": 32,
+  "collections": [
+    {
+      "name": "daily_reports",
+      "primaryKey": "id",
+      "description": "Pre-aggregated attendance, finance and operations report data",
+      "dependencies": [],
+      "indexes": [
+        "reportDate",
+        "reportType",
+        "orgId"
+      ],
+      "unique": [],
+      "foreignKeys": [],
+      "requiredFields": [
+        "id",
+        "reportDate",
+        "reportType",
+        "orgId",
+        "payload",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "form_cards",
+      "primaryKey": "id",
+      "description": "Workbench cards and widget payload cache",
+      "dependencies": [],
+      "indexes": [
+        "cardType",
+        "targetRole",
+        "studentId"
+      ],
+      "unique": [],
+      "foreignKeys": [],
+      "requiredFields": [
+        "id",
+        "cardType",
+        "targetRole",
+        "payload",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "organizations",
+      "primaryKey": "id",
+      "description": "Trusteeship institutions, campuses and classes",
+      "dependencies": [],
+      "indexes": [
+        "status"
+      ],
+      "unique": [
+        [
+          "orgCode"
+        ]
+      ],
+      "foreignKeys": [],
+      "requiredFields": [
+        "id",
+        "orgCode",
+        "orgName",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "report_snapshots",
+      "primaryKey": "id",
+      "description": "Saved report query snapshots",
+      "dependencies": [],
+      "indexes": [
+        "reportType",
+        "orgId",
+        "generatedAt"
+      ],
+      "unique": [],
+      "foreignKeys": [],
+      "requiredFields": [
+        "id",
+        "reportType",
+        "orgId",
+        "payload",
+        "generatedAt",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "service_products",
+      "primaryKey": "id",
+      "description": "Trusteeship service products and pricing plans",
+      "dependencies": [
+        "organizations"
+      ],
+      "indexes": [
+        "serviceType",
+        "status",
+        "orgId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "serviceName",
+        "serviceType",
+        "price",
+        "status",
+        "orgId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "users",
+      "primaryKey": "id",
+      "description": "Unified account identity for parent, teacher and admin users",
+      "dependencies": [
+        "organizations"
+      ],
+      "indexes": [
+        "roleType",
+        "orgId",
+        "status"
+      ],
+      "unique": [
+        [
+          "username"
+        ],
+        [
+          "mobile"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "username",
+        "password",
+        "realName",
+        "mobile",
+        "roleType",
+        "orgId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 4
+    },
+    {
+      "name": "guardians",
+      "primaryKey": "id",
+      "description": "Guardian profiles",
+      "dependencies": [
+        "users",
+        "organizations"
+      ],
+      "indexes": [
+        "orgId",
+        "mobile"
+      ],
+      "unique": [
+        [
+          "userId"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        },
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "userId",
+        "realName",
+        "mobile",
+        "orgId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "messages",
+      "primaryKey": "id",
+      "description": "Notification and in-app message content",
+      "dependencies": [
+        "users"
+      ],
+      "indexes": [
+        "userId",
+        "msgType",
+        "readStatus",
+        "createdAt"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "userId",
+        "msgType",
+        "title",
+        "content",
+        "readStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 5
+    },
+    {
+      "name": "message_receipts",
+      "primaryKey": "id",
+      "description": "Read receipts for messages",
+      "dependencies": [
+        "messages",
+        "users"
+      ],
+      "indexes": [
+        "messageId",
+        "receiverUserId",
+        "readStatus"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "messageId",
+          "collection": "messages",
+          "refField": "id"
+        },
+        {
+          "field": "receiverUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "messageId",
+        "receiverUserId",
+        "readStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "sessions",
+      "primaryKey": "id",
+      "description": "Session schedule and roster metadata",
+      "dependencies": [
+        "service_products",
+        "users"
+      ],
+      "indexes": [
+        "sessionDate",
+        "serviceProductId",
+        "teacherUserId",
+        "status"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        },
+        {
+          "field": "teacherUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "sessionDate",
+        "startTime",
+        "endTime",
+        "serviceProductId",
+        "currentCount",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "session_teachers",
+      "primaryKey": "id",
+      "description": "Session to teacher assignment relation",
+      "dependencies": [
+        "sessions",
+        "users"
+      ],
+      "indexes": [
+        "sessionId",
+        "teacherUserId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        },
+        {
+          "field": "teacherUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "sessionId",
+        "teacherUserId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "students",
+      "primaryKey": "id",
+      "description": "Student core profile",
+      "dependencies": [
+        "users",
+        "organizations"
+      ],
+      "indexes": [
+        "schoolId",
+        "guardianUserId",
+        "orgId",
+        "status",
+        "classId"
+      ],
+      "unique": [
+        [
+          "studentNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "guardianUserId",
+          "collection": "users",
+          "refField": "id"
+        },
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentNo",
+        "name",
+        "schoolId",
+        "guardianUserId",
+        "orgId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "alerts",
+      "primaryKey": "id",
+      "description": "Abnormal alert records",
+      "dependencies": [
+        "students"
+      ],
+      "indexes": [
+        "studentId",
+        "alertType",
+        "severity",
+        "status",
+        "createdAt"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "studentName",
+        "alertType",
+        "severity",
+        "title",
+        "description",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "alert_actions",
+      "primaryKey": "id",
+      "description": "Acknowledge, resolve and dismiss audit trail",
+      "dependencies": [
+        "alerts",
+        "users"
+      ],
+      "indexes": [
+        "alertId",
+        "actionType",
+        "operatorId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "alertId",
+          "collection": "alerts",
+          "refField": "id"
+        },
+        {
+          "field": "operatorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "alertId",
+        "actionType",
+        "operatorId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "attendance_records",
+      "primaryKey": "id",
+      "description": "Student sign-in and sign-out records",
+      "dependencies": [
+        "students",
+        "sessions"
+      ],
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "attendanceDate",
+        "status",
+        "abnormalFlag"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "sessionId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "homework_tasks",
+      "primaryKey": "id",
+      "description": "Homework tasks created by teachers or institution staff",
+      "dependencies": [
+        "students",
+        "sessions"
+      ],
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "taskDate",
+        "status"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "taskDate",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "homework_feedback",
+      "primaryKey": "id",
+      "description": "Homework feedback, comments and confirmations",
+      "dependencies": [
+        "homework_tasks"
+      ],
+      "indexes": [
+        "taskId",
+        "studentId",
+        "status"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "taskId",
+          "collection": "homework_tasks",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "taskId",
+        "feedbackContent",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "leave_requests",
+      "primaryKey": "id",
+      "description": "Leave applications and approvals",
+      "dependencies": [
+        "students"
+      ],
+      "indexes": [
+        "studentId",
+        "leaveDate",
+        "status"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "leaveDate",
+        "leaveType",
+        "reason",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "orders",
+      "primaryKey": "id",
+      "description": "Order header data",
+      "dependencies": [
+        "students",
+        "service_products"
+      ],
+      "indexes": [
+        "studentId",
+        "serviceProductId",
+        "orderStatus",
+        "payStatus",
+        "createdAt"
+      ],
+      "unique": [
+        [
+          "orderNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "orderNo",
+        "studentId",
+        "serviceProductId",
+        "orderStatus",
+        "amount",
+        "paidAmount",
+        "payStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "order_audits",
+      "primaryKey": "id",
+      "description": "Order audit trail",
+      "dependencies": [
+        "orders",
+        "users"
+      ],
+      "indexes": [
+        "orderId",
+        "auditorId",
+        "auditStatus"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "auditorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "orderId",
+        "auditStatus",
+        "auditorId",
+        "auditRemark",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "order_items",
+      "primaryKey": "id",
+      "description": "Order product lines",
+      "dependencies": [
+        "orders",
+        "service_products"
+      ],
+      "indexes": [
+        "orderId",
+        "serviceProductId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "orderId",
+        "serviceProductId",
+        "quantity",
+        "unitPrice",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "payments",
+      "primaryKey": "id",
+      "description": "Payment orders and settlement state",
+      "dependencies": [
+        "orders"
+      ],
+      "indexes": [
+        "orderId",
+        "payStatus",
+        "payChannel",
+        "createdAt"
+      ],
+      "unique": [
+        [
+          "paymentNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "orderId",
+        "paymentNo",
+        "payChannel",
+        "payAmount",
+        "payStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "payment_callbacks",
+      "primaryKey": "id",
+      "description": "Third-party or gateway payment callback records",
+      "dependencies": [
+        "payments"
+      ],
+      "indexes": [
+        "paymentId",
+        "tradeStatus",
+        "createdAt"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "paymentId",
+          "collection": "payments",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "paymentId",
+        "paymentNo",
+        "tradeStatus",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "refunds",
+      "primaryKey": "id",
+      "description": "Refund applications and decisions",
+      "dependencies": [
+        "orders",
+        "students"
+      ],
+      "indexes": [
+        "orderId",
+        "studentId",
+        "status",
+        "createdAt"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "orderNo",
+        "orderId",
+        "studentId",
+        "studentName",
+        "serviceProductId",
+        "serviceName",
+        "refundAmount",
+        "reason",
+        "reasonType",
+        "status",
+        "appliedAt",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 2
+    },
+    {
+      "name": "refund_audits",
+      "primaryKey": "id",
+      "description": "Refund audit trail",
+      "dependencies": [
+        "refunds",
+        "users"
+      ],
+      "indexes": [
+        "refundId",
+        "auditStatus",
+        "auditorId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "refundId",
+          "collection": "refunds",
+          "refField": "id"
+        },
+        {
+          "field": "auditorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "refundId",
+        "auditStatus",
+        "auditorId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 1
+    },
+    {
+      "name": "session_students",
+      "primaryKey": "id",
+      "description": "Session to student roster relation",
+      "dependencies": [
+        "sessions",
+        "students"
+      ],
+      "indexes": [
+        "sessionId",
+        "studentId"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        },
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "sessionId",
+        "studentId",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "student_guardians",
+      "primaryKey": "id",
+      "description": "Student and guardian relation mapping",
+      "dependencies": [
+        "students",
+        "users"
+      ],
+      "indexes": [
+        "studentId",
+        "userId",
+        "relation"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "userId",
+        "relation",
+        "isPrimary",
+        "authorizedPickup",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "student_timelines",
+      "primaryKey": "id",
+      "description": "Student activity timeline feed",
+      "dependencies": [
+        "students"
+      ],
+      "indexes": [
+        "studentId",
+        "timelineType",
+        "timestamp"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "studentId",
+        "timelineType",
+        "title",
+        "content",
+        "timestamp",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 4
+    },
+    {
+      "name": "user_profiles",
+      "primaryKey": "id",
+      "description": "Display profile, avatar and role extension fields",
+      "dependencies": [
+        "users"
+      ],
+      "indexes": [
+        "userId"
+      ],
+      "unique": [
+        [
+          "userId"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "userId",
+        "displayName",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "user_roles",
+      "primaryKey": "id",
+      "description": "Role binding and permission scope",
+      "dependencies": [
+        "users"
+      ],
+      "indexes": [
+        "userId",
+        "roleType"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "userId",
+        "roleType",
+        "scope",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    },
+    {
+      "name": "user_sessions",
+      "primaryKey": "id",
+      "description": "Login session and token state",
+      "dependencies": [
+        "users"
+      ],
+      "indexes": [
+        "userId",
+        "sessionStatus",
+        "expireAt",
+        "deviceId",
+        "notificationProvider"
+      ],
+      "unique": [
+        [
+          "token"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "requiredFields": [
+        "id",
+        "userId",
+        "token",
+        "sessionStatus",
+        "expireAt",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 0
+    },
+    {
+      "name": "workbench_manifests",
+      "primaryKey": "id",
+      "description": "Role-based workbench capability manifests",
+      "dependencies": [],
+      "indexes": [
+        "roleType",
+        "version",
+        "status"
+      ],
+      "unique": [],
+      "foreignKeys": [],
+      "requiredFields": [
+        "id",
+        "roleType",
+        "version",
+        "status",
+        "payload",
+        "createdAt",
+        "updatedAt"
+      ],
+      "seedCount": 3
+    }
+  ],
+  "manualSteps": [
+    "Export and import AGC Cloud DB object types from AppGallery Connect Console before first remote seed.",
+    "Ensure indexes and relationships in Console match cloud-functions/cloud-db/schema.json.",
+    "Set SMARTGUARDIAN_CLOUD_DB_PROVIDER=agc, AGC_CONFIG and AGC_CLOUD_DB_ZONE before running the seed import script."
+  ],
+  "validation": {
+    "errors": [],
+    "warnings": []
+  }
+}

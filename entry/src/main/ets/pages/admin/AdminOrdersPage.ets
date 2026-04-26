@@ -13,7 +13,10 @@ import { ErrorMessages } from '../../constants/ErrorMessages';
 import { OrderQueryParams } from '../../models/common';
 // Common Components
 import {
-  Card,
+  AdminOrderAuditSheet,
+  AdminOrdersControlCard,
+  AdminOrdersOverviewCard,
+  AdminOrdersSummaryCard,
   EmptyState,
   EmptyType,
   ErrorBanner,
@@ -25,14 +28,26 @@ import {
   OrderListItem,
   PageHeader,
   SectionHeader,
-  StatCard,
   TabBar
 } from '../../components/common';
 import { OrderBadge } from '../../components/StatusBadge';
 import { StatusMappingHelper } from '../../constants/StatusMapping';
+import { HarmonyColor } from '../../common/HarmonyDesign';
+
+@Entry
+@Component
+struct AdminOrdersPage {
+  build() {
+    Stack() {
+      AdminOrdersPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
 
 @Component
-export struct AdminOrdersPage {
+export struct AdminOrdersPageContent {
   @State orders: Order[] = [];
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
@@ -158,35 +173,31 @@ export struct AdminOrdersPage {
         rightContent: this.buildHeaderAction
       })
 
-      Scroll() {
-        Column() {
-          this.buildOverviewPanel()
-          this.buildTabSection()
+      Column() {
+        this.buildOverviewPanel()
+        this.buildTabSection()
 
-          if (this.errorMessage) {
-            ErrorBanner({
-              message: this.errorMessage,
-              onDismiss: () => {
-                this.errorMessage = '';
-              }
-            })
-          }
-
-          this.buildContent()
+        if (this.errorMessage) {
+          ErrorBanner({
+            message: this.errorMessage,
+            onDismiss: () => {
+              this.errorMessage = '';
+            }
+          })
         }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+
+        this.buildContent()
       }
       .width('100%')
       .layoutWeight(1)
-      .scrollBar(BarState.Off)
+      .padding({ left: 16, right: 16, top: 16, bottom: 24 })
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .bindSheet($$this.showAuditDialog, this.buildAuditDialog(), {
       height: 360,
-      backgroundColor: Color.White,
+      backgroundColor: HarmonyColor.surface,
       dragBar: true
     })
   }
@@ -195,9 +206,9 @@ export struct AdminOrdersPage {
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: Color.White,
-      boxBgColor: '#FFFFFF1F',
-      boxBorderColor: '#FFFFFF29',
+      iconColor: HarmonyColor.textInverse,
+      boxBgColor: HarmonyColor.overlayInverseSoft,
+      boxBorderColor: HarmonyColor.overlayInverseBorder,
       onButtonClick: (): void => {
         this.loadOrders();
       }
@@ -206,141 +217,30 @@ export struct AdminOrdersPage {
 
   @Builder
   buildOverviewPanel() {
-    Column() {
-      Card({
-        title: this.getCurrentModeTitle(),
-        subtitle: this.getCurrentModeHint(),
-        customPadding: 18,
-        content: this.buildOverviewHeroContent
-      })
-
-      Row() {
-        StatCard({
-          value: this.getVisibleOrderCount(),
-          label: '当前列表',
-          icon: $r('app.media.ic_order'),
-          iconColor: '#526F95'
-        })
-        .layoutWeight(1)
-
-        StatCard({
-          value: this.getPendingAuditCount(),
-          label: '待审核',
-          icon: $r('app.media.ic_warning'),
-          iconColor: '#D97706'
-        })
-        .layoutWeight(1)
-        .margin({ left: 12 })
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Top)
-
-      Row() {
-        StatCard({
-          value: this.getApprovedCount(),
-          label: '已审核',
-          icon: $r('app.media.ic_success'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-
-        StatCard({
-          value: this.getAverageAmount(),
-          label: '平均金额',
-          icon: $r('app.media.ic_money'),
-          iconColor: '#6E5BAA'
-        })
-        .layoutWeight(1)
-        .margin({ left: 12 })
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Top)
-      .margin({ top: 12 })
-    }
-    .width('100%')
-    .margin({ bottom: 12 })
-  }
-
-  @Builder
-  buildOverviewHeroContent() {
-    Row() {
-      Column() {
-        Text(this.getCurrentModeAccent())
-          .fontSize(11)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F6F0E9')
-          .borderRadius(999)
-
-        Text(this.getAmountTotalText())
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 14 })
-
-        Text('当前筛选范围内的订单金额总量')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Column() {
-        this.buildMiniMetric('待处理', `${this.getPendingAuditCount()}`, '#D97706')
-        this.buildMiniMetric('已完成', `${this.getApprovedCount()}`, '#2F9E77')
-      }
-      .width(112)
-    }
-    .width('100%')
+    AdminOrdersOverviewCard({
+      title: this.getCurrentModeTitle(),
+      subtitle: this.getCurrentModeHint(),
+      accent: this.getCurrentModeAccent(),
+      totalAmountText: this.getAmountTotalText(),
+      pendingCount: this.getPendingAuditCount(),
+      approvedCount: this.getApprovedCount(),
+      visibleCount: this.getVisibleOrderCount(),
+      averageAmount: this.getAverageAmount()
+    })
+      .margin({ bottom: 12 })
   }
 
   @Builder
   buildTabSection() {
-    Column() {
-      SectionHeader({
-        title: '审核控制台',
-        subtitle: '先锁定审核范围，再进入订单流逐条处理'
-      })
-
-      Card({
-        customPadding: 12,
-        content: this.buildTabSectionContent
-      })
-    }
-  }
-
-  @Builder
-  buildTabSectionContent() {
-    Column() {
-      Row() {
-        Text(this.getCurrentModeTitle())
-          .fontSize($r('app.float.card_title_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-
-        Blank().layoutWeight(1)
-
-        Text('实时同步')
-          .fontSize(11)
-          .fontColor('#2F9B52')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#ECFDF5')
-          .borderRadius(999)
+    AdminOrdersControlCard({
+      tabs: this.tabs,
+      currentTab: this.currentTab,
+      title: this.getCurrentModeTitle(),
+      onTabChange: (index: number) => {
+        this.currentTab = index;
+        this.loadOrders();
       }
-      .width('100%')
-      .margin({ bottom: 12 })
-
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: this.currentTab,
-        onTabChange: (index: number) => {
-          this.currentTab = index;
-          this.loadOrders();
-        }
-      })
-    }
+    })
   }
 
   @Builder
@@ -369,49 +269,44 @@ export struct AdminOrdersPage {
         subtitle: `当前共 ${this.orders.length} 条订单记录`
       })
 
-      Card({
-        customPadding: 14,
-        customBgColor: '#F8FBFF',
-        content: this.buildStreamSummary
+      AdminOrdersSummaryCard({
+        modeLabel: this.tabs[this.currentTab],
+        orderCount: this.orders.length,
+        totalAmountText: this.getAmountTotalText()
       })
 
-      Scroll() {
-        Column() {
-          ForEach(this.orders, (order: Order) => {
-            OrderListItem({
-              order: order,
-              mode: OrderItemMode.DETAIL,
-              onItemClick: () => {},
-              onApprove: () => {
-                this.selectedOrder = order;
-                this.auditRemark = '审核通过';
-                this.handleAudit('APPROVED');
-              },
-              onReject: () => {
-                this.openRejectDialog(order);
-              }
-            })
-          })
-        }
-        .width('100%')
+      List({ space: 12 }) {
+        ForEach(this.orders, (order: Order) => {
+          ListItem() {
+            this.buildOrderListItem(order)
+          }
+        }, (order: Order) => `${order.id}`)
       }
       .width('100%')
       .layoutWeight(1)
+      .padding({ top: 12, bottom: 12 })
+      .divider({ strokeWidth: 0 })
       .scrollBar(BarState.Off)
+      .cachedCount(6)
     }
     .width('100%')
   }
 
   @Builder
-  buildStreamSummary() {
-    Row() {
-      this.buildMiniMetric('模式', this.tabs[this.currentTab], '#526F95')
-      Blank().width(10)
-      this.buildMiniMetric('订单量', `${this.orders.length}`, '#10203A')
-      Blank().width(10)
-      this.buildMiniMetric('总金额', this.getAmountTotalText(), '#2F9E77')
-    }
-    .width('100%')
+  private buildOrderListItem(order: Order) {
+    OrderListItem({
+      order: order,
+      mode: OrderItemMode.DETAIL,
+      onItemClick: () => {},
+      onApprove: () => {
+        this.selectedOrder = order;
+        this.auditRemark = '审核通过';
+        this.handleAudit('APPROVED');
+      },
+      onReject: () => {
+        this.openRejectDialog(order);
+      }
+    })
   }
 
   @Builder
@@ -429,80 +324,26 @@ export struct AdminOrdersPage {
     }
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(16)
     .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
   buildAuditDialog() {
-    Column() {
-      Text('拒绝订单')
-        .fontSize($r('app.float.card_title_size'))
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ top: 8, bottom: 16 })
-
-      if (this.selectedOrder) {
-        Column() {
-          Text(`订单号：${this.selectedOrder.orderNo}`)
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_secondary'))
-            .width('100%')
-
-          Text(`学生：${this.selectedOrder.studentName || '-'}`)
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor($r('app.color.text_secondary'))
-            .width('100%')
-            .margin({ top: 8 })
-        }
-        .width('100%')
+    AdminOrderAuditSheet({
+      selectedOrder: this.selectedOrder,
+      auditRemark: this.auditRemark,
+      onRemarkChange: (value: string) => {
+        this.auditRemark = value;
+      },
+      onCancel: () => {
+        this.closeAuditDialog();
+      },
+      onConfirmReject: () => {
+        this.handleAudit('REJECTED');
       }
-
-      TextArea({
-        placeholder: '请输入拒绝原因',
-        text: this.auditRemark
-      })
-        .width('100%')
-        .height(120)
-        .fontSize($r('app.float.text_primary_size'))
-        .backgroundColor($r('app.color.page_background'))
-        .borderRadius($r('app.float.button_radius'))
-        .margin({ top: 16 })
-        .onChange((value: string) => {
-          this.auditRemark = value;
-        })
-
-      Row() {
-        Button('取消')
-          .layoutWeight(1)
-          .height(44)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor($r('app.color.text_primary'))
-          .backgroundColor('#F5F5F5')
-          .borderRadius(22)
-          .onClick(() => {
-            this.closeAuditDialog();
-          })
-
-        Button('确认拒绝')
-          .layoutWeight(1)
-          .height(44)
-          .fontSize($r('app.float.text_primary_size'))
-          .fontColor(Color.White)
-          .backgroundColor('#F44336')
-          .borderRadius(22)
-          .margin({ left: 12 })
-          .enabled(this.auditRemark?.trim().length > 0)
-          .onClick(() => {
-            this.handleAudit('REJECTED');
-          })
-      }
-      .width('100%')
-      .margin({ top: 20 })
-    }
-    .width('100%')
-    .padding(20)
+    })
   }
 
   private getVisibleOrderCount(): number {

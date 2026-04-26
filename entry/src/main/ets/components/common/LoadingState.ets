@@ -1,148 +1,140 @@
-/**
- * SmartGuardian - Loading State Component
- * Unified loading state display
- * 
- * @description 统一加载状态组件，支持全屏和局部加载
- * @features
- * - 全屏加载
- * - 局部加载
- * - 自定义加载文案
- * - 骨架屏支持
- */
+import { harmonyShadowColor } from '../../common/HarmonyDesign';
 
-/**
- * Loading Size
- */
 export enum LoadingSize {
-  /** 小尺寸 */
   SMALL = 'SMALL',
-  /** 默认尺寸 */
   DEFAULT = 'DEFAULT',
-  /** 大尺寸 */
   LARGE = 'LARGE'
 }
 
-/**
- * Loading State Component
- * @description 加载状态组件
- * @example
- * ```typescript
- * if (this.isLoading) {
- *   LoadingState({ size: LoadingSize.LARGE })
- * }
- * ```
- */
 @Component
 export struct LoadingState {
-  /** 加载尺寸 */
   @Prop loadingSize: LoadingSize = LoadingSize.DEFAULT;
-  /** 加载文案 */
   @Prop message: string = '';
-  /** 是否全屏 */
   @Prop fullscreen: boolean = false;
-  /** 进度（0-100，用于进度条模式） */
-  @Prop progress?: number;
+  @Prop progress: number = -1;
 
   build() {
     if (this.fullscreen) {
-      this.buildFullscreenLoading()
+      Column() {
+        this.buildLoadingContent()
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor($r('app.color.page_background'))
     } else {
-      this.buildInlineLoading()
+      Column() {
+        this.buildLoadingContent()
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Center)
+      .padding(24)
     }
   }
 
   @Builder
-  buildFullscreenLoading() {
+  private buildLoadingContent() {
     Column() {
-      this.buildLoadingContent()
-    }
-    .width('100%')
-    .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor($r('app.color.page_background'))
-  }
-
-  @Builder
-  buildInlineLoading() {
-    Column() {
-      this.buildLoadingContent()
-    }
-    .width('100%')
-    .justifyContent(FlexAlign.Center)
-    .padding(32)
-  }
-
-  @Builder
-  buildLoadingContent() {
-    Column() {
-      // 进度条模式
-      if (this.progress !== undefined) {
-        this.buildProgressLoading()
+      if (this.progress >= 0) {
+        this.buildProgressMode()
       } else {
-        // 普通加载动画
-        this.buildSpinnerLoading()
+        this.buildSpinnerMode()
       }
     }
+    .width('100%')
     .alignItems(HorizontalAlign.Center)
   }
 
   @Builder
-  buildSpinnerLoading() {
-    LoadingProgress()
-      .color($r('app.color.primary'))
-      .width(this.getSpinnerSize())
-      .height(this.getSpinnerSize())
+  private buildSpinnerMode() {
+    Column() {
+      LoadingProgress()
+        .color($r('app.color.primary'))
+        .width(this.getSpinnerSize())
+        .height(this.getSpinnerSize())
+    }
+    .width(this.getSpinnerShellSize())
+    .height(this.getSpinnerShellSize())
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(24)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 24,
+      style: BorderStyle.Solid
+    })
+    .shadow({
+      radius: 14,
+      color: harmonyShadowColor(),
+      offsetX: 0,
+      offsetY: 6
+    })
 
     if (this.message) {
       Text(this.message)
-        .fontSize($r('app.float.text_secondary_size'))
+        .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 16 })
+        .margin({ top: 14 })
     }
   }
 
   @Builder
-  buildProgressLoading() {
+  private buildProgressMode() {
     Column() {
       Progress({
-        value: this.progress || 0,
+        value: this.progress >= 0 ? this.progress : 0,
         total: 100,
         type: ProgressType.Linear
       })
-        .width(200)
+        .width(220)
         .color($r('app.color.primary'))
 
-      Text(`${this.progress || 0}%`)
-        .fontSize($r('app.float.text_secondary_size'))
+      Text(`${this.progress >= 0 ? this.progress : 0}%`)
+        .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
 
       if (this.message) {
         Text(this.message)
-          .fontSize($r('app.float.text_secondary_size'))
+          .fontSize(12)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 8 })
       }
     }
     .alignItems(HorizontalAlign.Center)
+    .padding(20)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(24)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 24,
+      style: BorderStyle.Solid
+    })
   }
 
   private getSpinnerSize(): number {
-    switch (this.loadingSize) {
-      case LoadingSize.SMALL:
-        return 24;
-      case LoadingSize.LARGE:
-        return 56;
-      default:
-        return 40;
+    if (this.loadingSize === LoadingSize.SMALL) {
+      return 24;
     }
+    if (this.loadingSize === LoadingSize.LARGE) {
+      return 56;
+    }
+    return 40;
+  }
+
+  private getSpinnerShellSize(): number {
+    if (this.loadingSize === LoadingSize.SMALL) {
+      return 72;
+    }
+    if (this.loadingSize === LoadingSize.LARGE) {
+      return 104;
+    }
+    return 88;
   }
 }
 
-/**
- * Simple Loading Spinner
- * @description 简化版加载动画
- */
 @Component
 export struct LoadingSpinner {
   @Prop spinnerColor: ResourceColor = $r('app.color.primary');
@@ -156,56 +148,45 @@ export struct LoadingSpinner {
   }
 }
 
-/**
- * Skeleton Loading
- * @description 骨架屏加载组件
- */
 @Component
 export struct SkeletonLoading {
-  /** 行数 */
   @Prop rows: number = 3;
-  /** 是否显示头像 */
   @Prop showAvatar: boolean = false;
-  /** 是否显示标题 */
   @Prop showTitle: boolean = true;
 
   build() {
     Column() {
-      // 标题骨架
       if (this.showTitle) {
         Row()
           .width('40%')
           .height(20)
-          .backgroundColor('#EFE5D4')
+          .backgroundColor($r('app.color.card_background_soft'))
           .borderRadius(4)
           .margin({ bottom: 16 })
       }
 
-      // 内容行骨架
       ForEach(Array.from({ length: this.rows }), (_: Record<string, number>, index: number) => {
         Row() {
-          // 头像骨架
           if (this.showAvatar) {
             Column()
               .width(48)
               .height(48)
-              .backgroundColor('#EFE5D4')
+              .backgroundColor($r('app.color.card_background_soft'))
               .borderRadius(24)
               .margin({ right: 12 })
           }
 
-          // 文本骨架
           Column() {
             Row()
               .width('100%')
               .height(16)
-              .backgroundColor('#EFE5D4')
+              .backgroundColor($r('app.color.card_background_soft'))
               .borderRadius(4)
 
             Row()
               .width('60%')
               .height(16)
-              .backgroundColor('#EFE5D4')
+              .backgroundColor($r('app.color.card_background_soft'))
               .borderRadius(4)
               .margin({ top: 8 })
           }
@@ -220,33 +201,28 @@ export struct SkeletonLoading {
   }
 }
 
-/**
- * Card Skeleton
- * @description 卡片骨架屏
- */
 @Component
 export struct CardSkeleton {
   build() {
     Column() {
-      // 卡片头部
       Row() {
         Column()
           .width(40)
           .height(40)
-          .backgroundColor('#EFE5D4')
+          .backgroundColor($r('app.color.card_background_soft'))
           .borderRadius(8)
 
         Column() {
           Row()
             .width(100)
             .height(16)
-            .backgroundColor('#EFE5D4')
+            .backgroundColor($r('app.color.card_background_soft'))
             .borderRadius(4)
 
           Row()
             .width(60)
             .height(12)
-            .backgroundColor('#EFE5D4')
+            .backgroundColor($r('app.color.card_background_soft'))
             .borderRadius(4)
             .margin({ top: 6 })
         }
@@ -255,18 +231,17 @@ export struct CardSkeleton {
       }
       .width('100%')
 
-      // 卡片内容
       Column() {
         Row()
           .width('100%')
           .height(14)
-          .backgroundColor('#E5E7EB')
+          .backgroundColor($r('app.color.card_background_muted'))
           .borderRadius(4)
 
         Row()
           .width('80%')
           .height(14)
-          .backgroundColor('#E5E7EB')
+          .backgroundColor($r('app.color.card_background_muted'))
           .borderRadius(4)
           .margin({ top: 8 })
       }
@@ -275,7 +250,7 @@ export struct CardSkeleton {
     }
     .width('100%')
     .padding(16)
-        .backgroundColor($r('app.color.card_background'))
+    .backgroundColor($r('app.color.card_background'))
     .borderRadius($r('app.float.card_border_radius'))
   }
 }

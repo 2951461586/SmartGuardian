@@ -1,93 +1,59 @@
-/**
- * SmartGuardian - Error State Component
- * Unified error state display with retry action
- * 
- * @description 统一错误状态组件，支持重试操作
- * @features
- * - 网络错误
- * - 业务错误
- * - 自定义错误
- * - 重试按钮
- */
+import { HarmonyColor } from '../../common/HarmonyDesign';
 
-import { ErrorType } from '../../utils/ErrorHandlerUtil';
-
-/**
- * Error State Type
- */
 export enum ErrorStateType {
-  /** 网络错误 */
   NETWORK = 'NETWORK',
-  /** 服务器错误 */
   SERVER = 'SERVER',
-  /** 业务错误 */
   BUSINESS = 'BUSINESS',
-  /** 权限错误 */
   PERMISSION = 'PERMISSION',
-  /** 自定义错误 */
   CUSTOM = 'CUSTOM'
 }
 
-/**
- * Error State Component
- * @description 错误状态组件
- * @example
- * ```typescript
- * ErrorState({
- *   type: ErrorStateType.NETWORK,
- *   message: '网络连接失败',
- *   onRetry: () => this.loadData()
- * })
- * ```
- */
 @Component
 export struct ErrorState {
-  /** 错误类型 */
   @Prop type: ErrorStateType = ErrorStateType.NETWORK;
-  /** 错误消息 */
   @Prop message: string = '';
-  /** 重试按钮文本 */
   @Prop retryText: string = '重试';
-  /** 是否显示重试按钮 */
   @Prop showRetry: boolean = true;
-  /** 重试点击事件 */
   onRetry?: () => void;
 
   build() {
     Column() {
-      // 错误图标
-      Image(this.getIcon())
-        .width(80)
-        .height(80)
-        .objectFit(ImageFit.Contain)
-        .fillColor($r('app.color.error'))
+      Column() {
+        Image($r('app.media.ic_error'))
+          .width(32)
+          .height(32)
+          .objectFit(ImageFit.Contain)
+          .fillColor($r('app.color.error'))
+      }
+      .width(76)
+      .height(76)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor($r('app.color.surface_error'))
+      .borderRadius(24)
 
-      // 错误标题
       Text(this.getTitle())
         .fontSize($r('app.float.text_primary_size'))
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .margin({ top: 16 })
 
-      // 错误消息
       if (this.message) {
         Text(this.message)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 8 })
           .textAlign(TextAlign.Center)
-          .maxLines(2)
+          .maxLines(3)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
 
-      // 重试按钮
       if (this.showRetry && this.onRetry) {
         Button(this.retryText)
           .fontSize($r('app.float.text_primary_size'))
-          .fontColor(Color.White)
+          .fontColor(HarmonyColor.textInverse)
           .backgroundColor($r('app.color.primary'))
-          .borderRadius(16)
-          .height(40)
+          .borderRadius(18)
+          .height(44)
           .padding({ left: 24, right: 24 })
           .margin({ top: 20 })
           .onClick(() => {
@@ -100,31 +66,34 @@ export struct ErrorState {
     .width('100%')
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .padding(32)
-  }
-
-  private getIcon(): Resource {
-    // 根据错误类型返回不同图标
-    return $r('app.media.ic_error');
+    .padding(24)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(28)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 28,
+      style: BorderStyle.Solid
+    })
   }
 
   private getTitle(): string {
-    const titleMap: Record<ErrorStateType, string> = {
-      [ErrorStateType.NETWORK]: '网络连接失败',
-      [ErrorStateType.SERVER]: '服务器错误',
-      [ErrorStateType.BUSINESS]: '操作失败',
-      [ErrorStateType.PERMISSION]: '没有权限',
-      [ErrorStateType.CUSTOM]: '发生错误'
-    };
-
-    return titleMap[this.type];
+    if (this.type === ErrorStateType.SERVER) {
+      return '服务暂不可用';
+    }
+    if (this.type === ErrorStateType.BUSINESS) {
+      return '处理失败';
+    }
+    if (this.type === ErrorStateType.PERMISSION) {
+      return '没有权限';
+    }
+    if (this.type === ErrorStateType.CUSTOM) {
+      return '发生错误';
+    }
+    return '网络连接失败';
   }
 }
 
-/**
- * Inline Error Message
- * @description 内联错误消息（用于表单等场景）
- */
 @Component
 export struct InlineError {
   @Prop message: string = '';
@@ -152,10 +121,6 @@ export struct InlineError {
   }
 }
 
-/**
- * Error Banner
- * @description 错误横幅（用于页面顶部错误提示）
- */
 @Component
 export struct ErrorBanner {
   @Prop message: string = '';
@@ -192,8 +157,8 @@ export struct ErrorBanner {
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-      .backgroundColor('#FFF0F1')
-      .borderRadius($r('app.float.card_border_radius'))
+      .backgroundColor($r('app.color.surface_error'))
+      .borderRadius(16)
     }
   }
 }

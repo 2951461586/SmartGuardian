@@ -10,18 +10,34 @@ import { EmptyState, EmptyType, HeaderTheme, LoadingSize, LoadingState, PageHead
 import { AttendanceBadge } from '../../components/StatusBadge';
 import { formatDate, formatTime } from '../../utils/date';
 import { LogUtil } from '../../utils/LogUtil';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
+
+@Entry
+@Component
+struct TeacherAttendancePage {
+  build() {
+    Stack() {
+      TeacherAttendancePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
 
 @Component
-export struct TeacherAttendancePage {
+export struct TeacherAttendancePageContent {
   @State sessions: SessionSchedule[] = [];
   @State selectedSession: SessionSchedule | null = null;
   @State attendanceList: AttendanceRecord[] = [];
+  @State filteredAttendance: AttendanceRecord[] = [];
   @State isLoading: boolean = true;
   @State currentTab: number = 0;
   @State currentSessionIndex: number = 0;
 
   private readonly tabs: string[] = ['全部', '已签到', '未签到'];
   private attendanceRequestId: number = 0;
+  private attendanceDataSource: LazyArrayDataSource<AttendanceRecord> = new LazyArrayDataSource<AttendanceRecord>();
 
   async aboutToAppear() {
     await this.loadSessions();
@@ -46,12 +62,14 @@ export struct TeacherAttendancePage {
           await this.loadAttendance();
         } else {
           this.attendanceList = [];
+          this.refreshFilteredAttendance();
         }
       } else {
         this.sessions = [];
         this.currentSessionIndex = 0;
         this.selectedSession = null;
         this.attendanceList = [];
+        this.refreshFilteredAttendance();
       }
     } catch (error) {
       LogUtil.error('TeacherAttendancePage', 'Load sessions failed');
@@ -59,6 +77,7 @@ export struct TeacherAttendancePage {
       this.currentSessionIndex = 0;
       this.selectedSession = null;
       this.attendanceList = [];
+      this.refreshFilteredAttendance();
     } finally {
       this.isLoading = false;
     }
@@ -67,6 +86,7 @@ export struct TeacherAttendancePage {
   async loadAttendance() {
     if (!this.selectedSession) {
       this.attendanceList = [];
+      this.refreshFilteredAttendance();
       return;
     }
 
@@ -90,10 +110,12 @@ export struct TeacherAttendancePage {
       } else {
         this.attendanceList = [];
       }
+      this.refreshFilteredAttendance();
     } catch (error) {
       if (requestId === this.attendanceRequestId) {
         LogUtil.error('TeacherAttendancePage', 'Load attendance failed');
         this.attendanceList = [];
+        this.refreshFilteredAttendance();
       }
     }
   }
@@ -143,7 +165,15 @@ export struct TeacherAttendancePage {
     this.selectedSession = this.sessions[index] ?? null;
     if (this.selectedSession) {
       this.loadAttendance();
+      return;
     }
+    this.attendanceList = [];
+    this.refreshFilteredAttendance();
+  }
+
+  private refreshFilteredAttendance(): void {
+    this.filteredAttendance = this.getFilteredAttendance();
+    this.attendanceDataSource.setItems(this.filteredAttendance);
   }
 
   build() {
@@ -171,7 +201,7 @@ export struct TeacherAttendancePage {
         value: `${this.sessions.length}`,
         label: '今日班次',
         icon: $r('app.media.ic_calendar'),
-        iconColor: '#4F7CFF'
+        iconColor: HarmonyReport.accent
       })
       .layoutWeight(1)
 
@@ -181,7 +211,7 @@ export struct TeacherAttendancePage {
         value: `${this.getSignedCount()}`,
         label: '已签到',
         icon: $r('app.media.ic_attendance'),
-        iconColor: '#2F9B52'
+        iconColor: HarmonyReport.positive
       })
       .layoutWeight(1)
 
@@ -191,7 +221,7 @@ export struct TeacherAttendancePage {
         value: `${this.getUnsignedCount()}`,
         label: '未签到',
         icon: $r('app.media.ic_warning'),
-        iconColor: '#F2994A'
+        iconColor: HarmonyReport.caution
       })
       .layoutWeight(1)
     }
@@ -243,6 +273,7 @@ export struct TeacherAttendancePage {
       currentIndex: this.currentTab,
       onTabChange: (index: number) => {
         this.currentTab = index;
+        this.refreshFilteredAttendance();
       }
     })
   }
@@ -255,7 +286,7 @@ export struct TeacherAttendancePage {
         fullscreen: false,
         message: '正在加载考勤数据...'
       })
-    } else if (this.getFilteredAttendance().length === 0) {
+    } else if (this.filteredAttendance.length === 0) {
       EmptyState({
         type: EmptyType.NO_ATTENDANCE,
         customDescription: this.getEmptyDescription(),
@@ -271,23 +302,29 @@ export struct TeacherAttendancePage {
 
   @Builder
   buildAttendanceList() {
-    Scroll() {
-      Column() {
-        SectionHeader({
-          title: '考勤列表',
-          subtitle: `当前查看：${this.getCurrentTabLabel()}`
-        })
+    Column() {
+      SectionHeader({
+        title: '考勤列表',
+        subtitle: `当前查看：${this.getCurrentTabLabel()}`
+      })
+      .margin({ left: 16, right: 16 })
 
-        ForEach(this.getFilteredAttendance(), (record: AttendanceRecord) => {
-          this.buildAttendanceItem(record)
-        })
+      List({ space: 12 }) {
+        LazyForEach(this.attendanceDataSource, (record: AttendanceRecord) => {
+          ListItem() {
+            this.buildAttendanceItem(record)
+          }
+        }, (record: AttendanceRecord) => `${record.id}`)
       }
       .width('100%')
+      .layoutWeight(1)
       .padding({ left: 16, right: 16, bottom: 20 })
+      .divider({ strokeWidth: 0 })
+      .scrollBar(BarState.Off)
+      .cachedCount(6)
     }
     .width('100%')
     .layoutWeight(1)
-    .scrollBar(BarState.Off)
   }
 
   @Builder
@@ -314,21 +351,21 @@ export struct TeacherAttendancePage {
       .alignItems(VerticalAlign.Top)
 
       Row() {
-        this.buildInlineMetric('签到时间', record.signInTime ? formatTime(record.signInTime) : '--:--', '#4F7CFF')
+        this.buildInlineMetric('签到时间', record.signInTime ? formatTime(record.signInTime) : '--:--', HarmonyReport.accent)
         Blank().width(10)
-        this.buildInlineMetric('签退时间', record.signOutTime ? formatTime(record.signOutTime) : '--:--', '#2F9B52')
+        this.buildInlineMetric('签退时间', record.signOutTime ? formatTime(record.signOutTime) : '--:--', HarmonyReport.positive)
       }
       .width('100%')
       .margin({ top: 14 })
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .borderRadius(20)
     .margin({ bottom: 12 })
     .shadow({
       radius: 12,
-      color: '#0F000000',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: 4
     })
@@ -349,7 +386,7 @@ export struct TeacherAttendancePage {
     }
     .layoutWeight(1)
     .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFE')
+    .backgroundColor(HarmonyColor.surfaceSubtle)
     .borderRadius(14)
     .alignItems(HorizontalAlign.Start)
   }

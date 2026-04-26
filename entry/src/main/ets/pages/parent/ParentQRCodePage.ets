@@ -1,21 +1,46 @@
-﻿/**
+/**
  * SmartGuardian - Parent QR Code Page
- * Display QR code for student pickup
+ * Parent pickup QR code workbench.
  */
 
-import { UserStore } from '../../stores/userStore';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import {
+  Card,
+  EmptyType,
+  HeaderTheme,
+  IconActionButton,
+  PageHeader,
+  SectionHeader,
+  StatefulContainer,
+  StatCardRow,
+  StatRowItem,
+  ViewState,
+  WorkbenchListPageTemplate
+} from '../../components/common';
 import { Student } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
-import { LoadingState, LoadingSize, EmptyState, EmptyType } from '../../components/common';
+import { UserStore } from '../../stores/userStore';
 
 @Entry
 @Component
-export struct ParentQRCodePage {
+struct ParentQRCodePage {
+  build() {
+    Stack() {
+      ParentQRCodePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct ParentQRCodePageContent {
   @State students: Student[] = [];
   @State selectedStudent: Student | null = null;
   @State qrCodeData: string = '';
   @State isLoading: boolean = true;
-  @State remainingTime: number = 300; // 5分钟 = 300秒
+  @State errorMessage: string = '';
+  @State remainingTime: number = 300;
   private timer: number = -1;
 
   async aboutToAppear() {
@@ -24,14 +49,32 @@ export struct ParentQRCodePage {
   }
 
   aboutToDisappear() {
-    // 清除定时器
+    this.clearTimer();
+  }
+
+  private clearTimer(): void {
     if (this.timer !== -1) {
       clearInterval(this.timer);
+      this.timer = -1;
     }
+  }
+
+  private startTimer(): void {
+    if (this.timer !== -1) {
+      return;
+    }
+    this.timer = setInterval(() => {
+      if (this.remainingTime > 0) {
+        this.remainingTime--;
+      } else {
+        this.generateQRCode();
+      }
+    }, 1000);
   }
 
   async loadStudents() {
     this.isLoading = true;
+    this.errorMessage = '';
     try {
       const userInfo = UserStore.getUserInfo();
       if (userInfo?.id) {
@@ -41,17 +84,28 @@ export struct ParentQRCodePage {
           if (this.students.length > 0) {
             this.selectedStudent = this.students[0];
             this.generateQRCode();
+          } else {
+            this.selectedStudent = null;
+            this.qrCodeData = '';
           }
+        } else {
+          this.students = [];
+          this.selectedStudent = null;
+          this.qrCodeData = '';
         }
       }
     } catch (error) {
-      console.error('Failed to load students:', error);
+      console.error('Failed to load students:', String(error));
+      this.students = [];
+      this.selectedStudent = null;
+      this.qrCodeData = '';
+      this.errorMessage = '学生信息加载失败，请稍后重试。';
     } finally {
       this.isLoading = false;
     }
   }
 
-  generateQRCode() {
+  private generateQRCode(): void {
     if (this.selectedStudent) {
       const timestamp = Date.now();
       this.qrCodeData = JSON.stringify({
@@ -61,165 +115,323 @@ export struct ParentQRCodePage {
         guardianId: UserStore.getUserInfo()?.id,
         timestamp: timestamp
       });
-      this.remainingTime = 300; // 重置时间为5分钟
+      this.remainingTime = 300;
     }
   }
 
-  startTimer() {
-    this.timer = setInterval(() => {
-      if (this.remainingTime > 0) {
-        this.remainingTime--;
-      } else {
-        // 二维码过期，重新生成
-        this.generateQRCode();
-      }
-    }, 1000);
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
+    }
+    if (this.errorMessage.length > 0) {
+      return ViewState.ERROR;
+    }
+    if (this.students.length === 0 || !this.selectedStudent) {
+      return ViewState.EMPTY;
+    }
+    return ViewState.CONTENT;
   }
 
-  formatTime(seconds: number): string {
+  private getOverviewItems(): StatRowItem[] {
+    return [
+      {
+        value: `${this.students.length}`,
+        label: '绑定学生',
+        icon: $r('app.media.ic_user'),
+        iconColor: HarmonyColor.info
+      },
+      {
+        value: this.selectedStudent ? this.selectedStudent.studentNo : '--',
+        label: '当前学号',
+        icon: $r('app.media.ic_child'),
+        iconColor: HarmonyReport.positive
+      },
+      {
+        value: this.formatTime(this.remainingTime),
+        label: '剩余有效期',
+        icon: $r('app.media.ic_clock'),
+        iconColor: HarmonyReport.caution
+      }
+    ];
+  }
+
+  private formatTime(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    const secondText = secs < 10 ? `0${secs}` : `${secs}`;
+    return `${minutes}:${secondText}`;
+  }
+
+  private isSelectedStudent(student: Student): boolean {
+    return this.selectedStudent?.id === student.id;
   }
 
   build() {
     Column() {
-      Row() {
-        Button({ type: ButtonType.Circle }) {
-          Text('←')
-            .fontSize(20)
-            .fontColor(Color.White)
-        }
-        .width(36)
-        .height(36)
-        .backgroundColor('#1AFFFFFF')
-        .onClick(() => this.getUIContext().getRouter().back())
-
-        Text('接送码')
-          .fontSize(18)
-          .fontColor(Color.White)
-          .fontWeight(FontWeight.Bold)
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-
-        Blank().width(36)
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-      .linearGradient({
-        angle: 135,
-        colors: [['#4F7CFF', 0], ['#7B68EE', 1]]
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildStudentSelectorSection,
+        content: this.buildQRCodeContent
       })
-
-      if (this.isLoading) {
-        Column() {
-          LoadingState({ loadingSize: LoadingSize.LARGE })
-        }
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-      } else if (this.students.length === 0) {
-        Column() {
-          EmptyState({ type: EmptyType.DEFAULT, customTitle: '暂无学生信息' })
-        }
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-      } else {
-        Column() {
-          if (this.students.length > 1) {
-            Row() {
-              ForEach(this.students, (student: Student) => {
-                Button(student.name)
-                  .fontSize(14)
-                  .fontColor(this.selectedStudent?.id === student.id ? Color.White : '#4F7CFF')
-                  .backgroundColor(this.selectedStudent?.id === student.id ? '#4F7CFF' : '#F5F5F5')
-                  .borderRadius(16)
-                  .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-                  .margin({ left: 4, right: 4 })
-                  .onClick(() => {
-                    this.selectedStudent = student;
-                    this.generateQRCode();
-                  })
-              })
-            }
-            .width('100%')
-            .padding(16)
-            .justifyContent(FlexAlign.Center)
-          }
-
-          Column() {
-            Text('接送二维码')
-              .fontSize(16)
-              .fontColor('#333333')
-              .margin({ bottom: 16 })
-
-            // 二维码显示区域
-            Column() {
-              if (this.qrCodeData) {
-                // 使用 QRCode 组件显示真实二维码
-                QRCode(this.qrCodeData)
-                  .width(180)
-                  .height(180)
-                  .color('#4F7CFF')
-              }
-              
-              Text('请在托管中心出示此码')
-                .fontSize(12)
-                .fontColor('#999999')
-                .margin({ top: 12 })
-            }
-            .width(220)
-            .height(220)
-            .backgroundColor(Color.White)
-            .borderRadius(12)
-            .justifyContent(FlexAlign.Center)
-            .border({ width: 2, color: '#4F7CFF', style: BorderStyle.Solid })
-            .shadow({ radius: 10, color: '#1A4F7CFF', offsetX: 0, offsetY: 4 })
-
-            if (this.selectedStudent) {
-              Column() {
-                Text(this.selectedStudent.name)
-                  .fontSize(18)
-                  .fontColor('#333333')
-                  .fontWeight(FontWeight.Medium)
-                
-                Text(`学号: ${this.selectedStudent.studentNo}`)
-                  .fontSize(14)
-                  .fontColor('#666666')
-                  .margin({ top: 4 })
-              }
-              .margin({ top: 16 })
-            }
-
-            Row() {
-              Text('二维码有效期：')
-                .fontSize(12)
-                .fontColor('#999999')
-              
-              Text(this.formatTime(this.remainingTime))
-                .fontSize(14)
-                .fontColor('#4F7CFF')
-                .fontWeight(FontWeight.Bold)
-            }
-            .margin({ top: 24 })
-
-            Button('刷新二维码')
-              .fontSize(14)
-              .fontColor('#4F7CFF')
-              .backgroundColor('#F0F4FF')
-              .borderRadius(20)
-              .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              .margin({ top: 12 })
-              .onClick(() => {
-                this.generateQRCode();
-              })
-          }
-          .layoutWeight(1)
-          .justifyContent(FlexAlign.Center)
-        }
-      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#FFFFFF')
+  }
+
+  @Builder
+  private buildHeader() {
+    PageHeader({
+      title: '接送码',
+      subtitle: '出示动态二维码，便于托管机构快速核验家长接送身份。',
+      showBack: true,
+      theme: HeaderTheme.WHITE,
+      onBackClick: () => this.getUIContext().getRouter().back(),
+      rightContent: this.buildHeaderAction
+    })
+  }
+
+  @Builder
+  private buildHeaderAction() {
+    IconActionButton({
+      icon: $r('app.media.ic_refresh'),
+      iconColor: HarmonyColor.info,
+      boxBgColor: HarmonyColor.surface,
+      boxBorderColor: HarmonyColor.line,
+      onButtonClick: () => {
+        this.generateQRCode();
+      }
+    })
+  }
+
+  @Builder
+  private buildOverviewSection() {
+    StatCardRow({
+      items: this.getOverviewItems()
+    })
+  }
+
+  @Builder
+  private buildStudentSelectorSection() {
+    Card({
+      title: '切换学生',
+      subtitle: this.students.length > 1 ? '为不同学生切换独立接送码。' : '当前已选中唯一绑定学生。',
+      content: this.buildStudentSelectorContent
+    })
+  }
+
+  @Builder
+  private buildStudentSelectorContent() {
+    if (this.students.length === 0) {
+      Text('暂无可切换的学生。')
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor(HarmonyColor.textSecondary)
+    } else {
+      Scroll() {
+        Row() {
+          ForEach(this.students, (student: Student) => {
+            this.buildStudentChip(student)
+          }, (student: Student) => `${student.id}`)
+        }
+      }
+      .width('100%')
+      .scrollBar(BarState.Off)
+    }
+  }
+
+  @Builder
+  private buildStudentChip(student: Student) {
+    Column() {
+      Text(student.name)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(this.isSelectedStudent(student) ? HarmonyColor.textInverse : HarmonyColor.textPrimary)
+
+      Text(student.studentNo)
+        .fontSize(11)
+        .fontColor(this.isSelectedStudent(student) ? HarmonyColor.textInverseStrong : HarmonyColor.textSecondary)
+        .margin({ top: 4 })
+    }
+    .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+    .backgroundColor(this.isSelectedStudent(student) ? HarmonyColor.info : HarmonyColor.surfaceSubtle)
+    .borderRadius(18)
+    .margin({ right: 10 })
+    .onClick(() => {
+      this.selectedStudent = student;
+      this.generateQRCode();
+    })
+  }
+
+  @Builder
+  private buildQRCodeContent() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在生成接送码...',
+      emptyType: EmptyType.NO_STUDENT,
+      emptyTitle: '暂无学生信息',
+      emptyDescription: '请先完成学生绑定，再生成接送二维码。',
+      errorMessage: this.errorMessage,
+      onRetry: () => {
+        this.loadStudents();
+      },
+      content: this.buildQRCodeWorkspace
+    })
+      .layoutWeight(1)
+  }
+
+  @Builder
+  private buildQRCodeWorkspace() {
+    Scroll() {
+      Column() {
+        this.buildQRCodeCard()
+        this.buildStudentSummaryCard()
+        this.buildGuideCard()
+      }
+      .width('100%')
+      .padding({ top: 4, bottom: 20 })
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  private buildQRCodeCard() {
+    Card({
+      title: '动态二维码',
+      subtitle: '二维码过期后会自动刷新，也可以手动立即更新。',
+      actionText: '刷新',
+      onAction: () => {
+        this.generateQRCode();
+      },
+      content: this.buildQRCodeCardContent
+    })
+  }
+
+  @Builder
+  private buildQRCodeCardContent() {
+    Column() {
+      Column() {
+        if (this.qrCodeData.length > 0) {
+          QRCode(this.qrCodeData)
+            .width(188)
+            .height(188)
+            .color(HarmonyColor.info)
+        }
+      }
+      .width(232)
+      .height(232)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .backgroundColor(HarmonyColor.surface)
+      .borderRadius(28)
+      .border({
+        width: 2,
+        color: HarmonyColor.lineStrong,
+        radius: 28,
+        style: BorderStyle.Solid
+      })
+
+      Text('请在托管中心出示此码完成接送核验')
+        .fontSize(12)
+        .fontColor(HarmonyColor.textSecondary)
+        .margin({ top: 14 })
+
+      Text(`剩余有效期 ${this.formatTime(this.remainingTime)}`)
+        .fontSize(14)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(HarmonyColor.info)
+        .margin({ top: 10 })
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  private buildStudentSummaryCard() {
+    Card({
+      title: '当前学生',
+      subtitle: '确认接送码对应的学生档案，避免错用二维码。',
+      content: this.buildStudentSummaryContent
+    })
+  }
+
+  @Builder
+  private buildStudentSummaryContent() {
+    if (this.selectedStudent) {
+      Column() {
+        this.buildSummaryRow('学生姓名', this.selectedStudent.name)
+        this.buildSummaryRow('学号', this.selectedStudent.studentNo)
+        this.buildSummaryRow('学校', this.selectedStudent.schoolName ?? '待补充')
+        this.buildSummaryRow('班级', this.selectedStudent.className ?? '待补充')
+      }
+      .width('100%')
+    }
+  }
+
+  @Builder
+  private buildGuideCard() {
+    Card({
+      title: '使用须知',
+      subtitle: '家长和被授权接送人都应遵循以下核验规则。',
+      content: this.buildGuideContent
+    })
+  }
+
+  @Builder
+  private buildGuideContent() {
+    Column() {
+      SectionHeader({
+        title: '核验说明',
+        subtitle: '建议在接送前一刻再打开页面，确保二维码处于最新有效状态。'
+      })
+
+      this.buildGuideItem('1', '二维码默认 5 分钟有效，过期后系统会自动生成新码。')
+      this.buildGuideItem('2', '如学生信息切换，请先确认顶部学生标签已切换成功。')
+      this.buildGuideItem('3', '如网络异常，建议手动刷新二维码后再出示。')
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private buildSummaryRow(label: string, value: string) {
+    Row() {
+      Text(label)
+        .fontSize(12)
+        .fontColor(HarmonyColor.textSecondary)
+        .width(72)
+
+      Text(value)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(HarmonyColor.textPrimary)
+        .layoutWeight(1)
+    }
+    .width('100%')
+    .margin({ top: 8, bottom: 8 })
+  }
+
+  @Builder
+  private buildGuideItem(index: string, text: string) {
+    Row() {
+      Text(index)
+        .fontSize(12)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(HarmonyColor.info)
+        .width(22)
+
+      Text(text)
+        .fontSize(13)
+        .fontColor(HarmonyColor.textSecondary)
+        .lineHeight(19)
+        .layoutWeight(1)
+    }
+    .width('100%')
+    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+    .backgroundColor(HarmonyColor.surfaceSubtle)
+    .borderRadius(18)
+    .margin({ top: 10 })
   }
 }

@@ -1,25 +1,34 @@
 ﻿/**
  * SmartGuardian - Teacher Home Page
- * Teacher dashboard with the new light campus style
+ * Teacher dashboard refactored into shared dashboard sections.
  */
 
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { getRolePalette } from '../../common/RoleTheme';
 import {
-  Card,
-  EmptyState,
-  EmptyType,
+  DashboardPageTemplate,
   GreetingHeader,
   HeaderTheme,
   IconActionButton,
   LoadingSize,
   LoadingState,
-  StatCard
+  TeacherHomeSessionSection,
+  TeacherHomeWorkbenchSection,
+  TeacherSessionHeroCard,
+  TeacherSessionListItemData,
+  TeacherSessionSummaryData,
+  WorkbenchActionGrid,
+  StatRowItem
 } from '../../components/common';
+import { RouteUrls, StorageKeys } from '../../constants/app.constants';
 import { ErrorMessages } from '../../constants/ErrorMessages';
 import { AttendanceRecord } from '../../models/attendance';
+import { UserRole } from '../../models/common';
 import { WorkbenchManifest, WorkbenchModule } from '../../models/workbench';
 import { AttendanceService } from '../../services/api/attendance';
 import { MessageService } from '../../services/api/message';
 import { SessionSchedule, SessionService } from '../../services/api/service';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
 import { UserStore } from '../../stores/userStore';
 import { formatDate, formatTime } from '../../utils/date';
 
@@ -28,8 +37,20 @@ interface SessionQueryParams {
   teacherUserId?: number;
 }
 
+@Entry
 @Component
-export struct TeacherHomePage {
+struct TeacherHomePage {
+  build() {
+    Stack() {
+      TeacherHomePageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct TeacherHomePageContent {
   @State userName: string = '';
   @State todaySessions: SessionSchedule[] = [];
   @State todayAttendance: AttendanceRecord[] = [];
@@ -49,7 +70,7 @@ export struct TeacherHomePage {
   }
 
   private loadWorkbenchManifest(): void {
-    const manifest = AppStorage.get<WorkbenchManifest>('workbench_manifest');
+    const manifest = AppStorage.get<WorkbenchManifest>(StorageKeys.WORKBENCH_MANIFEST);
     if (manifest && manifest.roleType === 'TEACHER') {
       this.workbenchManifest = manifest;
     }
@@ -67,21 +88,19 @@ export struct TeacherHomePage {
         sessionParams.teacherUserId = teacherUserId;
       }
 
-      const sessionsPromise = SessionService.getSessions(sessionParams);
-      const unreadPromise = MessageService.getUnreadCount();
-
-      const sessionsResp = await sessionsPromise;
-      const unreadResp = await unreadPromise;
+      const sessionsResp = await SessionService.getSessions(sessionParams);
+      const unreadResp = await MessageService.getUnreadCount();
 
       if (sessionsResp.code === 0 && sessionsResp.data) {
-        this.todaySessions = sessionsResp.data ?? [];
-        this.currentSession = this.todaySessions.find((session: SessionSchedule) => session.status === 'ONGOING') ?? null;
+        this.todaySessions = sessionsResp.data;
+        this.currentSession = this.resolveCurrentSession();
       } else {
         this.todaySessions = [];
         this.currentSession = null;
       }
 
       this.unreadCount = unreadResp.code === 0 && unreadResp.data ? unreadResp.data.count : 0;
+      await HarmonyCapabilityService.syncMessageBadge(this.unreadCount);
 
       if (this.currentSession) {
         const attendanceResp = await AttendanceService.getAttendanceList({
@@ -102,19 +121,29 @@ export struct TeacherHomePage {
       this.currentSession = null;
       this.unreadCount = 0;
       this.errorMessage = ErrorMessages.DATA_LOAD_FAILED;
+      await HarmonyCapabilityService.syncMessageBadge(0);
     } finally {
       this.isLoading = false;
     }
   }
 
-  private getDisplaySession(): SessionSchedule | null {
-    if (this.currentSession) {
-      return this.currentSession;
+  private resolveCurrentSession(): SessionSchedule | null {
+    const ongoingSession = this.todaySessions.find((session: SessionSchedule) => session.status === 'ONGOING');
+    if (ongoingSession) {
+      return ongoingSession;
     }
     if (this.todaySessions.length > 0) {
       return this.todaySessions[0];
     }
     return null;
+  }
+
+  private getDisplaySession(): SessionSchedule | null {
+    return this.currentSession ?? this.resolveCurrentSession();
+  }
+
+  private hasDisplaySession(): boolean {
+    return this.getDisplaySession() !== null;
   }
 
   private getSignedCount(): number {
@@ -139,290 +168,99 @@ export struct TeacherHomePage {
 
   private getSessionStatusColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'ENDED') {
-      return '#66738A';
+      return HarmonyColor.textSecondary;
     }
-    return '#5D8267';
+    return HarmonyColor.info;
   }
 
   private getSessionStatusBgColor(status?: string): string {
     if (status === 'ONGOING') {
-      return '#EEF6F0';
+      return HarmonyReport.positiveSurface;
     }
     if (status === 'ENDED') {
-      return '#F5F1E8';
+      return HarmonyColor.surfaceSubtle;
     }
-    return '#EEF6F0';
+    return HarmonyReport.accentSurface;
   }
 
-  build() {
-    Column() {
-      GreetingHeader({
-        userName: this.userName,
-        greeting: this.workbenchManifest?.summary.description ?? '统一查看班次安排、考勤进度和作业处理情况。',
-        theme: HeaderTheme.WHITE,
-        badgeText: '教师端',
-        metaText: this.workbenchManifest?.visual.slogan ?? (this.currentSession?.serviceProductName ? `当前班次：${this.currentSession.serviceProductName}` : '今日授课安排与签到状态总览')
-      }) {
-        this.buildHeaderActions()
-      }
+  private getHeroTitle(): string {
+    return this.getDisplaySession()?.serviceProductName ?? '今日暂无授课班次';
+  }
 
-      if (this.isLoading) {
-        LoadingState({ loadingSize: LoadingSize.DEFAULT })
-      } else {
-        this.buildContent()
-      }
+  private getHeroTimeText(): string {
+    const session = this.getDisplaySession();
+    if (!session) {
+      return '可以前往课程安排查看后续排班';
     }
-    .width('100%')
-    .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    return `${formatTime(session.startTime)} - ${formatTime(session.endTime)}`;
   }
 
-  @Builder
-  private buildHeaderActions() {
-    IconActionButton({
-      icon: $r('app.media.ic_notification'),
-      badgeCount: this.unreadCount,
-      onButtonClick: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherMessagesPage' });
-      }
-    })
+  private getHeroStatusText(): string {
+    return this.getSessionStatusText(this.getDisplaySession()?.status);
   }
 
-  @Builder
-  private buildContent() {
-    Scroll() {
-      Column() {
-        this.buildHeroCard()
-        this.buildOverviewPanel()
-        this.buildQuickActionsCard()
-        this.buildTodayStatsCard()
-        this.buildTodaySessionsCard()
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 12, bottom: 24 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
+  private getSessionSummaryData(): TeacherSessionSummaryData {
+    const session = this.getDisplaySession();
+    return {
+      title: session?.serviceProductName ?? '托管班次',
+      timeText: session ? `${formatTime(session.startTime)} - ${formatTime(session.endTime)}` : '',
+      statusText: this.getSessionStatusText(session?.status),
+      statusColor: this.getSessionStatusColor(session?.status),
+      statusBgColor: this.getSessionStatusBgColor(session?.status),
+      signedCount: `${this.getSignedCount()}`,
+      unsignedCount: `${this.getUnsignedCount()}`
+    };
   }
 
-  @Builder
-  private buildHeroCard() {
-    Row() {
-      Column() {
-        Text('今日在岗')
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#5D8267')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#EEF6F0')
-          .borderRadius(999)
-
-        Text(this.getDisplaySession()?.serviceProductName || '今日暂无授课班次')
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .margin({ top: 14 })
-
-        Text(this.getDisplaySession() ? `${formatTime(this.getDisplaySession()?.startTime ?? '')} - ${formatTime(this.getDisplaySession()?.endTime ?? '')}` : '可以前往课程安排查看后续排班')
-          .fontSize(14)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-
-        Row() {
-          this.buildHeroMetric(`${this.todaySessions.length}`, '今日班次')
-          Blank().width(12)
-          this.buildHeroMetric(`${this.getSignedCount()}`, '已签到')
-        }
-        .width('100%')
-        .margin({ top: 16 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Column() {
-        Text(this.getSessionStatusText(this.getDisplaySession()?.status))
-          .fontSize(12)
-          .fontColor('#5D8267')
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#EEF6F0')
-          .borderRadius(999)
-
-        Image($r('app.media.sg_illustration_teaching'))
-          .width(108)
-          .height(92)
-          .objectFit(ImageFit.Contain)
-          .opacity(0.88)
-          .margin({ top: 16 })
-      }
-      .alignItems(HorizontalAlign.End)
-    }
-    .width('100%')
-    .padding({ left: 18, right: 18, top: 18, bottom: 18 })
-    .linearGradient({
-      angle: 145,
-      colors: [['#FFFFFF', 0], ['#F3F8F4', 1]]
-    })
-    .border({
-      width: 1,
-      color: '#D7E6DA',
-      radius: 28,
-      style: BorderStyle.Solid
-    })
-    .borderRadius(28)
-    .shadow({
-      radius: 18,
-      color: '#5D826712',
-      offsetX: 0,
-      offsetY: 10
-    })
-    .margin({ bottom: 14 })
+  private getSessionListItems(): TeacherSessionListItemData[] {
+    const todayText = formatDate(new Date());
+    return this.todaySessions.map((session: SessionSchedule): TeacherSessionListItemData => {
+      return {
+        id: session.id,
+        title: session.serviceProductName ?? '托管班次',
+        subtitle: `${formatTime(session.startTime)} - ${formatTime(session.endTime)} · ${todayText}`,
+        statusText: this.getSessionStatusText(session.status),
+        statusColor: this.getSessionStatusColor(session.status),
+        statusBgColor: this.getSessionStatusBgColor(session.status)
+      };
+    });
   }
 
-  @Builder
-  private buildHeroMetric(value: string, label: string) {
-    Column() {
-      Text(value)
-        .fontSize(22)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#3F654B')
-
-      Text(label)
-        .fontSize(12)
-        .fontColor('#66738A')
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-    .backgroundColor('#FFFFFFCC')
-    .borderRadius(18)
-    .alignItems(HorizontalAlign.Start)
+  private getTopOverviewItems(): StatRowItem[] {
+    return [
+      {
+        value: `${this.todaySessions.length}`,
+        label: '今日班次',
+        icon: $r('app.media.ic_calendar'),
+        iconColor: HarmonyReport.positive
+      },
+      {
+        value: `${this.getUnsignedCount()}`,
+        label: '待签到',
+        icon: $r('app.media.ic_warning'),
+        iconColor: HarmonyReport.caution
+      }
+    ];
   }
 
-  @Builder
-  private buildOverviewPanel() {
-    Column() {
-      Row() {
-        StatCard({
-          value: `${this.todaySessions.length}`,
-          label: '今日班次',
-          icon: $r('app.media.ic_calendar'),
-          iconColor: '#5D8267'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: `${this.getUnsignedCount()}`,
-          label: '待签到',
-          icon: $r('app.media.ic_warning'),
-          iconColor: '#E8A23A'
-        })
-        .layoutWeight(1)
+  private getBottomOverviewItems(): StatRowItem[] {
+    return [
+      {
+        value: `${this.getSignedCount()}`,
+        label: '已签到',
+        icon: $r('app.media.ic_attendance'),
+        iconColor: HarmonyReport.positive
+      },
+      {
+        value: `${this.unreadCount}`,
+        label: '未读消息',
+        icon: $r('app.media.ic_message'),
+        iconColor: getRolePalette(UserRole.ORG_ADMIN).primary
       }
-      .width('100%')
-
-      Row() {
-        StatCard({
-          value: `${this.getSignedCount()}`,
-          label: '已签到',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: `${this.unreadCount}`,
-          label: '未读消息',
-          icon: $r('app.media.ic_message'),
-          iconColor: '#6E5BAA'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 10 })
-    }
-    .width('100%')
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  private buildQuickActionsCard() {
-    Card({
-      title: this.workbenchManifest?.summary.title ?? '常用操作',
-      subtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '把高频教学任务集中到首页。',
-      content: this.buildQuickActionsContent
-    })
-  }
-
-  @Builder
-  private buildQuickActionsContent() {
-    Column() {
-      Row() {
-        ForEach(this.getFirstActionRow(), (module: WorkbenchModule) => {
-          this.buildManifestFeatureItem(module)
-        })
-      }
-      .width('100%')
-
-      if (this.getSecondActionRow().length > 0) {
-        Row() {
-          ForEach(this.getSecondActionRow(), (module: WorkbenchModule) => {
-            this.buildManifestFeatureItem(module)
-          })
-        }
-        .width('100%')
-        .margin({ top: 14 })
-      }
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildManifestFeatureItem(module: WorkbenchModule) {
-    this.buildFeatureItem(module.name, this.getModuleSubtitle(module.code), this.getModuleIcon(module.code), this.getModuleBgColor(module.code), this.getModuleIconColor(module.code), () => {
-      this.openWorkbenchModule(module);
-    })
-  }
-
-  @Builder
-  private buildFeatureItem(title: string, subtitle: string, icon: Resource, bgColor: string, iconColor: string, onClick: () => void) {
-    Column() {
-      Column() {
-        Image(icon)
-          .width(22)
-          .height(22)
-          .objectFit(ImageFit.Contain)
-          .fillColor(iconColor)
-      }
-      .width(52)
-      .height(52)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(bgColor)
-      .borderRadius(18)
-
-      Text(title)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-        .margin({ top: 10 })
-
-      Text(subtitle)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
-    .onClick(() => onClick())
+    ];
   }
 
   private getActionModules(): WorkbenchModule[] {
@@ -440,14 +278,6 @@ export struct TeacherHomePage {
       { code: 'resources', name: '教学资源', route: '/teacher/resources', enabled: true },
       { code: 'profile', name: '我的', route: '/teacher/profile', enabled: true }
     ];
-  }
-
-  private getFirstActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(0, 5);
-  }
-
-  private getSecondActionRow(): WorkbenchModule[] {
-    return this.getActionModules().slice(5, 10);
   }
 
   private getModuleSubtitle(code: string): string {
@@ -475,44 +305,44 @@ export struct TeacherHomePage {
   }
 
   private getModuleBgColor(code: string): string {
-    if (code === 'homework') return '#F6F0E9';
-    if (code === 'schedule' || code === 'messages') return '#F2F0F7';
-    return '#EEF6F0';
+    if (code === 'homework') return HarmonyReport.cautionSurface;
+    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).light;
+    return HarmonyReport.positiveSurface;
   }
 
   private getModuleIconColor(code: string): string {
-    if (code === 'homework') return '#A9794E';
-    if (code === 'schedule' || code === 'messages') return '#7B6D96';
-    return '#5D8267';
+    if (code === 'homework') return HarmonyReport.caution;
+    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).primary;
+    return HarmonyReport.positive;
   }
 
   private openWorkbenchModule(module: WorkbenchModule): void {
     if (module.code === 'home') {
-      AppStorage.setOrCreate('main_current_index', 0);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
       return;
     }
     if (module.code === 'attendance') {
-      AppStorage.setOrCreate('main_current_index', 1);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 1);
       return;
     }
     if (module.code === 'messages') {
-      AppStorage.setOrCreate('main_current_index', 2);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 2);
       return;
     }
     if (module.code === 'homework') {
-      AppStorage.setOrCreate('main_current_index', 3);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 3);
       return;
     }
     if (module.code === 'profile') {
-      AppStorage.setOrCreate('main_current_index', 4);
+      AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 4);
       return;
     }
     if (module.code === 'scan') {
-      this.pushPage('pages/teacher/TeacherScanPage');
+      this.pushPage(RouteUrls.TEACHER_SCAN);
     } else if (module.code === 'schedule') {
-      this.pushPage('pages/teacher/TeacherSchedulePage');
+      this.pushPage(RouteUrls.TEACHER_SCHEDULE);
     } else if (module.code === 'students') {
-      this.pushPage('pages/teacher/TeacherStudentDetailPage');
+      this.pushPage(RouteUrls.TEACHER_STUDENT_DETAIL);
     }
   }
 
@@ -524,142 +354,90 @@ export struct TeacherHomePage {
     }
   }
 
-  @Builder
-  private buildTodayStatsCard() {
-    Card({
-      title: '当前班次',
-      subtitle: this.currentSession ? '聚焦当前进行中的班次和签到进度。' : '当前没有进行中的班次，展示今日最近安排。',
-      content: this.buildTodayStatsContent
-    })
-  }
-
-  @Builder
-  private buildTodayStatsContent() {
-    if (this.getDisplaySession()) {
-      Column() {
-        Row() {
-          Column() {
-            Text(this.getDisplaySession()?.serviceProductName ?? '托管班次')
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.text_primary'))
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-            Text(`${formatTime(this.getDisplaySession()?.startTime ?? '')} - ${formatTime(this.getDisplaySession()?.endTime ?? '')}`)
-              .fontSize(13)
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 6 })
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-
-          Text(this.getSessionStatusText(this.getDisplaySession()?.status))
-            .fontSize(12)
-            .fontColor(this.getSessionStatusColor(this.getDisplaySession()?.status))
-            .backgroundColor(this.getSessionStatusBgColor(this.getDisplaySession()?.status))
-            .borderRadius(12)
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-        }
-        .width('100%')
-
-        Row() {
-          this.buildInlineMetric('已签到', `${this.getSignedCount()}`, '#2F9E77')
-          Blank().width(10)
-          this.buildInlineMetric('待签到', `${this.getUnsignedCount()}`, '#E8A23A')
-        }
-        .width('100%')
-        .margin({ top: 16 })
-      }
-      .width('100%')
-    } else {
-      EmptyState({
-        type: EmptyType.DEFAULT,
-        customTitle: '暂无班次安排',
-        customDescription: this.errorMessage || '稍后再刷新，或前往课程安排查看最新计划。'
-      })
-    }
-  }
-
-  @Builder
-  private buildInlineMetric(label: string, value: string, color: string) {
+  build() {
     Column() {
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(color)
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 14, right: 14, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFE')
-    .borderRadius(16)
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  private buildTodaySessionsCard() {
-    Card({
-      title: '今日班次',
-      actionText: '查看全部',
-      onAction: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/teacher/TeacherSchedulePage' });
-      },
-      content: this.buildTodaySessionsContent
-    })
-  }
-
-  @Builder
-  private buildTodaySessionsContent() {
-    if (this.todaySessions.length > 0) {
-      Column() {
-        ForEach(this.todaySessions, (session: SessionSchedule, index: number) => {
-          Row() {
-            Column() {
-              Text(session.serviceProductName ?? '托管班次')
-                .fontSize(16)
-                .fontWeight(FontWeight.Medium)
-                .fontColor($r('app.color.text_primary'))
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-              Text(`${formatTime(session.startTime)} - ${formatTime(session.endTime)} · ${formatDate(new Date())}`)
-                .fontSize(13)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({ top: 4 })
-            }
-            .alignItems(HorizontalAlign.Start)
-            .layoutWeight(1)
-
-            Text(this.getSessionStatusText(session.status))
-              .fontSize(12)
-              .fontColor(this.getSessionStatusColor(session.status))
-              .backgroundColor(this.getSessionStatusBgColor(session.status))
-              .borderRadius(12)
-              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-          }
-          .width('100%')
-          .padding({ top: 6, bottom: 6 })
-
-          if (index < this.todaySessions.length - 1) {
-            Divider()
-              .color($r('app.color.divider'))
-              .margin({ top: 10, bottom: 10 })
-          }
+      if (this.isLoading) {
+        LoadingState({ loadingSize: LoadingSize.DEFAULT })
+      } else {
+        DashboardPageTemplate({
+          scrollable: true,
+          enableWideContent: true,
+          header: this.buildHeader,
+          hero: this.buildHero,
+          primary: this.buildWorkbenchSection,
+          secondary: this.buildSessionSection
         })
       }
-      .width('100%')
-    } else {
-      EmptyState({
-        type: EmptyType.DEFAULT,
-        customTitle: '暂无班次记录',
-        customDescription: this.errorMessage || '当前没有可展示的班次数据。'
-      })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  private buildHeader() {
+    GreetingHeader({
+      userName: this.userName,
+      greeting: this.workbenchManifest?.summary.description ?? '统一查看班次安排、考勤进度和作业处理情况。',
+      theme: HeaderTheme.WHITE,
+      badgeText: '教师端',
+      metaText: this.workbenchManifest?.visual.slogan ?? (this.currentSession?.serviceProductName ? `当前班次：${this.currentSession.serviceProductName}` : '今日授课安排与签到状态总览')
+    }) {
+      this.buildHeaderActions()
     }
   }
-}
 
+  @Builder
+  private buildHeaderActions() {
+    IconActionButton({
+      icon: $r('app.media.ic_notification'),
+      badgeCount: this.unreadCount,
+      onButtonClick: () => {
+        this.pushPage(RouteUrls.TEACHER_MESSAGES);
+      }
+    })
+  }
+
+  @Builder
+  private buildHero() {
+    TeacherSessionHeroCard({
+      sessionTitle: this.getHeroTitle(),
+      timeText: this.getHeroTimeText(),
+      sessionCount: `${this.todaySessions.length}`,
+      signedCount: `${this.getSignedCount()}`,
+      statusText: this.getHeroStatusText()
+    })
+      .margin({ bottom: 14 })
+  }
+
+  @Builder
+  private buildWorkbenchSection() {
+    TeacherHomeWorkbenchSection({
+      overviewTopItems: this.getTopOverviewItems(),
+      overviewBottomItems: this.getBottomOverviewItems(),
+      quickActionTitle: this.workbenchManifest?.summary.title ?? '常用操作',
+      quickActionSubtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '把高频教学任务集中到首页。',
+      modules: this.getActionModules(),
+      subtitleResolver: (code: string): string => this.getModuleSubtitle(code),
+      iconResolver: (code: string): Resource => this.getModuleIcon(code),
+      bgColorResolver: (code: string): string => this.getModuleBgColor(code),
+      iconColorResolver: (code: string): string => this.getModuleIconColor(code),
+      onModuleClick: (module: WorkbenchModule): void => this.openWorkbenchModule(module)
+    })
+  }
+
+  @Builder
+  private buildSessionSection() {
+    TeacherHomeSessionSection({
+      hasSession: this.hasDisplaySession(),
+      statsSubtitle: this.currentSession ? '聚焦当前进行中的班次和签到进度。' : '当前没有进行中的班次，展示今日最近安排。',
+      statsEmptyDescription: this.errorMessage || '稍后再刷新，或前往课程安排查看最新计划。',
+      sessionSummary: this.getSessionSummaryData(),
+      sessionItems: this.getSessionListItems(),
+      sessionEmptyDescription: this.errorMessage || '当前没有可展示的班次数据。',
+      onSessionAction: (): void => {
+        this.pushPage(RouteUrls.TEACHER_SCHEDULE);
+      }
+    })
+  }
+}

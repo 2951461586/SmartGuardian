@@ -28,7 +28,7 @@ export struct TabBar {
   @Prop showIndicator: boolean = true;
   @Prop indicatorWidth: number = 20;
   onTabChange?: (index: number) => void;
-  @Prop tabBgColor: ResourceColor = '#F2F5FA';
+  @Prop tabBgColor: ResourceColor = HarmonyColor.surfaceSubtle;
 
   build() {
     if (this.style === TabBarStyle.SCROLLABLE) {
@@ -113,17 +113,17 @@ export struct TabBar {
     .height(50)
     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.isSelected(index) ? HarmonyColor.surface : Color.Transparent)
+    .backgroundColor(this.isSelected(index) ? HarmonyColor.surface : HarmonyColor.clear)
     .borderRadius(HarmonyRadius.control)
     .border({
       width: this.isSelected(index) ? 1 : 0,
-      color: this.isSelected(index) ? getCurrentRolePalette().border : Color.Transparent,
+      color: this.isSelected(index) ? getCurrentRolePalette().border : HarmonyColor.clear,
       radius: HarmonyRadius.control,
       style: BorderStyle.Solid
     })
     .shadow({
       radius: this.isSelected(index) ? 8 : 0,
-      color: this.isSelected(index) ? harmonyShadowColor() : Color.Transparent,
+      color: this.isSelected(index) ? harmonyShadowColor() : HarmonyColor.clear,
       offsetX: 0,
       offsetY: this.isSelected(index) ? 3 : 0
     })
@@ -140,7 +140,7 @@ export struct TabBar {
   private buildBadge(count: number) {
     Text(count > 99 ? '99+' : `${count}`)
       .fontSize(10)
-      .fontColor(Color.White)
+      .fontColor(HarmonyColor.textInverse)
       .backgroundColor($r('app.color.error'))
       .borderRadius(10)
       .padding({ left: 4, right: 4, top: 1, bottom: 1 })
@@ -219,7 +219,7 @@ export struct SegmentTabBar {
   @Prop tabs: string[] = [];
   @Prop currentIndex: number = 0;
   onTabChange?: (index: number) => void;
-  @Prop segmentBgColor: ResourceColor = '#F2F5FA';
+  @Prop segmentBgColor: ResourceColor = HarmonyColor.surfaceSubtle;
   @Prop activeBgColor: ResourceColor = HarmonyColor.surface;
 
   build() {
@@ -229,7 +229,7 @@ export struct SegmentTabBar {
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(this.currentIndex === index ? getCurrentRolePalette().primary : $r('app.color.text_secondary'))
           .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
-          .backgroundColor(this.currentIndex === index ? this.activeBgColor : Color.Transparent)
+          .backgroundColor(this.currentIndex === index ? this.activeBgColor : HarmonyColor.clear)
           .borderRadius(10)
           .padding({ left: 16, right: 16, top: 8, bottom: 8 })
           .layoutWeight(1)

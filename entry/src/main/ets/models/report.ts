@@ -7,15 +7,20 @@
  * Attendance report summary
  */
 export interface AttendanceReport {
-  reportDate: string;
-  totalCount: number;
-  signedInCount: number;
-  signedOutCount: number;
+  totalStudents: number;
+  presentCount: number;
   absentCount: number;
   lateCount: number;
   leaveCount: number;
-  abnormalCount: number;
   attendanceRate: number;
+  dailyStats: AttendanceDailyBucket[];
+}
+
+export interface AttendanceDailyBucket {
+  date: string;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
 }
 
 /**
@@ -50,14 +55,18 @@ export interface StudentAttendanceSummary {
  * Finance report summary
  */
 export interface FinanceReport {
-  reportMonth: string;
-  totalOrders: number;
-  totalAmount: number;
-  paidAmount: number;
-  pendingAmount: number;
-  refundedAmount: number;
+  totalIncome: number;
+  totalRefund: number;
+  netIncome: number;
   orderCount: number;
-  refundCount: number;
+  refundedOrderCount: number;
+  dailyStats: FinanceDailyBucket[];
+}
+
+export interface FinanceDailyBucket {
+  date: string;
+  income: number;
+  refund: number;
 }
 
 /**

@@ -20,6 +20,7 @@
  */
 
 import { HomeworkTask } from '../../models/homework';
+import { HarmonyColor } from '../../common/HarmonyDesign';
 import { HomeworkBadge } from '../StatusBadge';
 
 /** 作业卡片显示模式 */
@@ -113,7 +114,7 @@ export struct HomeworkCard {
         if (this.showFeedbackButton) {
           Button('提交反馈')
             .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(Color.White)
+            .fontColor(HarmonyColor.textInverse)
             .backgroundColor($r('app.color.primary'))
             .borderRadius($r('app.float.button_radius'))
             .padding({

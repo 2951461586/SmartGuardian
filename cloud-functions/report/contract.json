@@ -1,0 +1,6 @@
+{
+  "domain": "report",
+  "functionName": "smartguardian-report",
+  "routePrefixes": ["/api/v1/reports"],
+  "collections": ["daily_reports", "report_snapshots"]
+}

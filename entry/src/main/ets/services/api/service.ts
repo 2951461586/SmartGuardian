@@ -25,6 +25,10 @@ import { ApiEndpoints, API_BASE } from '../../constants/ApiEndpoints';
  * @class
  */
 export class ServiceProductService {
+  static readonly AGC_DOMAIN: string = 'service';
+  static readonly AGC_FUNCTION: string = 'smartguardian-service';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.SERVICE_PRODUCTS;
+
   /**
    * Get service product list
    * 
@@ -83,6 +87,10 @@ export class ServiceProductService {
  * @class
  */
 export class OrderService {
+  static readonly AGC_DOMAIN: string = 'order';
+  static readonly AGC_FUNCTION: string = 'smartguardian-order';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.ORDERS;
+
   /**
    * Get order list
    * 
@@ -154,6 +162,10 @@ export class OrderService {
  * @class
  */
 export class SessionService {
+  static readonly AGC_DOMAIN: string = 'session';
+  static readonly AGC_FUNCTION: string = 'smartguardian-session';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.SESSIONS;
+
   /**
    * Get session list
    * 

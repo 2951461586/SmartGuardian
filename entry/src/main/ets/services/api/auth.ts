@@ -15,6 +15,28 @@ import { ApiResponse, PageResponse } from '../../models/common';
 import { LoginRequest, LoginResponse, UserInfo, Student, StudentCreateRequest, GuardianRelation, CreateGuardianRequest } from '../../models/user';
 import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
+export class SessionDeviceRegistrationRequest {
+  deviceId: string = '';
+  notificationToken: string = '';
+  notificationProvider: string = '';
+  authUid: string = '';
+  authPhone: string = '';
+  clientVersion: string = '';
+  clientPlatform: string = '';
+}
+
+export class SessionDeviceRegistrationResponse {
+  sessionId: number = 0;
+  userId: number = 0;
+  deviceId: string = '';
+  notificationProvider: string = '';
+  notificationTokenBound: boolean = false;
+  authUid: string = '';
+  lastActiveAt: string = '';
+  persisted: boolean = false;
+  compatibilityMode: string = '';
+}
+
 /**
  * Auth API Service
  * 
@@ -33,6 +55,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * ```
  */
 export class AuthService {
+  static readonly AGC_DOMAIN: string = 'auth';
+  static readonly AGC_FUNCTION: string = 'smartguardian-auth';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.AUTH;
+
   /**
    * User login
    * 
@@ -92,6 +118,10 @@ export class AuthService {
   static async getCurrentUser(): Promise<ApiResponse<UserInfo>> {
     return get<UserInfo>(ApiEndpoints.AUTH_ME);
   }
+
+  static async registerSessionDevice(data: SessionDeviceRegistrationRequest): Promise<ApiResponse<SessionDeviceRegistrationResponse>> {
+    return post<SessionDeviceRegistrationResponse>(ApiEndpoints.AUTH_SESSION_DEVICE, data);
+  }
 }
 
 /**
@@ -112,6 +142,10 @@ export class AuthService {
  * ```
  */
 export class StudentService {
+  static readonly AGC_DOMAIN: string = 'student';
+  static readonly AGC_FUNCTION: string = 'smartguardian-student';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.STUDENTS;
+
   /**
    * Get student list
    * 

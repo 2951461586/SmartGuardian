@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Admin Student Detail Page
  * Student profile detail page for admin flow
  */
@@ -13,12 +13,20 @@ import {
   LoadingSize,
   LoadingState,
   PageHeader,
-  SectionHeader
+  SectionHeader,
+  StudentAttendanceMetricViewModel,
+  StudentAttendanceMetricsCard,
+  StudentAttendanceStatusChip,
+  StudentGuardianItemCard,
+  StudentGuardianViewModel
 } from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { RouteUrls } from '../../constants/app.constants';
 import { AttendanceRecord } from '../../models/attendance';
 import { GuardianRelation, Student } from '../../models/user';
 import { AttendanceService } from '../../services/api/attendance';
 import { StudentService } from '../../services/api/auth';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
 import { LogUtil } from '../../utils/LogUtil';
 
 interface StudentDetailParams {
@@ -34,6 +42,9 @@ struct AdminStudentDetailPage {
   @State recentAttendance: AttendanceRecord[] = [];
   @State isLoading: boolean = true;
   @State errorMessage: string = '';
+
+  private guardianDataSource: LazyArrayDataSource<GuardianRelation> = new LazyArrayDataSource<GuardianRelation>();
+  private attendanceDataSource: LazyArrayDataSource<AttendanceRecord> = new LazyArrayDataSource<AttendanceRecord>();
 
   async aboutToAppear() {
     const params = this.getUIContext().getRouter().getParams() as StudentDetailParams;
@@ -69,6 +80,8 @@ struct AdminStudentDetailPage {
         this.studentDetail = null;
         this.guardians = [];
         this.recentAttendance = [];
+        this.guardianDataSource.clear();
+        this.attendanceDataSource.clear();
         this.errorMessage = detailResp.message ? detailResp.message : '学生详情加载失败';
         return;
       }
@@ -78,11 +91,15 @@ struct AdminStudentDetailPage {
       this.recentAttendance = attendanceResp.code === 0 && attendanceResp.data
         ? attendanceResp.data.list ?? []
         : [];
+      this.guardianDataSource.setItems(this.guardians);
+      this.attendanceDataSource.setItems(this.recentAttendance.slice(0, 5));
     } catch (error) {
       LogUtil.error('AdminStudentDetailPage', `Load student profile failed: ${String(error)}`);
       this.studentDetail = null;
       this.guardians = [];
       this.recentAttendance = [];
+      this.guardianDataSource.clear();
+      this.attendanceDataSource.clear();
       this.errorMessage = '学生详情加载失败，请稍后重试';
     } finally {
       this.isLoading = false;
@@ -114,36 +131,7 @@ struct AdminStudentDetailPage {
           customDescription: this.errorMessage ? this.errorMessage : '请返回列表后重试。'
         })
       } else {
-        Scroll() {
-          Column() {
-            SectionHeader({
-              title: '档案概览',
-              subtitle: '统一查看学生基础信息、监护关系与近期考勤。'
-            })
-
-            InfoCard({
-              items: this.getBasicItems(),
-              columns: 2
-            })
-
-            Card({
-              title: '监护关系',
-              subtitle: `当前已绑定 ${this.guardians.length} 位监护人`,
-              content: this.buildGuardianContent
-            })
-
-            Card({
-              title: '近期考勤',
-              subtitle: `近 ${this.recentAttendance.length} 条记录摘要`,
-              content: this.buildAttendanceContent
-            })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+        this.buildPageList()
       }
     }
     .width('100%')
@@ -152,15 +140,49 @@ struct AdminStudentDetailPage {
   }
 
   @Builder
+  private buildPageList() {
+    List() {
+      ListItem() {
+        SectionHeader({
+          title: '档案概览',
+          subtitle: '统一查看学生基础信息、监护关系与近期考勤。'
+        })
+      }
+
+      ListItem() {
+        InfoCard({
+          items: this.getBasicItems(),
+          columns: 2
+        })
+      }
+
+      ListItem() {
+        this.buildGuardianCard()
+      }
+
+      ListItem() {
+        this.buildAttendanceCard()
+      }
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .divider({ strokeWidth: 0 })
+    .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .cachedCount(8)
+  }
+
+  @Builder
   private buildEditAction() {
     Text('编辑')
       .fontSize(14)
       .fontWeight(FontWeight.Medium)
-      .fontColor(Color.White)
+      .fontColor(HarmonyColor.textInverse)
       .onClick(() => {
         if (this.studentId > 0) {
           this.getUIContext().getRouter().pushUrl({
-            url: 'pages/admin/AdminStudentEditPage',
+            url: RouteUrls.ADMIN_STUDENT_EDIT,
             params: { studentId: this.studentId }
           });
         }
@@ -185,6 +207,33 @@ struct AdminStudentDetailPage {
     ];
   }
 
+  private getGuardianItem(guardian: GuardianRelation): StudentGuardianViewModel {
+    return {
+      id: guardian.id,
+      relationLabel: this.getGuardianRelationText(guardian.relation),
+      roleLabel: guardian.isPrimary ? '主监护人' : '辅助监护人',
+      pickupLabel: guardian.authorizedPickup ? '已授权接送' : '未授权接送',
+      pickupCode: guardian.pickupCode ? guardian.pickupCode : '--'
+    };
+  }
+
+  private getAttendanceMetrics(): StudentAttendanceMetricViewModel[] {
+    return [
+      { label: '已签到', value: `${this.getAttendanceCount('SIGNED_IN', 'SIGNED_OUT')}` },
+      { label: '已签退', value: `${this.getAttendanceCount('SIGNED_OUT')}` },
+      { label: '异常', value: `${this.getAbnormalCount()}` }
+    ];
+  }
+
+  @Builder
+  private buildGuardianCard() {
+    Card({
+      title: '监护关系',
+      subtitle: `当前已绑定 ${this.guardians.length} 位监护人`,
+      content: this.buildGuardianContent
+    })
+  }
+
   @Builder
   private buildGuardianContent() {
     if (this.guardians.length === 0) {
@@ -193,18 +242,38 @@ struct AdminStudentDetailPage {
         .fontColor($r('app.color.text_secondary'))
         .width('100%')
     } else {
-      Column() {
-        ForEach(this.guardians, (guardian: GuardianRelation, index: number) => {
-          this.buildGuardianItem(guardian)
-          if (index < this.guardians.length - 1) {
-            Divider()
-              .color($r('app.color.divider'))
-              .margin({ top: 12, bottom: 12 })
+      List() {
+        LazyForEach(this.guardianDataSource, (guardian: GuardianRelation, index?: number) => {
+          ListItem() {
+            Column() {
+              StudentGuardianItemCard({
+                item: this.getGuardianItem(guardian)
+              })
+
+              if (index !== undefined && index < this.guardians.length - 1) {
+                Divider()
+                  .color($r('app.color.divider'))
+                  .margin({ top: 12, bottom: 12 })
+              }
+            }
+            .width('100%')
           }
-        })
+        }, (guardian: GuardianRelation) => `${guardian.id}`)
       }
       .width('100%')
+      .height(this.getGuardianListHeight())
+      .divider({ strokeWidth: 0 })
+      .scrollBar(BarState.Off)
     }
+  }
+
+  @Builder
+  private buildAttendanceCard() {
+    Card({
+      title: '近期考勤',
+      subtitle: `近 ${this.recentAttendance.length} 条记录摘要`,
+      content: this.buildAttendanceContent
+    })
   }
 
   @Builder
@@ -216,74 +285,33 @@ struct AdminStudentDetailPage {
         .width('100%')
     } else {
       Column() {
-        Row() {
-          this.buildAttendanceMetric('已签到', `${this.getAttendanceCount('SIGNED_IN', 'SIGNED_OUT')}`)
-          this.buildAttendanceMetric('已签退', `${this.getAttendanceCount('SIGNED_OUT')}`)
-          this.buildAttendanceMetric('异常', `${this.getAbnormalCount()}`)
+        StudentAttendanceMetricsCard({
+          metrics: this.getAttendanceMetrics()
+        })
+
+        List() {
+          LazyForEach(this.attendanceDataSource, (record: AttendanceRecord, index?: number) => {
+            ListItem() {
+              Column() {
+                this.buildAttendanceItem(record)
+                if (index !== undefined && index < Math.min(this.recentAttendance.length, 5) - 1) {
+                  Divider()
+                    .color($r('app.color.divider'))
+                    .margin({ top: 12, bottom: 12 })
+                }
+              }
+              .width('100%')
+            }
+          }, (record: AttendanceRecord) => `${record.id}`)
         }
         .width('100%')
-        .margin({ bottom: 14 })
-
-        ForEach(this.recentAttendance.slice(0, 5), (record: AttendanceRecord, index: number) => {
-          this.buildAttendanceItem(record)
-          if (index < Math.min(this.recentAttendance.length, 5) - 1) {
-            Divider()
-              .color($r('app.color.divider'))
-              .margin({ top: 12, bottom: 12 })
-          }
-        })
+        .height(this.getAttendanceListHeight())
+        .divider({ strokeWidth: 0 })
+        .scrollBar(BarState.Off)
+        .margin({ top: 14 })
       }
       .width('100%')
     }
-  }
-
-  @Builder
-  private buildGuardianItem(guardian: GuardianRelation) {
-    Row() {
-      Column() {
-        Text(this.getGuardianRelationText(guardian.relation))
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-
-        Text(guardian.isPrimary ? '主监护人' : '辅助监护人')
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-
-      Column() {
-        Text(guardian.authorizedPickup ? '已授权接送' : '未授权接送')
-          .fontSize(12)
-          .fontColor(guardian.authorizedPickup ? '#2F9E77' : '#D97706')
-
-        Text(guardian.pickupCode ? guardian.pickupCode : '--')
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
-      }
-      .alignItems(HorizontalAlign.End)
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildAttendanceMetric(label: string, value: string) {
-    Column() {
-      Text(value)
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
@@ -303,11 +331,21 @@ struct AdminStudentDetailPage {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Text(this.getAttendanceStatusText(record.status, record.abnormalFlag))
-        .fontSize(12)
-        .fontColor(this.getAttendanceStatusColor(record.status, record.abnormalFlag))
+      StudentAttendanceStatusChip({
+        text: this.getAttendanceStatusText(record.status, record.abnormalFlag),
+        color: this.getAttendanceStatusColor(record.status, record.abnormalFlag)
+      })
     }
     .width('100%')
+  }
+
+  private getGuardianListHeight(): number {
+    return this.guardians.length * 64 + Math.max(0, this.guardians.length - 1) * 24;
+  }
+
+  private getAttendanceListHeight(): number {
+    const visibleCount = Math.min(this.recentAttendance.length, 5);
+    return visibleCount * 48 + Math.max(0, visibleCount - 1) * 24;
   }
 
   private getStudentStatusText(status: string): string {
@@ -365,15 +403,15 @@ struct AdminStudentDetailPage {
 
   private getAttendanceStatusColor(status: string, abnormalFlag?: boolean): string {
     if (abnormalFlag) {
-      return '#D97706';
+      return HarmonyReport.caution;
     }
     if (status === 'SIGNED_OUT' || status === 'SIGNED_IN') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'ABSENT') {
-      return '#DC2626';
+      return HarmonyReport.danger;
     }
-    return '#7A879A';
+    return HarmonyColor.textTertiary;
   }
 
   private formatTime(value?: string): string {
@@ -399,4 +437,3 @@ struct AdminStudentDetailPage {
     return value;
   }
 }
-

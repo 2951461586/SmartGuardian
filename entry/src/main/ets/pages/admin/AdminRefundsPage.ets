@@ -1,19 +1,19 @@
-﻿/**
+/**
  * SmartGuardian - Admin Refunds Page
- * Admin refund monitoring workspace
+ * Admin refund monitoring workspace on the shared workbench template.
  */
 
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import {
-  Card,
-  EmptyState,
-  EmptyType,
+  AdminOverviewMetric,
+  AdminOverviewMetricSection,
+  AdminRefundListSection,
+  AdminStatusFilterCard,
   HeaderTheme,
-  LoadingSize,
-  LoadingState,
   PageHeader,
-  SectionHeader,
-  StatCard,
-  TabBar
+  StatefulContainer,
+  ViewState,
+  WorkbenchListPageTemplate
 } from '../../components/common';
 import { RefundQueryParams, RefundRecord, RefundStatistics } from '../../models/refund';
 import { RefundService } from '../../services/api/refund';
@@ -56,10 +56,8 @@ struct AdminRefundsPage {
     this.errorMessage = '';
 
     try {
-      const refundsPromise = RefundService.getRefunds(this.buildQueryParams());
-      const statisticsPromise = RefundService.getStatistics();
-      const refundsResponse = await refundsPromise;
-      const statisticsResponse = await statisticsPromise;
+      const refundsResponse = await RefundService.getRefunds(this.buildQueryParams());
+      const statisticsResponse = await RefundService.getStatistics();
 
       if (refundsResponse.code === 0 && refundsResponse.data) {
         this.refunds = refundsResponse.data.list ? refundsResponse.data.list : [];
@@ -125,49 +123,63 @@ struct AdminRefundsPage {
 
   private getStatusColor(status: string): string {
     if (status === 'PENDING') {
-      return '#D97706';
+      return HarmonyReport.caution;
     }
     if (status === 'PROCESSING') {
-      return '#526F95';
+      return HarmonyColor.info;
     }
     if (status === 'COMPLETED') {
-      return '#2F9E77';
+      return HarmonyReport.positive;
     }
     if (status === 'REJECTED' || status === 'CANCELLED') {
-      return '#DC2626';
+      return HarmonyReport.danger;
     }
-    return '#7A879A';
+    return HarmonyColor.textTertiary;
+  }
+
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
+    }
+    if (this.refunds.length === 0) {
+      return ViewState.EMPTY;
+    }
+    return ViewState.CONTENT;
+  }
+
+  private getOverviewMetrics(): AdminOverviewMetric[] {
+    return [
+      {
+        value: this.statistics ? this.statistics.pending : 0,
+        label: '待处理',
+        icon: $r('app.media.ic_refund'),
+        iconColor: HarmonyReport.caution
+      },
+      {
+        value: this.statistics ? this.statistics.processing : 0,
+        label: '退款中',
+        icon: $r('app.media.ic_refresh'),
+        iconColor: HarmonyColor.info
+      },
+      {
+        value: this.statistics ? `¥${Number(this.statistics.totalAmount).toFixed(0)}` : '¥0',
+        label: '累计退款额',
+        icon: $r('app.media.ic_money'),
+        iconColor: HarmonyReport.positive
+      }
+    ];
   }
 
   build() {
     Column() {
-      PageHeader({
-        title: '退款管理',
-        subtitle: '查看退款流转、金额规模与当前待处理申请。',
-        showBack: true,
-        onBackClick: () => this.getUIContext().getRouter().back(),
-        theme: HeaderTheme.PRIMARY
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildFilterSection,
+        content: this.buildRefundContent
       })
-
-      if (this.isLoading) {
-        LoadingState({
-          loadingSize: LoadingSize.DEFAULT,
-          message: '正在加载退款记录...'
-        })
-      } else {
-        Scroll() {
-          Column() {
-            this.buildOverviewPanel()
-            this.buildFilterPanel()
-            this.buildRefundList()
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
-      }
     }
     .width('100%')
     .height('100%')
@@ -175,56 +187,29 @@ struct AdminRefundsPage {
   }
 
   @Builder
-  private buildOverviewPanel() {
-    Column() {
-      SectionHeader({
-        title: '退款概览',
-        subtitle: '看待处理量、处理中规模和累计退款金额。'
-      })
-
-      Row() {
-        StatCard({
-          value: this.statistics ? this.statistics.pending : 0,
-          label: '待处理',
-          icon: $r('app.media.ic_refund'),
-          iconColor: '#D97706'
-        })
-        .layoutWeight(1)
-
-        StatCard({
-          value: this.statistics ? this.statistics.processing : 0,
-          label: '退款中',
-          icon: $r('app.media.ic_refresh'),
-          iconColor: '#526F95'
-        })
-        .layoutWeight(1)
-        .margin({ left: 12, right: 12 })
-
-        StatCard({
-          value: this.statistics ? `¥${Number(this.statistics.totalAmount).toFixed(0)}` : '¥0',
-          label: '累计退款额',
-          icon: $r('app.media.ic_money'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildFilterPanel() {
-    Card({
-      title: '状态筛选',
-      subtitle: '按流转状态查看退款积压，优先处理待办。',
-      content: this.buildFilterContent
+  private buildHeader() {
+    PageHeader({
+      title: '退款管理',
+      subtitle: '查看退款流转、金额规模与当前待处理申请。',
+      showBack: true,
+      onBackClick: () => this.getUIContext().getRouter().back(),
+      theme: HeaderTheme.WHITE
     })
   }
 
   @Builder
-  private buildFilterContent() {
-    TabBar({
+  private buildOverviewSection() {
+    AdminOverviewMetricSection({
+      title: '退款概览',
+      subtitle: '看待处理量、处理中规模和累计退款金额。',
+      metrics: this.getOverviewMetrics()
+    })
+  }
+
+  @Builder
+  private buildFilterSection() {
+    AdminStatusFilterCard({
+      subtitle: '按流转状态查看退款积压，优先处理待办。',
       tabs: this.tabs,
       currentIndex: this.currentTab,
       onTabChange: (index: number) => {
@@ -235,138 +220,34 @@ struct AdminRefundsPage {
   }
 
   @Builder
-  private buildRefundList() {
-    Column() {
-      SectionHeader({
-        title: '退款列表',
-        subtitle: this.errorMessage ? this.errorMessage : `当前共 ${this.refunds.length} 条退款记录`
-      })
-
-      if (this.refunds.length === 0) {
-        EmptyState({
-          type: EmptyType.DEFAULT,
-          customTitle: '暂无退款记录',
-          customDescription: this.errorMessage ? this.errorMessage : '当前筛选条件下没有退款申请。',
-          actionText: '刷新',
-          onAction: () => {
-            this.loadData();
-          }
-        })
-      } else {
-        Column() {
-          ForEach(this.refunds, (refund: RefundRecord) => {
-            this.buildRefundItem(refund);
-          })
-        }
-        .width('100%')
-      }
-    }
-    .width('100%')
+  private buildRefundContent() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在加载退款记录...',
+      emptyTitle: '暂无退款记录',
+      emptyDescription: this.errorMessage ? this.errorMessage : '当前筛选条件下没有退款申请。',
+      emptyActionText: '刷新',
+      onEmptyAction: () => {
+        this.loadData();
+      },
+      content: this.buildRefundListSection
+    })
+      .layoutWeight(1)
   }
 
   @Builder
-  private buildRefundItem(refund: RefundRecord) {
-    Column() {
-      Row() {
-        Column() {
-          Text(`${refund.studentName} · ${refund.serviceName}`)
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(`订单 ${refund.orderNo}`)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Text(this.getStatusText(refund.status))
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.getStatusColor(refund.status))
+  private buildRefundListSection() {
+    AdminRefundListSection({
+      refunds: this.refunds,
+      subtitle: this.errorMessage ? this.errorMessage : `当前共 ${this.refunds.length} 条退款记录`,
+      statusTextResolver: (status: string): string => this.getStatusText(status),
+      statusColorResolver: (status: string): string => this.getStatusColor(status),
+      onCancel: (refund: RefundRecord) => {
+        this.cancelRefund(refund);
+      },
+      onEmptyAction: () => {
+        this.loadData();
       }
-      .width('100%')
-
-      Row() {
-        this.buildMetricColumn('退款金额', `¥${Number(refund.refundAmount).toFixed(2)}`)
-        this.buildMetricColumn('申请时间', refund.appliedAt.substring(0, 10))
-      }
-      .width('100%')
-      .margin({ top: 14 })
-
-      Text(`原因：${refund.reason}`)
-        .width('100%')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 12 })
-
-      if (refund.description) {
-        Text(`补充说明：${refund.description}`)
-          .width('100%')
-          .fontSize(12)
-          .lineHeight(20)
-          .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 8 })
-      }
-
-      Row() {
-        if (refund.status === 'PENDING') {
-          Text('撤销申请')
-            .fontSize(12)
-            .fontWeight(FontWeight.Medium)
-            .fontColor('#DC2626')
-            .onClick(() => {
-              this.cancelRefund(refund);
-            })
-        } else if (refund.reviewRemark) {
-          Text(refund.reviewRemark)
-            .fontSize(12)
-            .fontColor($r('app.color.text_tertiary'))
-        } else {
-          Text('已记录流转状态')
-            .fontSize(12)
-            .fontColor($r('app.color.text_tertiary'))
-        }
-      }
-      .width('100%')
-      .margin({ top: 12 })
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
     })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .margin({ bottom: 12 })
-  }
-
-  @Builder
-  private buildMetricColumn(label: string, value: string) {
-    Column() {
-      Text(value)
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Start)
   }
 }
-

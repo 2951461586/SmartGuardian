@@ -14,16 +14,10 @@
 
 import { UserRole } from '../models/common';
 import { UserInfo } from '../models/user';
+import { StorageKeys } from '../constants/app.constants';
 import { removeToken } from '../utils/request';
 import { ReactiveStore, StateChangeListener, StateChangeEvent } from './core';
 
-/**
- * User store keys
- * 
- * @description AppStorage 存储键名常量
- */
-const USER_INFO_KEY = 'user_info';
-const IS_LOGGED_IN_KEY = 'is_logged_in';
 const USER_PREFERENCES_KEY = 'user_preferences';
 
 /**
@@ -87,8 +81,8 @@ export class UserStore extends ReactiveStore {
    * @returns {void}
    */
   static setUserInfo(userInfo: UserInfo): void {
-    this.setValue(USER_INFO_KEY, userInfo, { persist: true });
-    this.setValue(IS_LOGGED_IN_KEY, true, { persist: true });
+    this.setValue(StorageKeys.USER_INFO, userInfo, { persist: true });
+    this.setValue(StorageKeys.IS_LOGGED_IN, true, { persist: true });
   }
   
   /**
@@ -98,7 +92,7 @@ export class UserStore extends ReactiveStore {
    * @returns {UserInfo | null} 用户信息对象，未登录则返回 null
    */
   static getUserInfo(): UserInfo | null {
-    return this.getValue<UserInfo>(USER_INFO_KEY) ?? null;
+    return this.getValue<UserInfo>(StorageKeys.USER_INFO) ?? null;
   }
   
   /**
@@ -108,7 +102,7 @@ export class UserStore extends ReactiveStore {
    * @returns {boolean} 是否已登录
    */
   static isLoggedIn(): boolean {
-    return this.getValue<boolean>(IS_LOGGED_IN_KEY) ?? false;
+    return this.getValue<boolean>(StorageKeys.IS_LOGGED_IN) ?? false;
   }
   
   /**
@@ -161,8 +155,13 @@ export class UserStore extends ReactiveStore {
    */
   static clearUserInfo(): void {
     removeToken();
-    this.deleteValue(USER_INFO_KEY);
-    this.deleteValue(IS_LOGGED_IN_KEY);
+    this.deleteValue(StorageKeys.USER_INFO);
+    this.deleteValue(StorageKeys.IS_LOGGED_IN);
+    AppStorage.delete(StorageKeys.WORKBENCH_MANIFEST);
+    AppStorage.delete(StorageKeys.MAIN_NAVIGATION_SCOPE);
+    AppStorage.delete(StorageKeys.AGC_AUTH_USER_UID);
+    AppStorage.delete(StorageKeys.AGC_AUTH_USER_PHONE);
+    AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
   }
   
   /**
@@ -211,7 +210,7 @@ export class UserStore extends ReactiveStore {
    * @returns {() => void} 取消订阅函数
    */
   static onUserInfoChange(listener: StateChangeListener<UserInfo>): () => void {
-    return this.subscribe<UserInfo>(USER_INFO_KEY, listener);
+    return this.subscribe<UserInfo>(StorageKeys.USER_INFO, listener);
   }
   
   /**
@@ -222,7 +221,7 @@ export class UserStore extends ReactiveStore {
    * @returns {() => void} 取消订阅函数
    */
   static onLoginStateChange(listener: StateChangeListener<boolean>): () => void {
-    return this.subscribe<boolean>(IS_LOGGED_IN_KEY, listener);
+    return this.subscribe<boolean>(StorageKeys.IS_LOGGED_IN, listener);
   }
   
   /**
@@ -244,6 +243,6 @@ export class UserStore extends ReactiveStore {
    * @returns {() => void} 取消订阅函数
    */
   static onceUserInfoChange(listener: StateChangeListener<UserInfo>): () => void {
-    return this.subscribeOnce<UserInfo>(USER_INFO_KEY, listener);
+    return this.subscribeOnce<UserInfo>(StorageKeys.USER_INFO, listener);
   }
 }

@@ -1,0 +1,4040 @@
+{
+  "permissions": [
+    {
+      "objectTypeName": "organizations",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "users",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_profiles",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_roles",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_sessions",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "students",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "guardians",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "student_guardians",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "service_products",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "orders",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "order_items",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "order_audits",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "sessions",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "session_students",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "session_teachers",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "attendance_records",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "leave_requests",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "homework_tasks",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "homework_feedback",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "messages",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "message_receipts",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "alerts",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "alert_actions",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "refunds",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "refund_audits",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "payments",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "payment_callbacks",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "student_timelines",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "daily_reports",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "report_snapshots",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "form_cards",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    },
+    {
+      "objectTypeName": "workbench_manifests",
+      "permissions": [
+        {
+          "role": "Administrator",
+          "rights": [
+            "Read",
+            "Upsert",
+            "Delete"
+          ]
+        }
+      ]
+    }
+  ],
+  "objectTypes": [
+    {
+      "objectTypeName": "organizations",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "orgCode"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orgCode",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "contactPhone",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "address",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "users",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "roleType"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "orgId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "username"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "mobile"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "username",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "password",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "realName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "mobile",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "roleType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "avatar",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "schoolId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_profiles",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "userId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "userId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "displayName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "bio",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_roles",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "userId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "roleType"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "roleType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "scope",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "user_sessions",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "userId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "sessionStatus"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "expireAt"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "deviceId"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "notificationProvider"
+          ]
+        },
+        {
+          "indexName": "index6",
+          "indexList": [
+            "token"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "token",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "sessionStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "deviceId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "notificationToken",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "notificationProvider",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "authUid",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "authPhone",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "clientVersion",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "clientPlatform",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "lastActiveAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "expireAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "students",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "schoolId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "guardianUserId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "orgId"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "classId"
+          ]
+        },
+        {
+          "indexName": "index6",
+          "indexList": [
+            "studentNo"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentNo",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "name",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "schoolId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "classId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "className",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "grade",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "gender",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "birthDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "guardianUserId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "healthNotes",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "schoolName",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "guardians",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "orgId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "mobile"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "userId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "realName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "mobile",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "student_guardians",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "userId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "relation"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "relation",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "isPrimary",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Boolean",
+          "defaultValue": false
+        },
+        {
+          "fieldName": "authorizedPickup",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Boolean",
+          "defaultValue": false
+        },
+        {
+          "fieldName": "pickupCode",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "service_products",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "serviceType"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "orgId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "serviceName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "serviceType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "description",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "price",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "unit",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "gradeRange",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "capacity",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "maxStudents",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "currentStudents",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "serviceStartDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "serviceEndDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signInStartTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signInEndTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signOutStartTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signOutEndTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "orgName",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "orders",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "serviceProductId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "orderStatus"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "payStatus"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "createdAt"
+          ]
+        },
+        {
+          "indexName": "index6",
+          "indexList": [
+            "orderNo"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orderNo",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "serviceProductId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "orderStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "amount",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "paidAmount",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "auditStatus",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "startDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "endDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "totalAmount",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "discountAmount",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "actualAmount",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "auditTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "auditUserId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "auditRemark",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "order_items",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "orderId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "serviceProductId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orderId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "serviceProductId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "quantity",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "unitPrice",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "order_audits",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "orderId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "auditorId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "auditStatus"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orderId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "auditStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "auditorId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "auditRemark",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "sessions",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "sessionDate"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "serviceProductId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "teacherUserId"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "status"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "sessionDate",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "startTime",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "endTime",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "teacherUserId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "capacity",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "currentCount",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "sessionNo",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "serviceProductId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "maxCapacity",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "location",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "session_students",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "sessionId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "studentId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "sessionId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "session_teachers",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "sessionId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "teacherUserId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "sessionId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "teacherUserId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "attendance_records",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "sessionId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "attendanceDate"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "abnormalFlag"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "sessionId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "signInTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signOutTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signInMethod",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signOutMethod",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signInLocation",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "signOutLocation",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "operatorUserId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "abnormalFlag",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Boolean",
+          "defaultValue": false
+        },
+        {
+          "fieldName": "abnormalType",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "abnormalDesc",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "attendanceDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "leave_requests",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "leaveDate"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "status"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "leaveDate",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "leaveType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reason",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "attachments",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "[]"
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reviewerId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "reviewRemark",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reviewedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "homework_tasks",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "sessionId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "taskDate"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "status"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "taskDate",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "subject",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "title",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "content",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "sourceType",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "taskNo",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "sessionId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "teacherId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "attachments",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "[]"
+        },
+        {
+          "fieldName": "completedTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "homework_feedback",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "taskId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "status"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "taskId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "teacherId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "teacherName",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "feedbackContent",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "performance",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "attachments",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "[]"
+        },
+        {
+          "fieldName": "status",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "guardianConfirmTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "guardianRemark",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "messages",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "userId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "msgType"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "readStatus"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "createdAt"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "userId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "msgType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "title",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "content",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "bizType",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "bizId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "readStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Boolean",
+          "defaultValue": false
+        },
+        {
+          "fieldName": "readAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "message_receipts",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "messageId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "receiverUserId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "readStatus"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "messageId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "receiverUserId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "readStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Boolean",
+          "defaultValue": false
+        },
+        {
+          "fieldName": "readAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "alerts",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "alertType"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "severity"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "createdAt"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "studentName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "alertType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "severity",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "title",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "description",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "suggestedAction",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "acknowledgedBy",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "acknowledgedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "resolvedBy",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "resolvedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "resolution",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "alert_actions",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "alertId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "actionType"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "operatorId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "alertId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "actionType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "operatorId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "note",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "refunds",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "orderId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "status"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "createdAt"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orderNo",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orderId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "studentName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "serviceProductId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "serviceName",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "refundAmount",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "reason",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reasonType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "description",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "appliedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reviewedBy",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "reviewedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reviewRemark",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "processedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "completedAt",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "refund_audits",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "refundId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "auditStatus"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "auditorId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "refundId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "auditStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "auditorId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "remark",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "payments",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "orderId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "payStatus"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "payChannel"
+          ]
+        },
+        {
+          "indexName": "index4",
+          "indexList": [
+            "createdAt"
+          ]
+        },
+        {
+          "indexName": "index5",
+          "indexList": [
+            "paymentNo"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "orderId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "paymentNo",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payChannel",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payAmount",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Double",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "expireTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payUrl",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "qrCode",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "thirdTradeNo",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "payment_callbacks",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "paymentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "tradeStatus"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "createdAt"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "paymentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "paymentNo",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "tradeStatus",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "thirdTradeNo",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payTime",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "rawPayload",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "student_timelines",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "studentId"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "timelineType"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "timestamp"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "timelineType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "bizId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "title",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "content",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "bizDate",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "timestamp",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "operatorUserId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "operatorName",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "daily_reports",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "reportDate"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "reportType"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "orgId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "reportDate",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "reportType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payload",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "{}"
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "report_snapshots",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "reportType"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "orgId"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "generatedAt"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "reportType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "orgId",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payload",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "{}"
+        },
+        {
+          "fieldName": "generatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "form_cards",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "cardType"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "targetRole"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "studentId"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "cardType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "targetRole",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "studentId",
+          "notNull": false,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Integer",
+          "defaultValue": 0
+        },
+        {
+          "fieldName": "payload",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "{}"
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "objectTypeName": "workbench_manifests",
+      "indexes": [
+        {
+          "indexName": "index1",
+          "indexList": [
+            "roleType"
+          ]
+        },
+        {
+          "indexName": "index2",
+          "indexList": [
+            "version"
+          ]
+        },
+        {
+          "indexName": "index3",
+          "indexList": [
+            "status"
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "fieldName": "id",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": true,
+          "fieldType": "Integer"
+        },
+        {
+          "fieldName": "roleType",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "version",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "status",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "payload",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "Text",
+          "defaultValue": "{}"
+        },
+        {
+          "fieldName": "createdAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        },
+        {
+          "fieldName": "updatedAt",
+          "notNull": true,
+          "isNeedEncrypt": false,
+          "belongPrimaryKey": false,
+          "fieldType": "String",
+          "defaultValue": ""
+        }
+      ]
+    }
+  ]
+}

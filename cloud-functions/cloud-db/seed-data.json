@@ -1,0 +1,617 @@
+{
+  "organizations": [
+    {
+      "id": 1,
+      "orgCode": "SG-001",
+      "orgName": "智慧学生托管中心",
+      "status": "ACTIVE",
+      "contactPhone": "400-800-1234",
+      "address": "深圳市南山区智慧校园路 1 号",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "parent.demo",
+      "password": "123456",
+      "realName": "李晓琳",
+      "mobile": "13800000001",
+      "roleType": "PARENT",
+      "avatar": "",
+      "orgId": 1,
+      "schoolId": 1001,
+      "status": "ACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "username": "teacher.demo",
+      "password": "123456",
+      "realName": "周老师",
+      "mobile": "13800000002",
+      "roleType": "TEACHER",
+      "avatar": "",
+      "orgId": 1,
+      "schoolId": 1001,
+      "status": "ACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "username": "admin.demo",
+      "password": "123456",
+      "realName": "陈园长",
+      "mobile": "13800000003",
+      "roleType": "ADMIN",
+      "avatar": "",
+      "orgId": 1,
+      "schoolId": 1001,
+      "status": "ACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "username": "parent.alt",
+      "password": "123456",
+      "realName": "王建国",
+      "mobile": "13800000004",
+      "roleType": "PARENT",
+      "avatar": "",
+      "orgId": 1,
+      "schoolId": 1001,
+      "status": "ACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "user_profiles": [
+    { "id": 1, "userId": 1, "displayName": "李妈妈", "bio": "关注孩子托管动态", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 2, "userId": 2, "displayName": "周老师", "bio": "负责课后托管和考勤", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 3, "userId": 3, "displayName": "陈园长", "bio": "机构管理员", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" }
+  ],
+  "user_roles": [
+    { "id": 1, "userId": 1, "roleType": "PARENT", "scope": "student:101,102", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 2, "userId": 2, "roleType": "TEACHER", "scope": "session:*", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 3, "userId": 3, "roleType": "ADMIN", "scope": "org:*", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" }
+  ],
+  "user_sessions": [],
+  "students": [
+    {
+      "id": 101,
+      "studentNo": "SG2026001",
+      "name": "李子轩",
+      "schoolId": 1001,
+      "classId": 301,
+      "className": "三年级一班",
+      "grade": "三年级",
+      "gender": "MALE",
+      "birthDate": "2017-06-08",
+      "guardianUserId": 1,
+      "healthNotes": "对花生过敏",
+      "orgId": 1,
+      "status": "ACTIVE",
+      "schoolName": "智慧实验小学",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 102,
+      "studentNo": "SG2026002",
+      "name": "李可欣",
+      "schoolId": 1001,
+      "classId": 302,
+      "className": "二年级二班",
+      "grade": "二年级",
+      "gender": "FEMALE",
+      "birthDate": "2018-02-18",
+      "guardianUserId": 1,
+      "healthNotes": "",
+      "orgId": 1,
+      "status": "ACTIVE",
+      "schoolName": "智慧实验小学",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "guardians": [
+    { "id": 201, "userId": 1, "realName": "李晓琳", "mobile": "13800000001", "orgId": 1, "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 202, "userId": 4, "realName": "王建国", "mobile": "13800000004", "orgId": 1, "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" }
+  ],
+  "student_guardians": [
+    { "id": 301, "studentId": 101, "userId": 1, "relation": "MOTHER", "isPrimary": true, "authorizedPickup": true, "pickupCode": "M101", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 302, "studentId": 102, "userId": 1, "relation": "MOTHER", "isPrimary": true, "authorizedPickup": true, "pickupCode": "M102", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" },
+    { "id": 303, "studentId": 101, "userId": 4, "relation": "OTHER", "isPrimary": false, "authorizedPickup": true, "pickupCode": "O101", "createdAt": "2026-04-20T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" }
+  ],
+  "service_products": [
+    {
+      "id": 401,
+      "serviceName": "课后托管标准班",
+      "serviceType": "AFTER_SCHOOL",
+      "description": "放学后作业辅导与看护服务",
+      "price": 998,
+      "unit": "月",
+      "gradeRange": "1-6年级",
+      "capacity": 30,
+      "maxStudents": 30,
+      "currentStudents": 24,
+      "serviceStartDate": "2026-04-01",
+      "serviceEndDate": "2026-07-31",
+      "signInStartTime": "16:20",
+      "signInEndTime": "16:40",
+      "signOutStartTime": "18:00",
+      "signOutEndTime": "18:30",
+      "orgId": 1,
+      "orgName": "智慧学生托管中心",
+      "status": "ACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 402,
+      "serviceName": "周末成长营",
+      "serviceType": "WEEKEND",
+      "description": "周末阅读、科学与运动成长课程",
+      "price": 699,
+      "unit": "期",
+      "gradeRange": "2-5年级",
+      "capacity": 20,
+      "maxStudents": 20,
+      "currentStudents": 20,
+      "serviceStartDate": "2026-04-01",
+      "serviceEndDate": "2026-06-30",
+      "signInStartTime": "09:00",
+      "signInEndTime": "09:20",
+      "signOutStartTime": "16:40",
+      "signOutEndTime": "17:00",
+      "orgId": 1,
+      "orgName": "智慧学生托管中心",
+      "status": "FULL",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 403,
+      "serviceName": "暑期托管预热班",
+      "serviceType": "HOLIDAY",
+      "description": "暑期托管预报名服务",
+      "price": 1299,
+      "unit": "期",
+      "gradeRange": "1-6年级",
+      "capacity": 40,
+      "maxStudents": 40,
+      "currentStudents": 0,
+      "serviceStartDate": "2026-07-10",
+      "serviceEndDate": "2026-08-20",
+      "signInStartTime": "08:00",
+      "signInEndTime": "08:30",
+      "signOutStartTime": "17:30",
+      "signOutEndTime": "18:00",
+      "orgId": 1,
+      "orgName": "智慧学生托管中心",
+      "status": "INACTIVE",
+      "createdAt": "2026-04-20T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": 501,
+      "orderNo": "ORD-20260425-001",
+      "studentId": 101,
+      "serviceProductId": 401,
+      "orderStatus": "APPROVED",
+      "amount": 998,
+      "paidAmount": 998,
+      "payStatus": "PAID",
+      "auditStatus": "APPROVED",
+      "startDate": "2026-04-01",
+      "endDate": "2026-04-30",
+      "totalAmount": 998,
+      "discountAmount": 0,
+      "actualAmount": 998,
+      "payTime": "2026-04-01T09:20:00.000Z",
+      "auditTime": "2026-03-31T12:00:00.000Z",
+      "auditUserId": 3,
+      "auditRemark": "资料齐全，审核通过",
+      "createdAt": "2026-03-30T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 502,
+      "orderNo": "ORD-20260425-002",
+      "studentId": 102,
+      "serviceProductId": 401,
+      "orderStatus": "PENDING",
+      "amount": 998,
+      "paidAmount": 0,
+      "payStatus": "UNPAID",
+      "auditStatus": "PENDING",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-31",
+      "totalAmount": 998,
+      "discountAmount": 100,
+      "actualAmount": 898,
+      "createdAt": "2026-04-24T10:30:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 503,
+      "orderNo": "ORD-20260425-003",
+      "studentId": 101,
+      "serviceProductId": 402,
+      "orderStatus": "COMPLETED",
+      "amount": 699,
+      "paidAmount": 699,
+      "payStatus": "PAID",
+      "auditStatus": "APPROVED",
+      "startDate": "2026-04-05",
+      "endDate": "2026-05-30",
+      "totalAmount": 699,
+      "discountAmount": 0,
+      "actualAmount": 699,
+      "payTime": "2026-04-05T09:10:00.000Z",
+      "auditTime": "2026-04-04T14:10:00.000Z",
+      "auditUserId": 3,
+      "auditRemark": "已参加周末营",
+      "createdAt": "2026-04-04T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "order_items": [
+    { "id": 601, "orderId": 501, "serviceProductId": 401, "quantity": 1, "unitPrice": 998, "createdAt": "2026-03-30T08:00:00.000Z", "updatedAt": "2026-03-30T08:00:00.000Z" },
+    { "id": 602, "orderId": 502, "serviceProductId": 401, "quantity": 1, "unitPrice": 998, "createdAt": "2026-04-24T10:30:00.000Z", "updatedAt": "2026-04-24T10:30:00.000Z" },
+    { "id": 603, "orderId": 503, "serviceProductId": 402, "quantity": 1, "unitPrice": 699, "createdAt": "2026-04-04T08:00:00.000Z", "updatedAt": "2026-04-04T08:00:00.000Z" }
+  ],
+  "order_audits": [
+    { "id": 701, "orderId": 501, "auditStatus": "APPROVED", "auditorId": 3, "auditRemark": "资料齐全，审核通过", "createdAt": "2026-03-31T12:00:00.000Z", "updatedAt": "2026-03-31T12:00:00.000Z" },
+    { "id": 702, "orderId": 503, "auditStatus": "APPROVED", "auditorId": 3, "auditRemark": "周末营审核通过", "createdAt": "2026-04-04T14:10:00.000Z", "updatedAt": "2026-04-04T14:10:00.000Z" }
+  ],
+  "sessions": [
+    {
+      "id": 801,
+      "sessionDate": "2026-04-25",
+      "startTime": "16:30",
+      "endTime": "18:00",
+      "teacherUserId": 2,
+      "capacity": 30,
+      "currentCount": 2,
+      "sessionNo": "SESS-20260425-A",
+      "serviceProductId": 401,
+      "maxCapacity": 30,
+      "location": "托管教室 A",
+      "status": "ONGOING",
+      "createdAt": "2026-04-24T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 802,
+      "sessionDate": "2026-04-25",
+      "startTime": "18:10",
+      "endTime": "19:00",
+      "teacherUserId": 2,
+      "capacity": 20,
+      "currentCount": 1,
+      "sessionNo": "SESS-20260425-B",
+      "serviceProductId": 402,
+      "maxCapacity": 20,
+      "location": "成长活动室",
+      "status": "SCHEDULED",
+      "createdAt": "2026-04-24T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ],
+  "session_students": [
+    { "id": 901, "sessionId": 801, "studentId": 101, "createdAt": "2026-04-24T08:00:00.000Z", "updatedAt": "2026-04-24T08:00:00.000Z" },
+    { "id": 902, "sessionId": 801, "studentId": 102, "createdAt": "2026-04-24T08:00:00.000Z", "updatedAt": "2026-04-24T08:00:00.000Z" },
+    { "id": 903, "sessionId": 802, "studentId": 101, "createdAt": "2026-04-24T08:00:00.000Z", "updatedAt": "2026-04-24T08:00:00.000Z" }
+  ],
+  "session_teachers": [
+    { "id": 951, "sessionId": 801, "teacherUserId": 2, "createdAt": "2026-04-24T08:00:00.000Z", "updatedAt": "2026-04-24T08:00:00.000Z" },
+    { "id": 952, "sessionId": 802, "teacherUserId": 2, "createdAt": "2026-04-24T08:00:00.000Z", "updatedAt": "2026-04-24T08:00:00.000Z" }
+  ],
+  "attendance_records": [
+    {
+      "id": 1001,
+      "studentId": 101,
+      "sessionId": 801,
+      "signInTime": "2026-04-25T16:28:00.000Z",
+      "signOutTime": "",
+      "signInMethod": "QR_CODE",
+      "signOutMethod": "",
+      "signInLocation": "校门口",
+      "signOutLocation": "",
+      "operatorUserId": 2,
+      "abnormalFlag": false,
+      "abnormalType": "",
+      "abnormalDesc": "",
+      "status": "SIGNED_IN",
+      "attendanceDate": "2026-04-25",
+      "createdAt": "2026-04-25T16:28:00.000Z",
+      "updatedAt": "2026-04-25T16:28:00.000Z"
+    },
+    {
+      "id": 1002,
+      "studentId": 102,
+      "sessionId": 801,
+      "signInTime": "",
+      "signOutTime": "",
+      "signInMethod": "",
+      "signOutMethod": "",
+      "signInLocation": "",
+      "signOutLocation": "",
+      "operatorUserId": 2,
+      "abnormalFlag": true,
+      "abnormalType": "ABSENT",
+      "abnormalDesc": "未在签到时间内到校",
+      "status": "NOT_SIGNED",
+      "attendanceDate": "2026-04-25",
+      "createdAt": "2026-04-25T16:45:00.000Z",
+      "updatedAt": "2026-04-25T16:45:00.000Z"
+    }
+  ],
+  "leave_requests": [
+    {
+      "id": 1101,
+      "studentId": 102,
+      "leaveDate": "2026-04-26",
+      "leaveType": "PERSONAL",
+      "reason": "家庭活动请假",
+      "attachments": [],
+      "status": "PENDING",
+      "reviewerId": 3,
+      "reviewRemark": "",
+      "reviewedAt": "",
+      "createdAt": "2026-04-25T06:00:00.000Z",
+      "updatedAt": "2026-04-25T06:00:00.000Z"
+    }
+  ],
+  "homework_tasks": [
+    {
+      "id": 1201,
+      "studentId": 101,
+      "taskDate": "2026-04-25",
+      "subject": "数学",
+      "title": "分数练习",
+      "content": "完成练习册第 24 页 1-6 题",
+      "sourceType": "TEACHER",
+      "status": "IN_PROGRESS",
+      "taskNo": "HW-20260425-001",
+      "sessionId": 801,
+      "teacherId": 2,
+      "attachments": [],
+      "completedTime": "",
+      "createdAt": "2026-04-25T10:00:00.000Z",
+      "updatedAt": "2026-04-25T16:30:00.000Z"
+    },
+    {
+      "id": 1202,
+      "studentId": 102,
+      "taskDate": "2026-04-25",
+      "subject": "语文",
+      "title": "阅读摘录",
+      "content": "摘录《草房子》精彩片段",
+      "sourceType": "TEACHER",
+      "status": "PENDING",
+      "taskNo": "HW-20260425-002",
+      "sessionId": 801,
+      "teacherId": 2,
+      "attachments": [],
+      "completedTime": "",
+      "createdAt": "2026-04-25T10:05:00.000Z",
+      "updatedAt": "2026-04-25T10:05:00.000Z"
+    },
+    {
+      "id": 1203,
+      "studentId": 101,
+      "taskDate": "2026-04-24",
+      "subject": "英语",
+      "title": "单词听写",
+      "content": "完成 Lesson 8 单词听写",
+      "sourceType": "TEACHER",
+      "status": "COMPLETED",
+      "taskNo": "HW-20260424-003",
+      "sessionId": 801,
+      "teacherId": 2,
+      "attachments": [],
+      "completedTime": "2026-04-24T17:20:00.000Z",
+      "createdAt": "2026-04-24T10:00:00.000Z",
+      "updatedAt": "2026-04-24T17:20:00.000Z"
+    }
+  ],
+  "homework_feedback": [
+    {
+      "id": 1301,
+      "taskId": 1203,
+      "teacherId": 2,
+      "teacherName": "周老师",
+      "studentId": 101,
+      "feedbackContent": "完成及时，字迹工整",
+      "performance": "GOOD",
+      "attachments": [],
+      "status": "CONFIRMED",
+      "guardianConfirmTime": "2026-04-24T20:10:00.000Z",
+      "guardianRemark": "收到，谢谢老师",
+      "createdAt": "2026-04-24T17:30:00.000Z",
+      "updatedAt": "2026-04-24T20:10:00.000Z"
+    }
+  ],
+  "messages": [
+    { "id": 1401, "userId": 1, "msgType": "SYSTEM", "title": "系统通知", "content": "本周五将进行消防演练。", "bizType": "NOTICE", "bizId": 1, "readStatus": false, "readAt": "", "createdAt": "2026-04-25T08:30:00.000Z", "updatedAt": "2026-04-25T08:30:00.000Z" },
+    { "id": 1402, "userId": 1, "msgType": "ATTENDANCE", "title": "签到提醒", "content": "李子轩已于 16:28 成功签到。", "bizType": "ATTENDANCE", "bizId": 1001, "readStatus": false, "readAt": "", "createdAt": "2026-04-25T16:29:00.000Z", "updatedAt": "2026-04-25T16:29:00.000Z" },
+    { "id": 1403, "userId": 1, "msgType": "HOMEWORK", "title": "今日作业", "content": "老师已布置数学分数练习。", "bizType": "HOMEWORK", "bizId": 1201, "readStatus": true, "readAt": "2026-04-25T12:00:00.000Z", "createdAt": "2026-04-25T10:10:00.000Z", "updatedAt": "2026-04-25T12:00:00.000Z" },
+    { "id": 1404, "userId": 2, "msgType": "ORDER", "title": "新订单待审核", "content": "李可欣的新托管订单已提交。", "bizType": "ORDER", "bizId": 502, "readStatus": false, "readAt": "", "createdAt": "2026-04-24T10:40:00.000Z", "updatedAt": "2026-04-24T10:40:00.000Z" },
+    { "id": 1405, "userId": 3, "msgType": "ORDER", "title": "待审核订单", "content": "当前有 1 笔待审核订单。", "bizType": "ORDER", "bizId": 502, "readStatus": false, "readAt": "", "createdAt": "2026-04-24T10:41:00.000Z", "updatedAt": "2026-04-24T10:41:00.000Z" }
+  ],
+  "message_receipts": [
+    { "id": 1501, "messageId": 1401, "receiverUserId": 1, "readStatus": false, "readAt": "", "createdAt": "2026-04-25T08:30:00.000Z", "updatedAt": "2026-04-25T08:30:00.000Z" },
+    { "id": 1502, "messageId": 1402, "receiverUserId": 1, "readStatus": false, "readAt": "", "createdAt": "2026-04-25T16:29:00.000Z", "updatedAt": "2026-04-25T16:29:00.000Z" }
+  ],
+  "alerts": [
+    { "id": 1601, "studentId": 102, "studentName": "李可欣", "alertType": "ATTENDANCE_ANOMALY", "severity": "HIGH", "title": "未按时签到", "description": "李可欣在 16:40 前未完成签到。", "suggestedAction": "联系家长确认状态", "status": "ACTIVE", "acknowledgedBy": 0, "acknowledgedAt": "", "resolvedBy": 0, "resolvedAt": "", "resolution": "", "createdAt": "2026-04-25T16:45:00.000Z", "updatedAt": "2026-04-25T16:45:00.000Z" },
+    { "id": 1602, "studentId": 101, "studentName": "李子轩", "alertType": "ACADEMIC_PERFORMANCE", "severity": "MEDIUM", "title": "作业进度滞后", "description": "数学练习完成度低于预期。", "suggestedAction": "增加针对性辅导", "status": "ACKNOWLEDGED", "acknowledgedBy": 3, "acknowledgedAt": "2026-04-25T15:20:00.000Z", "resolvedBy": 0, "resolvedAt": "", "resolution": "", "createdAt": "2026-04-25T15:00:00.000Z", "updatedAt": "2026-04-25T15:20:00.000Z" },
+    { "id": 1603, "studentId": 101, "studentName": "李子轩", "alertType": "SYSTEM", "severity": "LOW", "title": "费用提醒", "description": "下月托管费用即将开放缴纳。", "suggestedAction": "关注缴费通知", "status": "RESOLVED", "acknowledgedBy": 3, "acknowledgedAt": "2026-04-24T18:00:00.000Z", "resolvedBy": 3, "resolvedAt": "2026-04-24T19:00:00.000Z", "resolution": "已推送缴费信息", "createdAt": "2026-04-24T17:30:00.000Z", "updatedAt": "2026-04-24T19:00:00.000Z" }
+  ],
+  "alert_actions": [
+    { "id": 1701, "alertId": 1602, "actionType": "ACKNOWLEDGE", "operatorId": 3, "note": "已确认关注", "createdAt": "2026-04-25T15:20:00.000Z", "updatedAt": "2026-04-25T15:20:00.000Z" },
+    { "id": 1702, "alertId": 1603, "actionType": "RESOLVE", "operatorId": 3, "note": "已处理", "createdAt": "2026-04-24T19:00:00.000Z", "updatedAt": "2026-04-24T19:00:00.000Z" }
+  ],
+  "refunds": [
+    { "id": 1801, "orderNo": "ORD-20260425-003", "orderId": 503, "studentId": 101, "studentName": "李子轩", "serviceProductId": 402, "serviceName": "周末成长营", "refundAmount": 199, "reason": "课程调整", "reasonType": "SCHEDULE_CHANGE", "description": "因周末行程冲突申请部分退款", "status": "PROCESSING", "appliedAt": "2026-04-25T09:00:00.000Z", "reviewedBy": 3, "reviewedAt": "2026-04-25T10:00:00.000Z", "reviewRemark": "进入退款流程", "processedAt": "2026-04-25T10:30:00.000Z", "completedAt": "", "createdAt": "2026-04-25T09:00:00.000Z", "updatedAt": "2026-04-25T10:30:00.000Z" },
+    { "id": 1802, "orderNo": "ORD-20260425-001", "orderId": 501, "studentId": 101, "studentName": "李子轩", "serviceProductId": 401, "serviceName": "课后托管标准班", "refundAmount": 99, "reason": "个人原因", "reasonType": "PERSONAL_REASON", "description": "", "status": "COMPLETED", "appliedAt": "2026-04-23T09:00:00.000Z", "reviewedBy": 3, "reviewedAt": "2026-04-23T10:00:00.000Z", "reviewRemark": "已完成退款", "processedAt": "2026-04-23T11:00:00.000Z", "completedAt": "2026-04-23T12:00:00.000Z", "createdAt": "2026-04-23T09:00:00.000Z", "updatedAt": "2026-04-23T12:00:00.000Z" }
+  ],
+  "refund_audits": [
+    { "id": 1901, "refundId": 1801, "auditStatus": "PROCESSING", "auditorId": 3, "remark": "进入退款流程", "createdAt": "2026-04-25T10:00:00.000Z", "updatedAt": "2026-04-25T10:00:00.000Z" }
+  ],
+  "payments": [
+    { "id": 2001, "orderId": 501, "paymentNo": "PAY-20260401-001", "payChannel": "WECHAT", "payAmount": 998, "payStatus": "SUCCESS", "payTime": "2026-04-01T09:20:00.000Z", "expireTime": "2026-04-01T10:20:00.000Z", "payUrl": "https://pay.smartguardian.local/pay/2001", "qrCode": "SGPAY2001", "thirdTradeNo": "WX202604010001", "createdAt": "2026-04-01T09:00:00.000Z", "updatedAt": "2026-04-01T09:20:00.000Z" }
+  ],
+  "payment_callbacks": [
+    { "id": 2101, "paymentId": 2001, "paymentNo": "PAY-20260401-001", "tradeStatus": "SUCCESS", "thirdTradeNo": "WX202604010001", "payTime": "2026-04-01T09:20:00.000Z", "rawPayload": "{}", "createdAt": "2026-04-01T09:20:00.000Z", "updatedAt": "2026-04-01T09:20:00.000Z" }
+  ],
+  "student_timelines": [
+    { "id": 2201, "studentId": 101, "timelineType": "ATTENDANCE", "bizId": 1001, "title": "已签到", "content": "16:28 到校签到成功", "bizDate": "2026-04-25", "timestamp": "2026-04-25T16:28:00.000Z", "operatorUserId": 2, "operatorName": "周老师", "createdAt": "2026-04-25T16:28:00.000Z", "updatedAt": "2026-04-25T16:28:00.000Z" },
+    { "id": 2202, "studentId": 101, "timelineType": "HOMEWORK", "bizId": 1201, "title": "布置作业", "content": "数学分数练习已发布", "bizDate": "2026-04-25", "timestamp": "2026-04-25T10:10:00.000Z", "operatorUserId": 2, "operatorName": "周老师", "createdAt": "2026-04-25T10:10:00.000Z", "updatedAt": "2026-04-25T10:10:00.000Z" },
+    { "id": 2203, "studentId": 101, "timelineType": "ORDER", "bizId": 501, "title": "订单已支付", "content": "课后托管标准班订单支付完成", "bizDate": "2026-04-01", "timestamp": "2026-04-01T09:20:00.000Z", "operatorUserId": 1, "operatorName": "李晓琳", "createdAt": "2026-04-01T09:20:00.000Z", "updatedAt": "2026-04-01T09:20:00.000Z" },
+    { "id": 2204, "studentId": 102, "timelineType": "ATTENDANCE", "bizId": 1601, "title": "签到异常", "content": "未在规定时间内签到", "bizDate": "2026-04-25", "timestamp": "2026-04-25T16:45:00.000Z", "operatorUserId": 2, "operatorName": "周老师", "createdAt": "2026-04-25T16:45:00.000Z", "updatedAt": "2026-04-25T16:45:00.000Z" }
+  ],
+  "daily_reports": [
+    { "id": 2301, "reportDate": "2026-04-25", "reportType": "ATTENDANCE", "orgId": 1, "payload": { "totalStudents": 2, "presentCount": 1, "absentCount": 1, "lateCount": 0 }, "createdAt": "2026-04-25T18:30:00.000Z", "updatedAt": "2026-04-25T18:30:00.000Z" },
+    { "id": 2302, "reportDate": "2026-04-25", "reportType": "FINANCE", "orgId": 1, "payload": { "income": 998, "refund": 199, "netIncome": 799 }, "createdAt": "2026-04-25T18:30:00.000Z", "updatedAt": "2026-04-25T18:30:00.000Z" }
+  ],
+  "report_snapshots": [
+    { "id": 2401, "reportType": "ATTENDANCE", "orgId": 1, "payload": { "range": "7D" }, "generatedAt": "2026-04-25T18:35:00.000Z", "createdAt": "2026-04-25T18:35:00.000Z", "updatedAt": "2026-04-25T18:35:00.000Z" }
+  ],
+  "form_cards": [
+    { "id": 2501, "cardType": "TODAY_STATUS", "targetRole": "PARENT", "studentId": 101, "payload": { "studentName": "李子轩" }, "createdAt": "2026-04-25T08:00:00.000Z", "updatedAt": "2026-04-25T08:00:00.000Z" }
+  ],
+  "workbench_manifests": [
+    {
+      "id": 2601,
+      "roleType": "PARENT",
+      "version": "2026.04.25",
+      "status": "ACTIVE",
+      "payload": {
+        "roleType": "PARENT",
+        "version": "2026.04.25",
+        "visual": {
+          "primary": "#0A59F7",
+          "light": "#EEF4FA",
+          "surface": "#FFFFFF",
+          "componentTone": "soft-campus",
+          "slogan": "家校协同，实时守护"
+        },
+        "summary": {
+          "title": "家长工作台",
+          "description": "查看签到、作业、订单与学生动态",
+          "metrics": ["签到", "作业", "订单", "动态"]
+        },
+        "primaryFlows": [
+          { "code": "signin", "name": "签到状态", "description": "实时查看到校状态" },
+          { "code": "homework", "name": "作业反馈", "description": "跟进作业辅导进度" }
+        ],
+        "modules": [
+          { "code": "home", "name": "首页", "route": "/parent/home", "enabled": true },
+          { "code": "services", "name": "托管预约", "route": "/parent/services", "enabled": true },
+          { "code": "messages", "name": "家校消息", "route": "/parent/messages", "enabled": true },
+          { "code": "timeline", "name": "成长动态", "route": "/parent/timeline", "enabled": true },
+          { "code": "profile", "name": "个人中心", "route": "/parent/profile", "enabled": true }
+        ],
+        "integration": {
+          "apiBase": "/api/v1",
+          "auth": "AGC_SESSION",
+          "mockDefault": false,
+          "acceptance": ["workbench-manifest", "parent-dashboard"]
+        }
+      },
+      "createdAt": "2026-04-25T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 2602,
+      "roleType": "TEACHER",
+      "version": "2026.04.25",
+      "status": "ACTIVE",
+      "payload": {
+        "roleType": "TEACHER",
+        "version": "2026.04.25",
+        "visual": {
+          "primary": "#2F9E77",
+          "light": "#EEF8F3",
+          "surface": "#FFFFFF",
+          "componentTone": "teacher-ops",
+          "slogan": "课堂守护，高效协同"
+        },
+        "summary": {
+          "title": "教师工作台",
+          "description": "处理考勤、作业和消息",
+          "metrics": ["班次", "考勤", "作业", "消息"]
+        },
+        "primaryFlows": [
+          { "code": "attendance", "name": "考勤管理", "description": "快速签到签退" },
+          { "code": "homework", "name": "作业管理", "description": "发布反馈与确认" }
+        ],
+        "modules": [
+          { "code": "home", "name": "首页", "route": "/teacher/home", "enabled": true },
+          { "code": "attendance", "name": "考勤", "route": "/teacher/attendance", "enabled": true },
+          { "code": "schedule", "name": "课表", "route": "/teacher/schedule", "enabled": true },
+          { "code": "messages", "name": "消息", "route": "/teacher/messages", "enabled": true },
+          { "code": "profile", "name": "我的", "route": "/teacher/profile", "enabled": true }
+        ],
+        "integration": {
+          "apiBase": "/api/v1",
+          "auth": "AGC_SESSION",
+          "mockDefault": false,
+          "acceptance": ["teacher-home", "attendance-flow"]
+        }
+      },
+      "createdAt": "2026-04-25T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    },
+    {
+      "id": 2603,
+      "roleType": "ADMIN",
+      "version": "2026.04.25",
+      "status": "ACTIVE",
+      "payload": {
+        "roleType": "ADMIN",
+        "version": "2026.04.25",
+        "visual": {
+          "primary": "#526F95",
+          "light": "#F7FAFE",
+          "surface": "#FFFFFF",
+          "componentTone": "ops-control",
+          "slogan": "托管运营一屏掌控"
+        },
+        "summary": {
+          "title": "机构工作台",
+          "description": "查看告警、订单、报表与服务产品",
+          "metrics": ["告警", "订单", "报表", "服务"]
+        },
+        "primaryFlows": [
+          { "code": "alerts", "name": "告警处置", "description": "闭环处理异常事件" },
+          { "code": "reports", "name": "运营报表", "description": "聚焦经营指标" }
+        ],
+        "modules": [
+          { "code": "home", "name": "首页", "route": "/admin/home", "enabled": true },
+          { "code": "orders", "name": "订单", "route": "/admin/orders", "enabled": true },
+          { "code": "reports", "name": "报表", "route": "/admin/reports", "enabled": true },
+          { "code": "alerts", "name": "告警", "route": "/admin/alerts", "enabled": true },
+          { "code": "profile", "name": "我的", "route": "/admin/profile", "enabled": true }
+        ],
+        "integration": {
+          "apiBase": "/api/v1",
+          "auth": "AGC_SESSION",
+          "mockDefault": false,
+          "acceptance": ["admin-home", "reporting"]
+        }
+      },
+      "createdAt": "2026-04-25T08:00:00.000Z",
+      "updatedAt": "2026-04-25T08:00:00.000Z"
+    }
+  ]
+}

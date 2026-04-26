@@ -4,8 +4,10 @@
  */
 
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { http } from '@kit.NetworkKit';
 import { ApiConfig } from '../config/api.config';
+import { RouteUrls, StorageKeys } from '../constants/app.constants';
+import { ApiResponseHelper } from '../models/common';
+import { AgcRequestAdapter } from '../services/agc/AgcRequestAdapter';
 import { MockService } from '../services/mock/mockService';
 
 const TAG = 'SmartGuardian/Request';
@@ -33,10 +35,6 @@ export interface HttpResponse<T = object> {
   data: T;
 }
 
-const TOKEN_KEY = 'smart_guardian_token';
-const USER_INFO_KEY = 'user_info';
-const IS_LOGGED_IN_KEY = 'is_logged_in';
-
 interface RouterLike {
   replaceUrl(options: { url: string }): void;
 }
@@ -53,21 +51,26 @@ export function setRequestUIContext(uiContext: RequestUIContext): void {
 }
 
 export function getToken(): string | null {
-  return AppStorage.get<string>(TOKEN_KEY) ?? null;
+  return AppStorage.get<string>(StorageKeys.TOKEN) ?? null;
 }
 
 export function setToken(token: string): void {
-  AppStorage.setOrCreate(TOKEN_KEY, token);
+  AppStorage.setOrCreate(StorageKeys.TOKEN, token);
 }
 
 export function removeToken(): void {
-  AppStorage.delete(TOKEN_KEY);
+  AppStorage.delete(StorageKeys.TOKEN);
 }
 
 function clearAuthState(): void {
   removeToken();
-  AppStorage.delete(USER_INFO_KEY);
-  AppStorage.delete(IS_LOGGED_IN_KEY);
+  AppStorage.delete(StorageKeys.USER_INFO);
+  AppStorage.delete(StorageKeys.IS_LOGGED_IN);
+  AppStorage.delete(StorageKeys.WORKBENCH_MANIFEST);
+  AppStorage.delete(StorageKeys.MAIN_NAVIGATION_SCOPE);
+  AppStorage.delete(StorageKeys.AGC_AUTH_USER_UID);
+  AppStorage.delete(StorageKeys.AGC_AUTH_USER_PHONE);
+  AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
 }
 
 function handleUnauthorized(): void {
@@ -80,7 +83,7 @@ function handleUnauthorized(): void {
   isRedirectingToLogin = true;
   try {
     if (requestUIContext) {
-      requestUIContext.getRouter().replaceUrl({ url: 'pages/LoginPage' });
+      requestUIContext.getRouter().replaceUrl({ url: RouteUrls.LOGIN });
     } else {
       hilog.error(DOMAIN, TAG, 'Redirect to login skipped: UIContext not ready');
     }
@@ -100,98 +103,38 @@ export async function httpRequest<T = object>(
     return MockService.handleMockRequest<T>(options);
   }
 
-  const url = options.url;
-  const method = options.method;
-  const data = options.data;
-  const headers = options.headers ?? {};
-  const needAuth = options.needAuth ?? true;
-  const baseUrl = ApiConfig.getBaseUrl();
-  if (!url.startsWith('http') && baseUrl.length === 0) {
-    throw new Error('Real backend base URL is not configured');
-  }
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  if (ApiConfig.isAgcEnabled()) {
+    try {
+      const result = await AgcRequestAdapter.request<T>({
+        url: options.url,
+        method: options.method,
+        data: options.data,
+        headers: options.headers,
+        needAuth: options.needAuth,
+        timeout: ApiConfig.TIMEOUT,
+        source: TAG
+      });
 
-  const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...headers
-  };
-
-  const isRelativeUrl = !url.startsWith('http');
-  const isTrustedAbsoluteUrl = !isRelativeUrl && baseUrl.length > 0 && url.startsWith(baseUrl);
-
-  if (needAuth && (isRelativeUrl || isTrustedAbsoluteUrl)) {
-    const token = getToken();
-    if (token) {
-      requestHeaders['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
-  const httpClient = http.createHttp();
-  let requestMethod: http.RequestMethod = http.RequestMethod.GET;
-  switch (method) {
-    case HttpMethod.POST:
-      requestMethod = http.RequestMethod.POST;
-      break;
-    case HttpMethod.PUT:
-      requestMethod = http.RequestMethod.PUT;
-      break;
-    case HttpMethod.DELETE:
-      requestMethod = http.RequestMethod.DELETE;
-      break;
-    case HttpMethod.PATCH:
-      throw new Error('PATCH method is not supported by current NetworkKit RequestMethod');
-    default:
-      requestMethod = http.RequestMethod.GET;
-  }
-
-  const httpOptions: http.HttpRequestOptions = {
-    method: requestMethod,
-    header: requestHeaders,
-    connectTimeout: ApiConfig.TIMEOUT,
-    readTimeout: ApiConfig.TIMEOUT,
-    extraData: method !== HttpMethod.GET && data ? JSON.stringify(data) : undefined
-  };
-
-  if (ApiConfig.ENABLE_LOGGING) {
-    hilog.info(DOMAIN, TAG, `[${method}] ${fullUrl}`);
-  }
-
-  try {
-    const response = await httpClient.request(fullUrl, httpOptions);
-
-    if (!response.responseCode || response.responseCode >= 400) {
-      hilog.error(DOMAIN, TAG, `HTTP Error: ${response.responseCode}`);
-      if (response.responseCode === 401) {
+      if (ApiResponseHelper.isAuthError(result.code)) {
+        hilog.error(DOMAIN, TAG, `AGC auth error: ${result.code} - ${result.message}`);
         handleUnauthorized();
+        throw new Error(result.message || 'Session expired');
       }
-      throw new Error(`HTTP Error: ${response.responseCode}`);
+
+      if (!ApiResponseHelper.isSuccess(result.code)) {
+        hilog.error(DOMAIN, TAG, `AGC business error: ${result.code} - ${result.message}`);
+        throw new Error(result.message || 'Business request failed');
+      }
+
+      return result;
+    } catch (error) {
+      hilog.error(DOMAIN, TAG, `AGC request failed: ${error}`);
+      throw error;
     }
-
-    const result = JSON.parse(response.result as string) as HttpResponse<T>;
-
-    if (ApiConfig.ENABLE_LOGGING) {
-      hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
-    }
-
-    // Handle auth failures consistently for both HTTP and business error codes.
-    if (result.code === 401 || result.code === 403) {
-      hilog.error(DOMAIN, TAG, `Auth Error: ${result.code} - ${result.message}`);
-      handleUnauthorized();
-      throw new Error(result.message || 'Session expired');
-    }
-
-    if (result.code !== 0 && result.code !== 200) {
-      hilog.error(DOMAIN, TAG, `Business Error: ${result.code} - ${result.message}`);
-      throw new Error(result.message || '业务处理失败');
-    }
-
-    return result;
-  } catch (error) {
-    hilog.error(DOMAIN, TAG, `Request failed: ${error}`);
-    throw error;
-  } finally {
-    httpClient.destroy();
   }
+
+  hilog.error(DOMAIN, TAG, `Unsupported API environment: ${ApiConfig.getCurrentEnv()}`);
+  throw new Error('Unsupported API environment. Use DEV_MOCK or AGC_SERVERLESS.');
 }
 
 export async function get<T = object>(

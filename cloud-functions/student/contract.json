@@ -1,0 +1,6 @@
+{
+  "domain": "student",
+  "functionName": "smartguardian-student",
+  "routePrefixes": ["/api/v1/students"],
+  "collections": ["students", "guardians", "student_guardians"]
+}

@@ -15,6 +15,7 @@ import {
   PageHeader,
   SectionHeader
 } from '../../components/common';
+import { HarmonyColor } from '../../common/HarmonyDesign';
 import { Student, StudentCreateRequest } from '../../models/user';
 import { StudentService } from '../../services/api/auth';
 import { StudentStore } from '../../stores/studentStore';
@@ -228,7 +229,7 @@ struct AdminStudentEditPage {
     Text(this.isSaving ? '保存中' : '保存')
       .fontSize(14)
       .fontWeight(FontWeight.Medium)
-      .fontColor(Color.White)
+      .fontColor(HarmonyColor.textInverse)
       .opacity(this.isSaving ? 0.7 : 1)
       .onClick(() => {
         if (!this.isSaving) {
@@ -352,7 +353,7 @@ struct AdminStudentEditPage {
         .width('100%')
         .height(120)
         .fontSize(15)
-        .backgroundColor('#F7FAFD')
+        .backgroundColor(HarmonyColor.surfaceSubtle)
         .borderRadius(16)
         .padding({ left: 14, right: 14, top: 12, bottom: 12 })
         .margin({ top: 8 })
@@ -375,7 +376,7 @@ struct AdminStudentEditPage {
         .width('100%')
         .height(52)
         .fontSize(15)
-        .backgroundColor('#F7FAFD')
+        .backgroundColor(HarmonyColor.surfaceSubtle)
         .borderRadius(16)
         .padding({ left: 14, right: 14 })
         .margin({ top: 8 })
@@ -400,9 +401,9 @@ struct AdminStudentEditPage {
   private buildGenderChip(label: string, value: 'MALE' | 'FEMALE') {
     Text(label)
       .fontSize(14)
-      .fontColor(this.selectedGender === value ? Color.White : $r('app.color.text_primary'))
+      .fontColor(this.selectedGender === value ? HarmonyColor.textInverse : $r('app.color.text_primary'))
       .padding({ left: 20, right: 20, top: 10, bottom: 10 })
-      .backgroundColor(this.selectedGender === value ? $r('app.color.primary') : '#F3F7FB')
+      .backgroundColor(this.selectedGender === value ? $r('app.color.primary') : HarmonyColor.surfaceSubtle)
       .borderRadius(18)
       .margin({ right: 10 })
       .onClick(() => {

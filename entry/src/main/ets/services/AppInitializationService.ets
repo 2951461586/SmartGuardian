@@ -1,22 +1,21 @@
 /**
  * SmartGuardian - 应用初始化服务
- * 统一管理所有服务的初始化
+ * 统一管理启动期能力初始化。
  */
 
 import { common } from '@kit.AbilityKit';
+import { ApiConfig } from '../config/api.config';
 import { LogUtil } from '../utils/LogUtil';
 import { OptimizationConfig, OptimizationManager } from '../utils/performance/OptimizationManager';
-import { DistributedDataManager } from './distributed/DistributedDataManager';
-import { DistributedAbilityManager } from './distributed/DistributedAbilityManager';
+import { AgcRuntimeService } from './agc/AgcRuntimeService';
+import { NotificationEndpointRegistrationService } from './NotificationEndpointRegistrationService';
 import { AttendanceSyncService } from './distributed/AttendanceSyncService';
+import { DistributedAbilityManager } from './distributed/DistributedAbilityManager';
+import { DistributedDataManager } from './distributed/DistributedDataManager';
 import { NotificationUtil } from '../utils/NotificationUtil';
 
-const TAG = 'AppInitializationService';
-
-/**
- * 初始化状态
- */
 export interface InitializationStatus {
+  agc: boolean;
   distributedData: boolean;
   distributedAbility: boolean;
   attendanceSync: boolean;
@@ -25,10 +24,12 @@ export interface InitializationStatus {
   overall: boolean;
 }
 
-/**
- * 应用初始化服务
- * 负责在应用启动时初始化所有必要的服务
- */
+class InitializationTask {
+  key: string = 'overall';
+  label: string = '';
+  required: boolean = false;
+}
+
 export class AppInitializationService {
   private static instance: AppInitializationService;
   private context: common.UIAbilityContext | null = null;
@@ -36,6 +37,7 @@ export class AppInitializationService {
   private distributedAbilityManager: DistributedAbilityManager | null = null;
   private attendanceSyncService: AttendanceSyncService | null = null;
   private status: InitializationStatus = {
+    agc: false,
     distributedData: false,
     distributedAbility: false,
     attendanceSync: false,
@@ -53,37 +55,23 @@ export class AppInitializationService {
     return AppInitializationService.instance;
   }
 
-  /**
-   * 初始化所有服务
-   */
   async initializeAll(context: common.UIAbilityContext): Promise<InitializationStatus> {
     LogUtil.info('Starting app initialization...');
     this.context = context;
 
     const startTime = Date.now();
-
     try {
-      // 并行初始化性能优化（最高优先级）
+      await this.initializeAgcRuntime();
       await this.initializePerformanceOptimization();
-
-      // 初始化通知渠道
       await this.initializeNotification();
-
-      // 顺序初始化分布式能力
       await this.initializeDistributedData();
       await this.initializeDistributedAbility();
       await this.initializeAttendanceSync();
 
-      // 计算总体状态
-      this.status.overall = this.status.distributedData && 
-        this.status.distributedAbility && 
-        this.status.attendanceSync && 
-        this.status.performanceOptimization &&
-        this.status.notification;
+      this.status.overall = this.calculateOverallStatus();
 
       const duration = Date.now() - startTime;
       LogUtil.info(`App initialization completed in ${duration}ms`);
-
       return this.status;
     } catch (error) {
       LogUtil.error('App initialization failed:', String(error));
@@ -92,9 +80,89 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 初始化性能优化管理
-   */
+  private calculateOverallStatus(): boolean {
+    const tasks: InitializationTask[] = [];
+
+    const agcTask = new InitializationTask();
+    agcTask.key = 'agc';
+    agcTask.label = 'AGC runtime';
+    agcTask.required = ApiConfig.isAgcEnabled();
+    tasks.push(agcTask);
+
+    const distributedDataTask = new InitializationTask();
+    distributedDataTask.key = 'distributedData';
+    distributedDataTask.label = 'distributed data';
+    distributedDataTask.required = true;
+    tasks.push(distributedDataTask);
+
+    const distributedAbilityTask = new InitializationTask();
+    distributedAbilityTask.key = 'distributedAbility';
+    distributedAbilityTask.label = 'distributed ability';
+    distributedAbilityTask.required = true;
+    tasks.push(distributedAbilityTask);
+
+    const attendanceSyncTask = new InitializationTask();
+    attendanceSyncTask.key = 'attendanceSync';
+    attendanceSyncTask.label = 'attendance sync';
+    attendanceSyncTask.required = true;
+    tasks.push(attendanceSyncTask);
+
+    const optimizationTask = new InitializationTask();
+    optimizationTask.key = 'performanceOptimization';
+    optimizationTask.label = 'performance optimization';
+    optimizationTask.required = true;
+    tasks.push(optimizationTask);
+
+    const notificationTask = new InitializationTask();
+    notificationTask.key = 'notification';
+    notificationTask.label = 'notification';
+    notificationTask.required = true;
+    tasks.push(notificationTask);
+
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      if (task.required && !this.isTaskReady(task.key)) {
+        LogUtil.warn(`Initialization task not ready: ${task.label}`);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private isTaskReady(key: string): boolean {
+    switch (key) {
+      case 'agc':
+        return this.status.agc;
+      case 'distributedData':
+        return this.status.distributedData;
+      case 'distributedAbility':
+        return this.status.distributedAbility;
+      case 'attendanceSync':
+        return this.status.attendanceSync;
+      case 'performanceOptimization':
+        return this.status.performanceOptimization;
+      case 'notification':
+        return this.status.notification;
+      case 'overall':
+        return this.status.overall;
+      default:
+        return false;
+    }
+  }
+
+  private async initializeAgcRuntime(): Promise<void> {
+    try {
+      const result = await AgcRuntimeService.initialize(this.context!);
+      this.status.agc = result.initialized && result.configReady;
+      await NotificationEndpointRegistrationService.syncCurrentSession();
+      LogUtil.info(`AGC runtime initialized: ${this.status.agc}`);
+    } catch (error) {
+      LogUtil.error('Failed to initialize AGC runtime:', String(error));
+      this.status.agc = false;
+    }
+  }
+
   private async initializePerformanceOptimization(): Promise<void> {
     try {
       const optimizationManager = OptimizationManager.getInstance();
@@ -106,7 +174,6 @@ export class AppInitializationService {
       config.gcInterval = 60000;
 
       await optimizationManager.initialize(this.context!, config);
-
       this.status.performanceOptimization = true;
       LogUtil.info('Performance optimization initialized');
     } catch (error) {
@@ -115,14 +182,10 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 初始化分布式数据管理
-   */
   private async initializeDistributedData(): Promise<void> {
     try {
       this.distributedDataManager = new DistributedDataManager(this.context!);
       const success = await this.distributedDataManager.initialize();
-
       this.status.distributedData = success;
       LogUtil.info(`Distributed data manager initialized: ${success}`);
     } catch (error) {
@@ -131,14 +194,10 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 初始化分布式能力管理
-   */
   private async initializeDistributedAbility(): Promise<void> {
     try {
       this.distributedAbilityManager = new DistributedAbilityManager(this.context!);
       const success = await this.distributedAbilityManager.initialize();
-
       this.status.distributedAbility = success;
       LogUtil.info(`Distributed ability manager initialized: ${success}`);
     } catch (error) {
@@ -147,14 +206,10 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 初始化考勤同步服务
-   */
   private async initializeAttendanceSync(): Promise<void> {
     try {
       this.attendanceSyncService = new AttendanceSyncService(this.context!);
       const success = await this.attendanceSyncService.start();
-
       this.status.attendanceSync = success;
       LogUtil.info(`Attendance sync service initialized: ${success}`);
     } catch (error) {
@@ -163,13 +218,9 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 初始化通知渠道
-   */
   private async initializeNotification(): Promise<void> {
     try {
       await NotificationUtil.initChannels();
-
       this.status.notification = true;
       LogUtil.info('Notification channels initialized');
     } catch (error) {
@@ -178,11 +229,9 @@ export class AppInitializationService {
     }
   }
 
-  /**
-   * 获取初始化状态
-   */
   getInitializationStatus(): InitializationStatus {
-    const status: InitializationStatus = {
+    return {
+      agc: this.status.agc,
       distributedData: this.status.distributedData,
       distributedAbility: this.status.distributedAbility,
       attendanceSync: this.status.attendanceSync,
@@ -190,12 +239,8 @@ export class AppInitializationService {
       notification: this.status.notification,
       overall: this.status.overall
     };
-    return status;
   }
 
-  /**
-   * 销毁所有服务
-   */
   destroy(): void {
     LogUtil.info('Destroying all services...');
 
@@ -203,19 +248,17 @@ export class AppInitializationService {
       this.attendanceSyncService.stop();
       this.attendanceSyncService = null;
     }
-
     if (this.distributedAbilityManager) {
       this.distributedAbilityManager.destroy();
       this.distributedAbilityManager = null;
     }
-
     if (this.distributedDataManager) {
       this.distributedDataManager.destroy();
       this.distributedDataManager = null;
     }
-    
-    // 重置状态
+
     this.status = {
+      agc: false,
       distributedData: false,
       distributedAbility: false,
       attendanceSync: false,
@@ -227,4 +270,3 @@ export class AppInitializationService {
     LogUtil.info('All services destroyed');
   }
 }
-

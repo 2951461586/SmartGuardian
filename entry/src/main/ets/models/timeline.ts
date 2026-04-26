@@ -30,9 +30,3 @@ export interface TimelineQueryParams {
   timelineType?: string;
 }
 
-/**
- * Student timeline entry (alias for TimelineItem)
- * 
- * @description 学生动态时间线，兼容旧代码
- */
-export type StudentTimeline = TimelineItem;

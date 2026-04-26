@@ -8,7 +8,6 @@ import { HomeworkTask, HomeworkFeedbackCreateRequest, HomeworkTaskStatus, Perfor
 import { SessionService } from '../../services/api/service';
 import { SessionSchedule } from '../../models/service';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
-import { PageResponse } from '../../models/common';
 // Common Components
 import {
   Card,
@@ -24,9 +23,22 @@ import {
   StatCard,
   TabBar
 } from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+
+@Entry
+@Component
+struct TeacherHomeworkPage {
+  build() {
+    Stack() {
+      TeacherHomeworkPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
 
 @Component
-export struct TeacherHomeworkPage {
+export struct TeacherHomeworkPageContent {
   @State homeworkList: HomeworkTask[] = [];
   @State sessions: SessionSchedule[] = [];
   @State currentTab: number = 0;
@@ -57,7 +69,7 @@ export struct TeacherHomeworkPage {
       });
 
       if (sessionResp.code === 0 && sessionResp.data) {
-        this.sessions = Array.isArray(sessionResp.data) ? sessionResp.data : [];
+        this.sessions = sessionResp.data;
       }
 
       await this.loadHomeworkByTab();
@@ -66,16 +78,6 @@ export struct TeacherHomeworkPage {
     } finally {
       this.isLoading = false;
     }
-  }
-
-  private getPageList(data: PageResponse<HomeworkTask> | HomeworkTask[] | null | undefined): HomeworkTask[] {
-    if (!data) {
-      return [];
-    }
-    if (Array.isArray(data)) {
-      return data;
-    }
-    return data.list ? data.list : [];
   }
 
   async loadHomeworkByTab() {
@@ -96,7 +98,7 @@ export struct TeacherHomeworkPage {
       });
 
       if (resp.code === 0) {
-        this.homeworkList = this.getPageList(resp.data);
+        this.homeworkList = resp.data ? resp.data.list : [];
       }
     } catch (error) {
       this.errorMessage = $r('app.string.homework_loading_failed').toString();
@@ -161,18 +163,14 @@ export struct TeacherHomeworkPage {
           theme: HeaderTheme.PRIMARY
         })
 
-        Scroll() {
-          Column() {
-            this.buildOverviewPanel()
-            this.buildTabSection()
-            this.buildHomeworkList()
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+        Column() {
+          this.buildOverviewPanel()
+          this.buildTabSection()
+          this.buildHomeworkList()
         }
         .width('100%')
         .layoutWeight(1)
-        .scrollBar(BarState.Off)
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
       }
       .width('100%')
       .height('100%')
@@ -193,7 +191,7 @@ export struct TeacherHomeworkPage {
         value: this.sessions.length,
         label: '今日班次',
         icon: $r('app.media.ic_calendar'),
-        iconColor: '#526F95'
+        iconColor: HarmonyColor.brandBlue
       })
       .layoutWeight(1)
 
@@ -201,7 +199,7 @@ export struct TeacherHomeworkPage {
         value: this.homeworkList.length,
         label: '当前任务',
         icon: $r('app.media.ic_homework'),
-        iconColor: '#D97706'
+        iconColor: HarmonyReport.caution
       })
       .layoutWeight(1)
       .margin({ left: 12, right: 12 })
@@ -210,7 +208,7 @@ export struct TeacherHomeworkPage {
         value: this.getCurrentTabLabel(),
         label: '处理阶段',
         icon: $r('app.media.ic_attendance'),
-        iconColor: '#2F9E77'
+        iconColor: HarmonyReport.positive
       })
       .layoutWeight(1)
     }
@@ -265,14 +263,22 @@ export struct TeacherHomeworkPage {
           subtitle: `当前查看：${this.getCurrentTabLabel()}`
         })
 
-        Column() {
+        List({ space: 12 }) {
           ForEach(this.homeworkList, (task: HomeworkTask) => {
-            this.buildHomeworkItem(task)
-          })
+            ListItem() {
+              this.buildHomeworkItem(task)
+            }
+          }, (task: HomeworkTask) => `${task.id}`)
         }
         .width('100%')
+        .layoutWeight(1)
+        .divider({ strokeWidth: 0 })
+        .scrollBar(BarState.Off)
+        .cachedCount(6)
+        .padding({ top: 12, bottom: 8 })
       }
       .width('100%')
+      .layoutWeight(1)
     }
   }
 
@@ -349,7 +355,7 @@ export struct TeacherHomeworkPage {
             .layoutWeight(1)
             .height($r('app.float.button_height'))
             .fontSize($r('app.float.button_text_size'))
-            .fontColor(Color.White)
+            .fontColor(HarmonyColor.textInverse)
             .backgroundColor($r('app.color.primary'))
             .borderRadius($r('app.float.button_radius'))
             .enabled(!this.isSubmittingFeedback)

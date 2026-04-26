@@ -15,6 +15,9 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { http } from '@kit.NetworkKit';
 import { router } from '@kit.ArkUI';
 import { ApiConfig } from '../../config/api.config';
+import { RouteUrls, StorageKeys } from '../../constants/app.constants';
+import { ApiResponseHelper } from '../../models/common';
+import { AgcRequestAdapter } from '../../services/agc/AgcRequestAdapter';
 import { MockService } from '../../services/mock/mockService';
 import {
   AppError,
@@ -102,7 +105,7 @@ interface CacheEntry<T> {
  * @class
  */
 export class ApiWrapper {
-  private static readonly TOKEN_KEY = 'smart_guardian_token';
+  private static readonly TOKEN_KEY = StorageKeys.TOKEN;
   private static cache: Map<string, CacheEntry<unknown>> = new Map();
   private static pendingRequests: Map<string, Promise<ApiResponse<unknown>>> = new Map();
   private static isRedirectingToLogin: boolean = false;
@@ -329,6 +332,41 @@ export class ApiWrapper {
       });
     }
 
+    if (ApiConfig.isAgcEnabled()) {
+      try {
+        const result = await AgcRequestAdapter.request<T>({
+          url,
+          method,
+          data,
+          headers,
+          needAuth,
+          timeout,
+          source
+        });
+
+        if (ApiResponseHelper.isAuthError(result.code)) {
+          this.handleUnauthorized();
+          throw ErrorFactory.tokenExpired({ source, operation: url });
+        }
+
+        if (!ApiResponseHelper.isSuccess(result.code)) {
+          throw new AppError(
+            result.message || 'Business request failed',
+            ErrorCode.BIZ_OPERATION_FAILED,
+            ErrorCategory.BUSINESS,
+            { context: { source, operation: url } }
+          );
+        }
+
+        return result;
+      } catch (error) {
+        if (error instanceof AppError) {
+          throw error;
+        }
+        throw ErrorFactory.fromError(error as Error, { source, operation: url });
+      }
+    }
+
     const baseUrl = ApiConfig.getBaseUrl();
     if (!url.startsWith('http') && baseUrl.length === 0) {
       throw ErrorFactory.invalidParam('ApiConfig real backend address is not configured', { source });
@@ -403,12 +441,12 @@ export class ApiWrapper {
       }
       
       // 检查业务状态码
-      if (result.code === 401 || result.code === 40100) {
+      if (ApiResponseHelper.isAuthError(result.code)) {
         this.handleUnauthorized();
         throw ErrorFactory.tokenExpired({ source, operation: url });
       }
       
-      if (result.code !== 0 && result.code !== 200) {
+      if (!ApiResponseHelper.isSuccess(result.code)) {
         throw new AppError(
           result.message || '业务处理失败',
           ErrorCode.BIZ_OPERATION_FAILED,
@@ -445,11 +483,14 @@ export class ApiWrapper {
     
     this.isRedirectingToLogin = true;
     AppStorage.delete(this.TOKEN_KEY);
-    AppStorage.delete('user_info');
-    AppStorage.delete('is_logged_in');
+    AppStorage.delete(StorageKeys.USER_INFO);
+    AppStorage.delete(StorageKeys.IS_LOGGED_IN);
+    AppStorage.delete(StorageKeys.WORKBENCH_MANIFEST);
+    AppStorage.delete(StorageKeys.MAIN_NAVIGATION_SCOPE);
+    AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
     
     try {
-      router.replaceUrl({ url: 'pages/LoginPage' });
+      router.replaceUrl({ url: RouteUrls.LOGIN });
     } catch (error) {
       hilog.error(DOMAIN, TAG, `Redirect to login failed: ${error}`);
     }

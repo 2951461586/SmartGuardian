@@ -3,8 +3,9 @@
  * Unified card component with the tri-portal visual language
  */
 
-import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
-import { getCurrentRolePalette } from '../../common/RoleTheme';
+import { UserRole } from '../../models/common';
+import { HarmonyColor, HarmonyRadius, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { getCurrentRolePalette, getRolePalette } from '../../common/RoleTheme';
 
 export enum CardVariant {
   DEFAULT = 'DEFAULT',
@@ -260,7 +261,7 @@ export struct StatCard {
   @Prop value: string | number = '';
   @Prop label: string = '';
   @Prop icon: ResourceStr = '';
-  @Prop iconColor: string = '#526F95';
+  @Prop iconColor: string = HarmonyColor.textSecondary;
   @Prop trend: string = '';
   @Prop trendValue: string = '';
 
@@ -328,36 +329,36 @@ export struct StatCard {
   }
 
   private getIconBgColor(): string {
-    if (this.iconColor === '#5D8267') {
-      return '#EEF6F0';
+    if (this.iconColor === HarmonyReport.positive) {
+      return HarmonyReport.positiveSurface;
     }
-    if (this.iconColor === '#A9794E') {
-      return '#F6F0E9';
+    if (this.iconColor === HarmonyReport.caution) {
+      return HarmonyReport.cautionSurface;
     }
-    if (this.iconColor === '#6E5BAA') {
-      return '#F1EDFB';
+    if (this.iconColor === getRolePalette(UserRole.ORG_ADMIN).primary) {
+      return getRolePalette(UserRole.ORG_ADMIN).light;
     }
     return getCurrentRolePalette().light;
   }
 
   private getTrendColor(): string {
     if (this.trend === 'up') {
-      return '#5D8267';
+      return HarmonyReport.positive;
     }
     if (this.trend === 'down') {
-      return '#D94B5A';
+      return HarmonyReport.danger;
     }
-    return '#66738A';
+    return HarmonyColor.textSecondary;
   }
 
   private getTrendBgColor(): string {
     if (this.trend === 'up') {
-      return '#EEF4FA';
+      return HarmonyReport.positiveSurface;
     }
     if (this.trend === 'down') {
-      return '#FFF0F1';
+      return HarmonyReport.dangerSurface;
     }
-    return '#F5F1E8';
+    return HarmonyColor.surfaceSubtle;
   }
 }
 
@@ -438,8 +439,8 @@ export struct ActionCard {
   @Prop cardTitle: string = '';
   @Prop description: string = '';
   @Prop buttonText: string = '';
-  @Prop iconBgColor: string = '#EEF4FA';
-  @Prop iconColor: string = '#526F95';
+  @Prop iconBgColor: string = HarmonyColor.surfaceSubtle;
+  @Prop iconColor: string = HarmonyColor.textSecondary;
   onCardClick?: () => void;
   onAction?: () => void;
 
@@ -485,7 +486,7 @@ export struct ActionCard {
           .width('100%')
           .height(42)
           .fontSize($r('app.float.text_primary_size'))
-          .fontColor(Color.White)
+          .fontColor(HarmonyColor.textInverse)
           .backgroundColor(getCurrentRolePalette().primary)
           .borderRadius(HarmonyRadius.control)
           .margin({ top: 16 })

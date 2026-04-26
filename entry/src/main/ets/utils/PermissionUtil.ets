@@ -107,10 +107,29 @@ export class PermissionUtil {
     
     try {
       const atManager = abilityAccessCtrl.createAtManager();
+      const statuses: abilityAccessCtrl.GrantStatus[] = [];
+      for (let i = 0; i < permissions.length; i++) {
+        const status = await atManager.checkAccessToken(
+          context.applicationInfo.accessTokenId,
+          permissions[i]
+        );
+        statuses.push(status);
+      }
+
+      const alreadyGranted = statuses.every(
+        status => status === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED
+      );
+      if (alreadyGranted) {
+        LogUtil.info(TAG, 'Location permission already granted');
+        return true;
+      }
+
       const result = await atManager.requestPermissionsFromUser(context, permissions);
-      
-      const granted = result.authResults[0] === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
-      
+
+      const granted = result.authResults.every(
+        status => status === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED
+      );
+
       if (granted) {
         LogUtil.info(TAG, 'Location permission granted');
       } else {

@@ -45,8 +45,40 @@
       "value": "#FFFFFF"
     },
     {
+      "name": "card_background_soft",
+      "value": "#F3F6FB"
+    },
+    {
+      "name": "card_background_muted",
+      "value": "#EDF2F8"
+    },
+    {
       "name": "divider",
       "value": "#E8EEF7"
+    },
+    {
+      "name": "divider_strong",
+      "value": "#D7E0EC"
+    },
+    {
+      "name": "focus_ring",
+      "value": "#0A59F7"
+    },
+    {
+      "name": "surface_info",
+      "value": "#EAF2FF"
+    },
+    {
+      "name": "surface_success",
+      "value": "#EEF6F0"
+    },
+    {
+      "name": "surface_warning",
+      "value": "#F6F0E9"
+    },
+    {
+      "name": "surface_error",
+      "value": "#FFF0F1"
     },
     {
       "name": "bottom_nav_background",
@@ -135,6 +167,10 @@
     {
       "name": "homework_tab_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "state_illustration_background",
+      "value": "#F6F9FD"
     }
   ]
 }

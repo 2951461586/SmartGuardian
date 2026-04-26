@@ -1,17 +1,19 @@
 /**
  * SmartGuardian - QR Code Scan Page
- * Scan QR code for sign in/sign out
+ * Scan QR code for sign in/sign out.
  */
 
 import { common } from '@kit.AbilityKit';
-import { scanCore, scanBarcode } from '@kit.ScanKit';
-import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { PermissionUtil } from '../../utils/PermissionUtil';
-import { LogUtil } from '../../utils/LogUtil';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { scanCore, scanBarcode } from '@kit.ScanKit';
+import { RouteUrls } from '../../constants/app.constants';
 import { AttendanceService } from '../../services/api/attendance';
+import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
+import { HarmonyLocationService } from '../../services/HarmonyLocationService';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
-import { ErrorMessages } from '../../constants/ErrorMessages';
+import { LogUtil } from '../../utils/LogUtil';
+import { PermissionUtil } from '../../utils/PermissionUtil';
 
 class ScanData {
   type: string = '';
@@ -40,9 +42,10 @@ struct QRCodeScanPage {
     if (hasPermission) {
       this.hasCameraPermission = true;
       await this.startScanning();
-    } else {
-      this.showPermissionDialog = true;
+      return;
     }
+
+    this.showPermissionDialog = true;
   }
 
   async requestPermission(): Promise<void> {
@@ -53,11 +56,12 @@ struct QRCodeScanPage {
       this.hasCameraPermission = true;
       this.showPermissionDialog = false;
       await this.startScanning();
-    } else {
-      this.errorMessage = $r('app.string.scan_permission_denied').toString();
-      ErrorHandlerUtil.showErrorToast($r('app.string.scan_permission_grant_hint').toString());
-      LogUtil.warn('QRCodeScanPage', 'Camera permission denied');
+      return;
     }
+
+    this.errorMessage = $r('app.string.scan_permission_denied').toString();
+    ErrorHandlerUtil.showErrorToast($r('app.string.scan_permission_grant_hint').toString());
+    LogUtil.warn('QRCodeScanPage', 'Camera permission denied');
   }
 
   async startScanning(): Promise<void> {
@@ -112,19 +116,22 @@ struct QRCodeScanPage {
       }
 
       const scanData: ScanData = JSON.parse(rawValue) as ScanData;
-
       if (scanData.type === 'ATTENDANCE' && scanData.studentId > 0 && scanData.sessionId > 0) {
         await this.handleAttendance(scanData);
-      } else if (scanData.type === 'STUDENT' && scanData.studentId > 0) {
+        return;
+      }
+
+      if (scanData.type === 'STUDENT' && scanData.studentId > 0) {
         this.getUIContext().getRouter().pushUrl({
-          url: 'pages/teacher/TeacherStudentDetailPage',
+          url: RouteUrls.TEACHER_STUDENT_DETAIL,
           params: { studentId: scanData.studentId }
         });
-      } else {
-        this.errorMessage = $r('app.string.scan_unknown_type').toString();
-        ErrorHandlerUtil.showErrorToast(this.errorMessage);
-        LogUtil.warn('QRCodeScanPage', `Unknown QR code type: ${scanData.type}`);
+        return;
       }
+
+      this.errorMessage = $r('app.string.scan_unknown_type').toString();
+      ErrorHandlerUtil.showErrorToast(this.errorMessage);
+      LogUtil.warn('QRCodeScanPage', `Unknown QR code type: ${scanData.type}`);
     } catch (error) {
       this.errorMessage = $r('app.string.scan_parse_failed').toString();
       ErrorHandlerUtil.showErrorToast(this.errorMessage);
@@ -134,39 +141,49 @@ struct QRCodeScanPage {
 
   async handleAttendance(scanData: ScanData): Promise<void> {
     try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const locationLabel = await HarmonyLocationService.captureAttendanceLocation(context);
+
       if (scanData.action === 'SIGN_OUT') {
-        const resp = await AttendanceService.signOut({
+        const signOutResp = await AttendanceService.signOut({
           studentId: scanData.studentId,
           sessionId: scanData.sessionId,
-          signMethod: 'QR_CODE'
+          signMethod: 'QR_CODE',
+          location: locationLabel
         });
 
-        if (resp.code === 0) {
+        if (signOutResp.code === 0) {
+          await HarmonyCapabilityService.notifyAttendanceResult('签退成功', '', RouteUrls.PARENT_TIMELINE);
           ErrorHandlerUtil.showSuccessToast($r('app.string.attendance_sign_out_success').toString());
           LogUtil.info('QRCodeScanPage', 'Sign out successful');
           this.getUIContext().getRouter().back();
-        } else {
-          this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_out_failed').toString();
-          ErrorHandlerUtil.showErrorToast(this.errorMessage);
-          LogUtil.error('QRCodeScanPage', `Sign out failed: ${this.errorMessage}`);
+          return;
         }
-      } else {
-        const resp = await AttendanceService.signIn({
-          studentId: scanData.studentId,
-          sessionId: scanData.sessionId,
-          signMethod: 'QR_CODE'
-        });
 
-        if (resp.code === 0) {
-          ErrorHandlerUtil.showSuccessToast($r('app.string.attendance_sign_in_success').toString());
-          LogUtil.info('QRCodeScanPage', 'Sign in successful');
-          this.getUIContext().getRouter().back();
-        } else {
-          this.errorMessage = resp.message ? resp.message : $r('app.string.attendance_sign_in_failed').toString();
-          ErrorHandlerUtil.showErrorToast(this.errorMessage);
-          LogUtil.error('QRCodeScanPage', `Sign in failed: ${this.errorMessage}`);
-        }
+        this.errorMessage = signOutResp.message ? signOutResp.message : $r('app.string.attendance_sign_out_failed').toString();
+        ErrorHandlerUtil.showErrorToast(this.errorMessage);
+        LogUtil.error('QRCodeScanPage', `Sign out failed: ${this.errorMessage}`);
+        return;
       }
+
+      const signInResp = await AttendanceService.signIn({
+        studentId: scanData.studentId,
+        sessionId: scanData.sessionId,
+        signMethod: 'QR_CODE',
+        location: locationLabel
+      });
+
+      if (signInResp.code === 0) {
+        await HarmonyCapabilityService.notifyAttendanceResult('签到成功', '', RouteUrls.PARENT_TIMELINE);
+        ErrorHandlerUtil.showSuccessToast($r('app.string.attendance_sign_in_success').toString());
+        LogUtil.info('QRCodeScanPage', 'Sign in successful');
+        this.getUIContext().getRouter().back();
+        return;
+      }
+
+      this.errorMessage = signInResp.message ? signInResp.message : $r('app.string.attendance_sign_in_failed').toString();
+      ErrorHandlerUtil.showErrorToast(this.errorMessage);
+      LogUtil.error('QRCodeScanPage', `Sign in failed: ${this.errorMessage}`);
     } catch (error) {
       this.errorMessage = $r('app.string.attendance_process_failed').toString();
       ErrorHandlerUtil.showErrorToast(this.errorMessage);
@@ -184,22 +201,24 @@ struct QRCodeScanPage {
 
   private isScanCancelled(error: BusinessError): boolean {
     const errorMessage: string = error.message ? error.message : '';
-    return errorMessage.indexOf('cancel') >= 0 || errorMessage.indexOf('Cancel') >= 0 || errorMessage.indexOf('取消') >= 0;
+    return errorMessage.indexOf('cancel') >= 0
+      || errorMessage.indexOf('Cancel') >= 0
+      || errorMessage.indexOf('取消') >= 0;
   }
 
   build() {
     Column() {
-      this.buildHeader()
+      this.buildHeader();
 
       if (this.showPermissionDialog) {
-        this.buildPermissionDialog()
+        this.buildPermissionDialog();
       } else if (this.hasCameraPermission) {
-        this.buildScanner()
+        this.buildScanner();
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.scan_page_background'))
+    .backgroundColor($r('app.color.scan_page_background'));
   }
 
   @Builder
@@ -209,16 +228,16 @@ struct QRCodeScanPage {
         .width($r('app.float.icon_large_size'))
         .height($r('app.float.icon_large_size'))
         .fillColor($r('app.color.scan_text_light'))
-        .onClick(() => this.getUIContext().getRouter().back())
+        .onClick(() => this.getUIContext().getRouter().back());
 
       Text($r('app.string.scan_sign_in_title'))
         .fontSize($r('app.float.page_title_size'))
         .fontColor($r('app.color.scan_text_light'))
         .fontWeight(FontWeight.Medium)
         .layoutWeight(1)
-        .textAlign(TextAlign.Center)
+        .textAlign(TextAlign.Center);
 
-      Blank().width($r('app.float.icon_large_size'))
+      Blank().width($r('app.float.icon_large_size'));
     }
     .width('100%')
     .padding({
@@ -227,7 +246,7 @@ struct QRCodeScanPage {
       top: $r('app.float.scan_header_vertical_padding'),
       bottom: $r('app.float.scan_header_vertical_padding')
     })
-    .backgroundColor(Color.Transparent)
+    .backgroundColor(Color.Transparent);
   }
 
   @Builder
@@ -237,19 +256,19 @@ struct QRCodeScanPage {
         .width($r('app.float.scan_permission_icon_size'))
         .height($r('app.float.scan_permission_icon_size'))
         .fillColor($r('app.color.primary'))
-        .margin({ bottom: $r('app.float.scan_section_gap_medium') })
+        .margin({ bottom: $r('app.float.scan_section_gap_medium') });
 
       Text($r('app.string.scan_permission_required'))
         .fontSize($r('app.float.page_title_size'))
         .fontColor($r('app.color.scan_text_light'))
         .fontWeight(FontWeight.Medium)
-        .margin({ bottom: $r('app.float.scan_section_gap_xsmall') })
+        .margin({ bottom: $r('app.float.scan_section_gap_xsmall') });
 
       Text($r('app.string.scan_permission_desc'))
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.scan_text_secondary'))
         .textAlign(TextAlign.Center)
-        .margin({ bottom: $r('app.float.scan_section_gap_large') })
+        .margin({ bottom: $r('app.float.scan_section_gap_large') });
 
       Button($r('app.string.scan_permission_button'))
         .width('100%')
@@ -259,7 +278,7 @@ struct QRCodeScanPage {
         .fontColor($r('app.color.scan_text_light'))
         .backgroundColor($r('app.color.primary'))
         .borderRadius($r('app.float.scan_button_radius_large'))
-        .onClick(() => this.requestPermission())
+        .onClick(() => this.requestPermission());
     }
     .width('100%')
     .layoutWeight(1)
@@ -267,7 +286,7 @@ struct QRCodeScanPage {
     .padding({
       left: $r('app.float.layout_content_side_padding_regular'),
       right: $r('app.float.layout_content_side_padding_regular')
-    })
+    });
   }
 
   @Builder
@@ -277,20 +296,20 @@ struct QRCodeScanPage {
         .width($r('app.float.scan_qrcode_icon_size'))
         .height($r('app.float.scan_qrcode_icon_size'))
         .fillColor($r('app.color.scan_text_light'))
-        .margin({ bottom: $r('app.float.scan_section_gap_small') })
+        .margin({ bottom: $r('app.float.scan_section_gap_small') });
 
       Text($r('app.string.scan_page_intro'))
         .fontSize($r('app.float.scan_intro_title_size'))
         .fontColor($r('app.color.scan_text_light'))
         .fontWeight(FontWeight.Medium)
         .textAlign(TextAlign.Center)
-        .margin({ bottom: $r('app.float.scan_section_gap_xsmall') })
+        .margin({ bottom: $r('app.float.scan_section_gap_xsmall') });
 
       Text($r('app.string.scan_page_desc'))
         .fontSize($r('app.float.text_secondary_size'))
         .fontColor($r('app.color.scan_text_secondary'))
         .textAlign(TextAlign.Center)
-        .margin({ bottom: $r('app.float.scan_section_gap_large') })
+        .margin({ bottom: $r('app.float.scan_section_gap_large') });
 
       Button(this.isScanning ? $r('app.string.scan_starting_button') : $r('app.string.scan_start_button'))
         .width('100%')
@@ -301,14 +320,14 @@ struct QRCodeScanPage {
         .backgroundColor($r('app.color.primary'))
         .borderRadius($r('app.float.scan_button_radius_large'))
         .enabled(!this.isScanning)
-        .onClick(() => this.startScanning())
+        .onClick(() => this.startScanning());
 
       if (this.errorMessage.length > 0) {
         Text(this.errorMessage)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.scan_error_text'))
           .textAlign(TextAlign.Center)
-          .margin({ top: $r('app.float.scan_error_top_margin') })
+          .margin({ top: $r('app.float.scan_error_top_margin') });
       }
     }
     .width('100%')
@@ -317,6 +336,6 @@ struct QRCodeScanPage {
     .padding({
       left: $r('app.float.layout_content_side_padding_regular'),
       right: $r('app.float.layout_content_side_padding_regular')
-    })
+    });
   }
 }

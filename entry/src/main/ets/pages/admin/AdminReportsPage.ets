@@ -4,7 +4,25 @@
  */
 
 import { ReportsService, AttendanceReport, FinanceReport, TeacherPerformance } from '../../services/api/reports';
-import { EmptyState, EmptyType, HeaderTheme, IconActionButton, LoadingSize, LoadingState, PageHeader, TabBar, Card, SectionHeader, StatCard } from '../../components/common';
+import {
+  AdminAttendanceReportList,
+  AdminFinanceReportList,
+  AdminReportsOverviewSection,
+  AdminTeacherPerformanceList,
+  EmptyType,
+  HeaderTheme,
+  IconActionButton,
+  LoadingSize,
+  PageHeader,
+  ReportControlDeck,
+  ReportMetricChip,
+  ReportTrendRow,
+  StatefulContainer,
+  StatRowItem,
+  ViewState,
+  WorkbenchListPageTemplate
+} from '../../components/common';
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import { formatDate } from '../../utils/date';
 
 class AttendanceDailyStat {
@@ -20,8 +38,20 @@ class FinanceDailyStat {
   refund: number = 0;
 }
 
+@Entry
 @Component
-export struct AdminReportsPage {
+struct AdminReportsPage {
+  build() {
+    Stack() {
+      AdminReportsPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct AdminReportsPageContent {
   @State currentTab: number = 0;
   @State attendanceReport: AttendanceReport | null = null;
   @State financeReport: FinanceReport | null = null;
@@ -202,32 +232,48 @@ export struct AdminReportsPage {
     return '绩效评估';
   }
 
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
+    }
+    if (!this.hasCurrentData()) {
+      return ViewState.EMPTY;
+    }
+    return ViewState.CONTENT;
+  }
+
   build() {
     Column() {
-      PageHeader({
-        title: '数据统计',
-        subtitle: '从考勤、财务与教师绩效三方面查看机构运营状态',
-        theme: HeaderTheme.WHITE,
-        rightContent: this.buildHeaderAction
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildControlDeck,
+        content: this.buildStatefulReportBody
       })
-
-      this.buildExecutivePanel()
-      this.buildOverviewPanel()
-      this.buildControlDeck()
-      this.buildReportContent()
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  private buildHeader() {
+    PageHeader({
+      title: '数据统计',
+      subtitle: '从考勤、财务与教师绩效三方面查看机构运营状态',
+      theme: HeaderTheme.WHITE,
+      rightContent: this.buildHeaderAction
+    })
   }
 
   @Builder
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_refresh'),
-      iconColor: '#526F95',
-      boxBgColor: Color.White,
-      boxBorderColor: '#E5EDF6',
+      iconColor: HarmonyColor.info,
+      boxBgColor: HarmonyColor.surface,
+      boxBorderColor: $r('app.color.divider'),
       onButtonClick: (): void => {
         this.loadReportData();
       }
@@ -235,453 +281,149 @@ export struct AdminReportsPage {
   }
 
   @Builder
-  buildExecutivePanel() {
-    Card({
-      title: this.getCurrentReportTitle(),
-      subtitle: this.getCurrentReportSubtitle(),
-      customPadding: 18,
-      content: this.buildExecutiveContent
+  private buildOverviewSection() {
+    AdminReportsOverviewSection({
+      reportTitle: this.getCurrentReportTitle(),
+      reportSubtitle: this.getCurrentReportSubtitle(),
+      badgeText: this.getExecutiveBadge(),
+      executiveValue: this.getExecutiveValue(),
+      executiveLabel: this.getExecutiveLabel(),
+      rangeText: this.dateRange,
+      tabText: this.tabs[this.currentTab],
+      overviewItems: this.getCurrentOverviewItems()
     })
-    .margin({ left: 16, right: 16, top: 12 })
   }
 
   @Builder
-  buildExecutiveContent() {
-    Row() {
-      Column() {
-        Text(this.getExecutiveBadge())
-          .fontSize(11)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F6F0E9')
-          .borderRadius(999)
-
-        Text(this.getExecutiveValue())
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 14 })
-
-        Text(this.getExecutiveLabel())
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-      }
+  private buildStatefulReportBody() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在生成报表...',
+      loadingSize: LoadingSize.LARGE,
+      emptyType: EmptyType.DEFAULT,
+      emptyTitle: '暂无统计数据',
+      emptyDescription: '当前时间范围内还没有可展示的报表结果',
+      emptyActionText: '刷新',
+      onEmptyAction: () => {
+        this.loadReportData();
+      },
+      content: this.buildReportContent
+    })
       .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Column() {
-        this.buildCompactMetric('统计周期', this.dateRange, '#526F95')
-        this.buildCompactMetric('报告类型', this.tabs[this.currentTab], '#10203A')
-      }
-      .width(124)
-    }
-    .width('100%')
+      .margin({ top: 12 })
   }
 
-  @Builder
-  buildOverviewPanel() {
-    Card({
-      title: '关键指标',
-      subtitle: '用同一套指标视角快速理解当前报表状态',
-      customPadding: 12,
-      content: this.buildOverviewMetricsContent
-    })
-    .margin({ left: 16, right: 16, top: 12 })
-  }
-
-  @Builder
-  buildOverviewMetricsContent() {
+  private getCurrentOverviewItems(): StatRowItem[] {
     if (this.currentTab === 0) {
-      Row() {
-        StatCard({
-          value: this.getAttendanceOverviewValue('students'),
-          label: '学生总量',
-          icon: $r('app.media.ic_user'),
-          iconColor: '#4F7CFF'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getAttendanceOverviewValue('rate'),
-          label: '出勤率',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#2F9B52'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getAttendanceOverviewValue('late'),
-          label: '迟到人数',
-          icon: $r('app.media.ic_warning'),
-          iconColor: '#F2994A'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-    } else if (this.currentTab === 1) {
-      Row() {
-        StatCard({
-          value: this.getFinanceOverviewValue('income'),
-          label: '总收入',
-          icon: $r('app.media.ic_money'),
-          iconColor: '#2F9B52'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getFinanceOverviewValue('refund'),
-          label: '总退款',
-          icon: $r('app.media.ic_order'),
-          iconColor: '#F2994A'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getFinanceOverviewValue('net'),
-          label: '净收入',
-          icon: $r('app.media.ic_report'),
-          iconColor: '#4F7CFF'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-    } else {
-      Row() {
-        StatCard({
-          value: this.getPerformanceOverviewValue('teachers'),
-          label: '教师人数',
-          icon: $r('app.media.ic_user'),
-          iconColor: '#8E5CF6'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getPerformanceOverviewValue('sessions'),
-          label: '班次总数',
-          icon: $r('app.media.ic_calendar'),
-          iconColor: '#4F7CFF'
-        })
-        .layoutWeight(1)
-
-        Blank().width(12)
-
-        StatCard({
-          value: this.getPerformanceOverviewValue('rate'),
-          label: '平均出勤率',
-          icon: $r('app.media.ic_attendance'),
-          iconColor: '#2F9B52'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
+      return this.getAttendanceOverviewItems();
     }
+    if (this.currentTab === 1) {
+      return this.getFinanceOverviewItems();
+    }
+    return this.getPerformanceOverviewItems();
+  }
+
+  private getAttendanceOverviewItems(): StatRowItem[] {
+    return [
+      { value: this.getAttendanceOverviewValue('students'), label: '学生总量', icon: $r('app.media.ic_user'), iconColor: HarmonyReport.accent },
+      { value: this.getAttendanceOverviewValue('rate'), label: '出勤率', icon: $r('app.media.ic_attendance'), iconColor: HarmonyReport.positive },
+      { value: this.getAttendanceOverviewValue('late'), label: '迟到人数', icon: $r('app.media.ic_warning'), iconColor: HarmonyReport.caution }
+    ];
+  }
+
+  private getFinanceOverviewItems(): StatRowItem[] {
+    return [
+      { value: this.getFinanceOverviewValue('income'), label: '总收入', icon: $r('app.media.ic_money'), iconColor: HarmonyReport.positive },
+      { value: this.getFinanceOverviewValue('refund'), label: '总退款', icon: $r('app.media.ic_order'), iconColor: HarmonyReport.caution },
+      { value: this.getFinanceOverviewValue('net'), label: '净收入', icon: $r('app.media.ic_report'), iconColor: HarmonyReport.accent }
+    ];
+  }
+
+  private getPerformanceOverviewItems(): StatRowItem[] {
+    return [
+      { value: this.getPerformanceOverviewValue('teachers'), label: '教师人数', icon: $r('app.media.ic_user'), iconColor: HarmonyColor.brandBlue },
+      { value: this.getPerformanceOverviewValue('sessions'), label: '班次总数', icon: $r('app.media.ic_calendar'), iconColor: HarmonyReport.accent },
+      { value: this.getPerformanceOverviewValue('rate'), label: '平均出勤率', icon: $r('app.media.ic_attendance'), iconColor: HarmonyReport.positive }
+    ];
   }
 
   @Builder
   buildControlDeck() {
-    Card({
-      title: '报告控制台',
-      subtitle: '统一控制统计周期和分析维度，再进入数据明细',
-      customPadding: 12,
-      content: this.buildControlDeckContent
+    ReportControlDeck({
+      rangeOptions: this.rangeOptions,
+      selectedRange: this.dateRange,
+      tabs: this.tabs,
+      currentIndex: this.currentTab,
+      onRangeChange: (range: string): void => {
+        this.handleRangeChange(range);
+      },
+      onTabChange: (index: number): void => {
+        this.handleTabChange(index);
+      }
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
 
   @Builder
-  buildControlDeckContent() {
-    Column() {
-      Row() {
-        ForEach(this.rangeOptions, (range: string) => {
-          Text(range)
-            .fontSize(13)
-            .fontWeight(this.dateRange === range ? FontWeight.Medium : FontWeight.Normal)
-            .fontColor(this.dateRange === range ? $r('app.color.primary') : $r('app.color.text_secondary'))
-            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-            .backgroundColor(this.dateRange === range ? '#F6F0E9' : '#F7FAFE')
-            .borderRadius(16)
-            .margin({ right: range === this.rangeOptions[this.rangeOptions.length - 1] ? 0 : 10 })
-            .onClick(() => {
-              this.handleRangeChange(range);
-            })
-        })
-      }
-      .width('100%')
-
-      TabBar({
-        tabs: this.tabs,
-        currentIndex: this.currentTab,
-        onTabChange: (index: number) => this.handleTabChange(index)
-      })
-      .margin({ top: 14 })
-    }
-  }
-
-  @Builder
   buildReportContent() {
-    if (this.isLoading) {
-      LoadingState({
-        loadingSize: LoadingSize.LARGE,
-        fullscreen: false,
-        message: '正在生成报表...'
+    if (this.currentTab === 0) {
+      AdminAttendanceReportList({
+        rows: this.getAttendanceRows()
       })
-    } else if (!this.hasCurrentData()) {
-      EmptyState({
-        type: EmptyType.DEFAULT,
-        customTitle: '暂无统计数据',
-        customDescription: '当前时间范围内还没有可展示的报表结果',
-        actionText: '刷新',
-        onAction: () => {
-          this.loadReportData();
-        }
-      })
-    } else if (this.currentTab === 0) {
-      this.buildAttendanceReport()
     } else if (this.currentTab === 1) {
-      this.buildFinanceReport()
+      AdminFinanceReportList({
+        summaryItems: this.getFinanceSummaryItems(),
+        rows: this.getFinanceRows()
+      })
     } else {
-      this.buildTeacherPerformance()
+      AdminTeacherPerformanceList({
+        teachers: this.teacherPerformance
+      })
     }
   }
 
-  @Builder
-  buildAttendanceReport() {
-    Scroll() {
-      Column() {
-        SectionHeader({
-          title: '考勤趋势',
-          subtitle: '按日查看出勤、迟到与缺勤变化'
-        })
-
-        Column() {
-          Text('考勤趋势明细')
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text('按日查看出勤、迟到与缺勤变化')
-            .fontSize(13)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6, bottom: 16 })
-
-          ForEach(this.attendanceReport?.dailyStats ?? [], (day: AttendanceDailyStat, index: number) => {
-            this.buildAttendanceDailyItem(day)
-            if (this.attendanceReport?.dailyStats && index < this.attendanceReport.dailyStats.length - 1) {
-              Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
-            }
-          })
-        }
-        .width('100%')
-        .padding(18)
-        .backgroundColor(Color.White)
-        .borderRadius(20)
-        .shadow({ radius: 12, color: '#0F000000', offsetX: 0, offsetY: 4 })
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, bottom: 20 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
+  private getFinanceSummaryItems(): StatRowItem[] {
+    return [
+      { value: `${this.financeReport?.orderCount ?? 0}`, label: '订单总数', icon: $r('app.media.ic_order'), iconColor: HarmonyColor.brandBlue },
+      { value: `${this.financeReport?.refundedOrderCount ?? 0}`, label: '退款订单', icon: $r('app.media.ic_warning'), iconColor: HarmonyReport.caution },
+      { value: `¥${this.financeReport?.netIncome ?? 0}`, label: '净收入', icon: $r('app.media.ic_money'), iconColor: HarmonyReport.positive }
+    ];
   }
 
-  @Builder
-  buildAttendanceDailyItem(day: AttendanceDailyStat) {
-    Row() {
-      Column() {
-        Text(day.date)
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      this.buildCompactMetric('出勤', `${day.presentCount}`, '#2F9B52')
-      Blank().width(10)
-      this.buildCompactMetric('迟到', `${day.lateCount}`, '#F2994A')
-      Blank().width(10)
-      this.buildCompactMetric('缺勤', `${day.absentCount}`, '#E25B5B')
-    }
-    .width('100%')
-    .alignItems(VerticalAlign.Center)
+  private getAttendanceRows(): ReportTrendRow[] {
+    const dailyStats = this.attendanceReport?.dailyStats ?? [];
+    return dailyStats.map((day: AttendanceDailyStat): ReportTrendRow => {
+      return {
+        title: day.date,
+        metrics: [
+          this.createTrendMetric('出勤', `${day.presentCount}`, HarmonyReport.positive),
+          this.createTrendMetric('迟到', `${day.lateCount}`, HarmonyReport.caution),
+          this.createTrendMetric('缺勤', `${day.absentCount}`, HarmonyReport.danger)
+        ]
+      };
+    });
   }
 
-  @Builder
-  buildFinanceReport() {
-    Scroll() {
-      Column() {
-        this.buildFinanceSummaryCard()
-
-        SectionHeader({
-          title: '收支趋势',
-          subtitle: '按日核对收入与退款变化'
-        })
-
-        Column() {
-          Text('收支趋势明细')
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text('按日核对收入与退款变化')
-            .fontSize(13)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6, bottom: 16 })
-
-          ForEach(this.financeReport?.dailyStats ?? [], (day: FinanceDailyStat, index: number) => {
-            this.buildFinanceDailyItem(day)
-            if (this.financeReport?.dailyStats && index < this.financeReport.dailyStats.length - 1) {
-              Divider().color('#EEF2F7').margin({ top: 10, bottom: 10 })
-            }
-          })
-        }
-        .width('100%')
-        .padding(18)
-        .backgroundColor(Color.White)
-        .borderRadius(20)
-        .shadow({ radius: 12, color: '#0F000000', offsetX: 0, offsetY: 4 })
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, bottom: 20 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
+  private getFinanceRows(): ReportTrendRow[] {
+    const dailyStats = this.financeReport?.dailyStats ?? [];
+    return dailyStats.map((day: FinanceDailyStat): ReportTrendRow => {
+      return {
+        title: day.date,
+        metrics: [
+          this.createTrendMetric('收入', `¥${day.income}`, HarmonyReport.positive),
+          this.createTrendMetric('退款', `¥${day.refund}`, HarmonyReport.danger)
+        ]
+      };
+    });
   }
 
-  @Builder
-  buildFinanceSummaryCard() {
-    Row() {
-      this.buildCompactMetric('订单总数', `${this.financeReport?.orderCount ?? 0}`, '#8E5CF6')
-      Blank().width(10)
-      this.buildCompactMetric('退款订单', `${this.financeReport?.refundedOrderCount ?? 0}`, '#F2994A')
-      Blank().width(10)
-      this.buildCompactMetric('净收入', `¥${this.financeReport?.netIncome ?? 0}`, '#2F9B52')
-    }
-    .width('100%')
-    .padding(18)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .margin({ bottom: 12 })
-    .shadow({ radius: 12, color: '#0F000000', offsetX: 0, offsetY: 4 })
+  private createTrendMetric(label: string, value: string, color: string): ReportMetricChip {
+    return {
+      label: label,
+      value: value,
+      color: color
+    };
   }
 
-  @Builder
-  buildFinanceDailyItem(day: FinanceDailyStat) {
-    Row() {
-      Column() {
-        Text(day.date)
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      this.buildCompactMetric('收入', `¥${day.income}`, '#2F9B52')
-      Blank().width(10)
-      this.buildCompactMetric('退款', `¥${day.refund}`, '#E25B5B')
-    }
-    .width('100%')
-    .alignItems(VerticalAlign.Center)
-  }
-
-  @Builder
-  buildTeacherPerformance() {
-    Scroll() {
-      Column() {
-        SectionHeader({
-          title: '教师绩效列表',
-          subtitle: '关注评分、出勤率和作业完成情况'
-        })
-
-        ForEach(this.teacherPerformance, (teacher: TeacherPerformance) => {
-          this.buildTeacherItem(teacher)
-        })
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, bottom: 20 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .scrollBar(BarState.Off)
-  }
-
-  @Builder
-  buildTeacherItem(teacher: TeacherPerformance) {
-    Column() {
-      Row() {
-        Column() {
-          Text(teacher.teacherName)
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(`平均评分 ${teacher.avgRating}`)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-
-        Text(`${teacher.avgAttendanceRate}%`)
-          .fontSize(18)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#2F9B52')
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Top)
-
-      Row() {
-        this.buildCompactMetric('班次数', `${teacher.totalSessions}`, '#4F7CFF')
-        Blank().width(10)
-        this.buildCompactMetric('学生数', `${teacher.totalStudents}`, '#8E5CF6')
-        Blank().width(10)
-        this.buildCompactMetric('作业完成', `${teacher.homeworkCompletedCount}`, '#F2994A')
-      }
-      .width('100%')
-      .margin({ top: 14 })
-    }
-    .width('100%')
-    .padding(18)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .margin({ bottom: 12 })
-    .shadow({ radius: 12, color: '#0F000000', offsetX: 0, offsetY: 4 })
-  }
-
-  @Builder
-  buildCompactMetric(label: string, value: string, color: string) {
-    Column() {
-      Text(label)
-        .fontSize(12)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(16)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(color)
-        .margin({ top: 4 })
-    }
-    .layoutWeight(1)
-    .padding({ left: 12, right: 12, top: 14, bottom: 14 })
-    .backgroundColor('#F7FAFE')
-    .borderRadius(14)
-    .alignItems(HorizontalAlign.Start)
-  }
 }
 

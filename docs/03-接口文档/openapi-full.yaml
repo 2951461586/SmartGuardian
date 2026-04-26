@@ -1,1141 +1,823 @@
 openapi: 3.0.3
 info:
-  title: 学生智慧托管系统 API
-  version: 1.2.0
-  description: 更完整可导入的 OpenAPI/Swagger 文档，覆盖认证、学生档案、托管服务、订单、排课、考勤、作业、消息、时间线、支付、报表、卡片、告警与退款接口。
+  title: SmartGuardian AGC Contract API
+  version: 2026.04.25
+  description: >
+    AGC API Gateway and Cloud Functions contract view for SmartGuardian.
+    External routes remain on /api/v1/* and are dispatched to domain functions.
 servers:
-  - url: https://api.smartguardian.local
-    description: 开发环境
-  - url: https://test-api.smartguardian.local
-    description: 测试环境
-  - url: https://prod-api.smartguardian.local
-    description: 生产环境
-
-tags:
-  - name: Auth
-    description: 认证与用户
-  - name: Students
-    description: 学生档案
-  - name: ServiceProducts
-    description: 托管服务
-  - name: Orders
-    description: 订单管理
-  - name: Sessions
-    description: 排课班次
-  - name: Attendance
-    description: 考勤签到
-  - name: Homework
-    description: 作业与反馈
-  - name: Messages
-    description: 消息与通知
-  - name: Timeline
-    description: 学生动态时间线
-  - name: Payments
-    description: 支付
-  - name: Reports
-    description: 统计报表
-  - name: Cards
-    description: 元服务卡片
-  - name: Alerts
-    description: 告警服务
-  - name: Refunds
-    description: 退款服务
-
+  - url: https://agc-api.smartguardian.local
+    description: AGC API Gateway
+  - url: https://agc-test.smartguardian.local
+    description: AGC Test Gateway
 security:
   - bearerAuth: []
-
+tags:
+  - name: Auth
+  - name: User
+  - name: Students
+  - name: ServiceProducts
+  - name: Orders
+  - name: Sessions
+  - name: Attendance
+  - name: Homework
+  - name: Messages
+  - name: Alerts
+  - name: Reports
+  - name: Refunds
+  - name: Payments
+  - name: Timeline
+  - name: Cards
+  - name: Workbench
 paths:
   /api/v1/auth/login:
     post:
       tags: [Auth]
-      summary: 用户登录
+      summary: Login and create AGC session
       security: []
+      x-agc-function-domain: auth
+      x-agc-function-name: smartguardian-auth
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
-            example:
-              username: parent_zhang
-              password: '123456'
       responses:
         '200':
-          description: 登录成功
+          description: Login response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /api/v1/auth/me:
-    get:
-      tags: [Auth]
-      summary: 获取当前用户信息
-      responses:
-        '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInfoApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
+                $ref: '#/components/schemas/LoginEnvelope'
   /api/v1/auth/logout:
     post:
       tags: [Auth]
-      summary: 退出登录
+      summary: Logout current session
+      x-agc-function-domain: auth
+      x-agc-function-name: smartguardian-auth
       responses:
         '200':
-          description: 成功
+          $ref: '#/components/responses/Success'
+  /api/v1/auth/me:
+    get:
+      tags: [User]
+      summary: Get current user profile
+      x-agc-function-domain: user
+      x-agc-function-name: smartguardian-user
+      responses:
+        '200':
+          description: User profile
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+                $ref: '#/components/schemas/UserEnvelope'
+  /api/v1/users:
+    get:
+      tags: [User]
+      summary: Query users for admin workbench
+      x-agc-function-domain: user
+      x-agc-function-name: smartguardian-user
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/students:
     get:
       tags: [Students]
-      summary: 查询学生列表
-      parameters:
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
-        - in: query
-          name: keyword
-          schema:
-            type: string
-        - in: query
-          name: schoolId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: classId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: status
-          schema:
-            type: string
+      summary: Query students
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StudentPageResponse'
+          $ref: '#/components/responses/Page'
     post:
       tags: [Students]
-      summary: 新增学生档案
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StudentCreateRequest'
+      summary: Create student profile
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
       responses:
         '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/students/{studentId}:
     get:
       tags: [Students]
-      summary: 查询学生详情
+      summary: Get student detail
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
       parameters:
         - $ref: '#/components/parameters/StudentId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StudentDetailApiResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/Standard'
     put:
       tags: [Students]
-      summary: 更新学生档案
+      summary: Update student profile
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
       parameters:
         - $ref: '#/components/parameters/StudentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StudentUpdateRequest'
       responses:
         '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/students/{studentId}/guardians:
+    get:
+      tags: [Students]
+      summary: Query guardian relations
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
     post:
       tags: [Students]
-      summary: 绑定监护关系
+      summary: Bind guardian relation
+      x-agc-function-domain: student
+      x-agc-function-name: smartguardian-student
       parameters:
         - $ref: '#/components/parameters/StudentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GuardianBindRequest'
       responses:
         '200':
-          description: 绑定成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/service-products:
     get:
       tags: [ServiceProducts]
-      summary: 查询托管服务列表
-      parameters:
-        - in: query
-          name: serviceType
-          schema:
-            type: string
-        - in: query
-          name: status
-          schema:
-            type: string
-        - in: query
-          name: orgId
-          schema:
-            type: integer
-            format: int64
+      summary: Query service products
+      x-agc-function-domain: service
+      x-agc-function-name: smartguardian-service
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceProductListResponse'
+          $ref: '#/components/responses/Standard'
     post:
       tags: [ServiceProducts]
-      summary: 新增托管服务
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceProductCreateRequest'
+      summary: Create service product
+      x-agc-function-domain: service
+      x-agc-function-name: smartguardian-service
       responses:
         '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/service-products/{serviceId}:
     get:
       tags: [ServiceProducts]
-      summary: 查询托管服务详情
+      summary: Get service product detail
+      x-agc-function-domain: service
+      x-agc-function-name: smartguardian-service
       parameters:
         - $ref: '#/components/parameters/ServiceId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceProductApiResponse'
+          $ref: '#/components/responses/Standard'
     put:
       tags: [ServiceProducts]
-      summary: 更新托管服务
+      summary: Update service product
+      x-agc-function-domain: service
+      x-agc-function-name: smartguardian-service
       parameters:
         - $ref: '#/components/parameters/ServiceId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceProductUpdateRequest'
       responses:
         '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/service-products/{serviceId}/status:
-    patch:
-      tags: [ServiceProducts]
-      summary: 上下架托管服务
-      parameters:
-        - $ref: '#/components/parameters/ServiceId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [status]
-              properties:
-                status:
-                  type: string
-                  example: ENABLED
-      responses:
-        '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/orders:
     get:
       tags: [Orders]
-      summary: 查询订单列表
-      parameters:
-        - in: query
-          name: studentId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: guardianUserId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: orderStatus
-          schema:
-            type: string
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
+      summary: Query orders
+      x-agc-function-domain: order
+      x-agc-function-name: smartguardian-order
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderPageResponse'
+          $ref: '#/components/responses/Page'
     post:
       tags: [Orders]
-      summary: 创建订单
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderCreateRequest'
+      summary: Create order
+      x-agc-function-domain: order
+      x-agc-function-name: smartguardian-order
       responses:
         '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetailApiResponse'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/orders/{orderId}:
     get:
       tags: [Orders]
-      summary: 查询订单详情
+      summary: Get order detail
+      x-agc-function-domain: order
+      x-agc-function-name: smartguardian-order
       parameters:
         - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetailApiResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/orders/{orderId}/audit:
     post:
       tags: [Orders]
-      summary: 审核订单
-      parameters:
-        - $ref: '#/components/parameters/OrderId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderAuditRequest'
-      responses:
-        '200':
-          description: 审核成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/orders/{orderId}/cancel:
-    post:
-      tags: [Orders]
-      summary: 取消订单
+      summary: Audit order
+      x-agc-function-domain: order
+      x-agc-function-name: smartguardian-order
       parameters:
         - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          description: 取消成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/orders/{orderId}/refund:
     post:
       tags: [Orders]
-      summary: 申请退款
+      summary: Apply order refund
+      x-agc-function-domain: order
+      x-agc-function-name: smartguardian-order
       parameters:
         - $ref: '#/components/parameters/OrderId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason:
-                  type: string
-                  example: 临时调整托管安排
       responses:
         '200':
-          description: 申请成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/sessions:
     get:
       tags: [Sessions]
-      summary: 查询班次列表
-      parameters:
-        - in: query
-          name: sessionDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: teacherUserId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: orgId
-          schema:
-            type: integer
-            format: int64
+      summary: Query sessions
+      x-agc-function-domain: session
+      x-agc-function-name: smartguardian-session
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionListResponse'
-
-  /api/v1/sessions/generate:
+          $ref: '#/components/responses/Standard'
     post:
       tags: [Sessions]
-      summary: 智能排课
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SessionGenerateRequest'
+      summary: Create session
+      x-agc-function-domain: session
+      x-agc-function-name: smartguardian-session
       responses:
         '200':
-          description: 生成成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/sessions/{sessionId}:
-    put:
-      tags: [Sessions]
-      summary: 调整班次
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SessionUpdateRequest'
-      responses:
-        '200':
-          description: 调整成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/sessions/{sessionId}/students:
     get:
       tags: [Sessions]
-      summary: 查询班次学生名单
+      summary: Get session detail
+      x-agc-function-domain: session
+      x-agc-function-name: smartguardian-session
       parameters:
         - $ref: '#/components/parameters/SessionId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionStudentListResponse'
-
+          $ref: '#/components/responses/Standard'
+    post:
+      tags: [Sessions]
+      summary: Update session
+      x-agc-function-domain: session
+      x-agc-function-name: smartguardian-session
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/attendance:
     get:
       tags: [Attendance]
-      summary: 查询考勤记录
-      parameters:
-        - in: query
-          name: studentId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: attendanceDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: sessionId
-          schema:
-            type: integer
-            format: int64
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
+      summary: Query attendance records
+      x-agc-function-domain: attendance
+      x-agc-function-name: smartguardian-attendance
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttendancePageResponse'
-
+          $ref: '#/components/responses/Page'
   /api/v1/attendance/sign-in:
     post:
       tags: [Attendance]
-      summary: 学生签到
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceSignInRequest'
+      summary: Sign in attendance
+      x-agc-function-domain: attendance
+      x-agc-function-name: smartguardian-attendance
       responses:
         '200':
-          description: 签到成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttendanceRecordApiResponse'
-        '409':
-          $ref: '#/components/responses/Conflict'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/attendance/sign-out:
     post:
       tags: [Attendance]
-      summary: 学生签退
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceSignOutRequest'
+      summary: Sign out attendance
+      x-agc-function-domain: attendance
+      x-agc-function-name: smartguardian-attendance
       responses:
         '200':
-          description: 签退成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/attendance/abnormal-events:
     get:
       tags: [Attendance]
-      summary: 查询异常事件
-      parameters:
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
-        - in: query
-          name: abnormalType
-          schema:
-            type: string
-        - in: query
-          name: status
-          schema:
-            type: string
+      summary: Query abnormal attendance events
+      x-agc-function-domain: attendance
+      x-agc-function-name: smartguardian-attendance
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AbnormalEventPageResponse'
-
-  /api/v1/attendance/abnormal-events/{eventId}/handle:
+          $ref: '#/components/responses/Page'
+  /api/v1/attendance/leave:
     post:
       tags: [Attendance]
-      summary: 异常处置
-      parameters:
-        - in: path
-          name: eventId
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AbnormalHandleRequest'
+      summary: Submit leave request
+      x-agc-function-domain: attendance
+      x-agc-function-name: smartguardian-attendance
       responses:
         '200':
-          description: 处置成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/homework/tasks:
     get:
       tags: [Homework]
-      summary: 查询作业任务列表
-      parameters:
-        - in: query
-          name: studentId
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: taskDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: status
-          schema:
-            type: string
+      summary: Query homework tasks
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HomeworkTaskListResponse'
+          $ref: '#/components/responses/Page'
     post:
       tags: [Homework]
-      summary: 新增作业任务
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HomeworkTaskCreateRequest'
+      summary: Create homework task
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
       responses:
         '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/homework/tasks/{taskId}:
-    put:
+    get:
       tags: [Homework]
-      summary: 更新作业进度
+      summary: Get homework task detail
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
       parameters:
-        - in: path
-          name: taskId
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HomeworkTaskUpdateRequest'
+        - $ref: '#/components/parameters/TaskId'
       responses:
         '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Standard'
+  /api/v1/homework/tasks/{taskId}/status:
+    post:
+      tags: [Homework]
+      summary: Update homework status
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/homework/feedback:
     post:
       tags: [Homework]
-      summary: 提交作业反馈
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HomeworkFeedbackCreateRequest'
+      summary: Submit homework feedback
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
       responses:
         '200':
-          description: 提交成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-
+          $ref: '#/components/responses/Standard'
+  /api/v1/homework/tasks/{taskId}/feedbacks:
+    get:
+      tags: [Homework]
+      summary: Query homework feedback list
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/homework/feedback/{feedbackId}/confirm:
     post:
       tags: [Homework]
-      summary: 家长确认反馈
+      summary: Confirm homework feedback
+      x-agc-function-domain: homework
+      x-agc-function-name: smartguardian-homework
       parameters:
-        - in: path
-          name: feedbackId
-          required: true
-          schema:
-            type: integer
-            format: int64
+        - $ref: '#/components/parameters/FeedbackId'
       responses:
         '200':
-          description: 确认成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/messages/conversations:
-    get:
-      tags: [Messages]
-      summary: 查询会话列表
-      responses:
-        '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConversationListResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/messages:
     get:
       tags: [Messages]
-      summary: 查询消息列表
-      parameters:
-        - in: query
-          name: conversationId
-          schema:
-            type: integer
-            format: int64
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
+      summary: Query messages
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessagePageResponse'
+          $ref: '#/components/responses/Page'
     post:
       tags: [Messages]
-      summary: 发送消息
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MessageSendRequest'
+      summary: Create message
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
       responses:
         '200':
-          description: 发送成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-
+          $ref: '#/components/responses/Standard'
+  /api/v1/messages/{messageId}:
+    get:
+      tags: [Messages]
+      summary: Get message detail
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
+      parameters:
+        - $ref: '#/components/parameters/MessageId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/messages/{messageId}/read:
     post:
       tags: [Messages]
-      summary: 消息已读
+      summary: Mark message as read
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
       parameters:
-        - in: path
-          name: messageId
-          required: true
-          schema:
-            type: integer
-            format: int64
+        - $ref: '#/components/parameters/MessageId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/notifications:
+          $ref: '#/components/responses/Success'
+  /api/v1/messages/batch-read:
+    post:
+      tags: [Messages]
+      summary: Batch mark messages as read
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/messages/read-all:
+    post:
+      tags: [Messages]
+      summary: Mark all messages as read
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/messages/{messageId}/delete:
+    post:
+      tags: [Messages]
+      summary: Delete message
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
+      parameters:
+        - $ref: '#/components/parameters/MessageId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/messages/unread-count:
     get:
       tags: [Messages]
-      summary: 查询系统通知
-      parameters:
-        - $ref: '#/components/parameters/PageNum'
-        - $ref: '#/components/parameters/PageSize'
+      summary: Get unread message count
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessagePageResponse'
-
-  /api/v1/timeline/students/{studentId}:
+          $ref: '#/components/responses/Count'
+  /api/v1/messages/statistics:
     get:
-      tags: [Timeline]
-      summary: 查询学生动态时间线
-      parameters:
-        - $ref: '#/components/parameters/StudentId'
-        - in: query
-          name: bizDate
-          schema:
-            type: string
-            format: date
+      tags: [Messages]
+      summary: Get message statistics
+      x-agc-function-domain: message
+      x-agc-function-name: smartguardian-message
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimelineListResponse'
-
-  /api/v1/timeline/events:
-    post:
-      tags: [Timeline]
-      summary: 新增动态事件
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TimelineCreateRequest'
-      responses:
-        '200':
-          description: 新增成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdApiResponse'
-
-  /api/v1/payments:
-    post:
-      tags: [Payments]
-      summary: 创建支付单
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PaymentCreateRequest'
-      responses:
-        '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaymentApiResponse'
-
-  /api/v1/payments/{paymentNo}:
+          $ref: '#/components/responses/Standard'
+  /api/v1/alerts:
     get:
-      tags: [Payments]
-      summary: 查询支付状态
+      tags: [Alerts]
+      summary: Query alerts
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+  /api/v1/alerts/{alertId}:
+    get:
+      tags: [Alerts]
+      summary: Get alert detail
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
       parameters:
-        - in: path
-          name: paymentNo
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/AlertId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaymentApiResponse'
-
-  /api/v1/payments/{paymentNo}/refund:
+          $ref: '#/components/responses/Standard'
+  /api/v1/alerts/{alertId}/acknowledge:
     post:
-      tags: [Payments]
-      summary: 退款处理
+      tags: [Alerts]
+      summary: Acknowledge alert
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
       parameters:
-        - in: path
-          name: paymentNo
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refundAmount:
-                  type: number
-                  format: double
-                  example: 800
-                reason:
-                  type: string
-                  example: 家长申请退款
+        - $ref: '#/components/parameters/AlertId'
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
-  /api/v1/payments/callback:
+          $ref: '#/components/responses/Success'
+  /api/v1/alerts/{alertId}/resolve:
     post:
-      tags: [Payments]
-      summary: 支付回调
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
+      tags: [Alerts]
+      summary: Resolve alert
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
       responses:
         '200':
-          description: 回调接收成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
-
+          $ref: '#/components/responses/Success'
+  /api/v1/alerts/{alertId}/dismiss:
+    post:
+      tags: [Alerts]
+      summary: Dismiss alert
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/alerts/active-count:
+    get:
+      tags: [Alerts]
+      summary: Get active alert count
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+  /api/v1/alerts/statistics:
+    get:
+      tags: [Alerts]
+      summary: Get alert statistics
+      x-agc-function-domain: alert
+      x-agc-function-name: smartguardian-alert
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/reports/attendance:
     get:
       tags: [Reports]
-      summary: 考勤统计报表
-      parameters:
-        - in: query
-          name: startDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: endDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: orgId
-          schema:
-            type: integer
-            format: int64
+      summary: Attendance report snapshot
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReportAttendanceResponse'
-
+          $ref: '#/components/responses/Standard'
   /api/v1/reports/finance:
     get:
       tags: [Reports]
-      summary: 财务统计报表
-      parameters:
-        - in: query
-          name: startDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: endDate
-          schema:
-            type: string
-            format: date
+      summary: Finance report snapshot
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinanceReportApiResponse'
-
-  /api/v1/reports/teacher-performance:
+          $ref: '#/components/responses/Standard'
+  /api/v1/reports/performance:
     get:
       tags: [Reports]
-      summary: 教师绩效报表
-      parameters:
-        - in: query
-          name: startDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: endDate
-          schema:
-            type: string
-            format: date
+      summary: Teacher performance report
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeacherPerformanceApiResponse'
-
-  /api/v1/reports/abnormal-events:
+          $ref: '#/components/responses/Standard'
+  /api/v1/reports/attendance/daily:
     get:
       tags: [Reports]
-      summary: 异常事件报表
-      parameters:
-        - in: query
-          name: startDate
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: endDate
-          schema:
-            type: string
-            format: date
+      summary: Daily attendance report
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AbnormalReportApiResponse'
-
+          $ref: '#/components/responses/Standard'
+  /api/v1/reports/attendance/students:
+    get:
+      tags: [Reports]
+      summary: Student attendance report
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/reports/finance/daily:
+    get:
+      tags: [Reports]
+      summary: Daily finance report
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/reports/finance/products:
+    get:
+      tags: [Reports]
+      summary: Product revenue report
+      x-agc-function-domain: report
+      x-agc-function-name: smartguardian-report
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/refunds:
+    get:
+      tags: [Refunds]
+      summary: Query refunds
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+    post:
+      tags: [Refunds]
+      summary: Create refund request
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/refunds/{refundId}:
+    get:
+      tags: [Refunds]
+      summary: Get refund detail
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      parameters:
+        - $ref: '#/components/parameters/RefundId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/refunds/{refundId}/cancel:
+    post:
+      tags: [Refunds]
+      summary: Cancel refund
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      parameters:
+        - $ref: '#/components/parameters/RefundId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/refunds/statistics:
+    get:
+      tags: [Refunds]
+      summary: Get refund statistics
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/refunds/calculate:
+    get:
+      tags: [Refunds]
+      summary: Calculate refundable amount
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+  /api/v1/refunds/order/{orderId}:
+    get:
+      tags: [Refunds]
+      summary: Query refunds by order
+      x-agc-function-domain: refund
+      x-agc-function-name: smartguardian-refund
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/payments:
+    post:
+      tags: [Payments]
+      summary: Create payment order
+      x-agc-function-domain: payment
+      x-agc-function-name: smartguardian-payment
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/payments/callback:
+    post:
+      tags: [Payments]
+      summary: Handle payment callback
+      security: []
+      x-agc-function-domain: payment
+      x-agc-function-name: smartguardian-payment
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /api/v1/timeline/students/{studentId}:
+    get:
+      tags: [Timeline]
+      summary: Query student timeline
+      x-agc-function-domain: timeline
+      x-agc-function-name: smartguardian-timeline
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/cards/today-status:
     get:
       tags: [Cards]
-      summary: 今日托管状态卡片数据
+      summary: Query today status card
+      x-agc-function-domain: card
+      x-agc-function-name: smartguardian-card
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardTodayStatusResponse'
-
-  /api/v1/cards/homework-summary:
+          $ref: '#/components/responses/Standard'
+  /api/v1/cards/abnormal-alert:
     get:
       tags: [Cards]
-      summary: 作业反馈卡片数据
+      summary: Query abnormal alert card
+      x-agc-function-domain: card
+      x-agc-function-name: smartguardian-card
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardHomeworkSummaryResponse'
-
-  /api/v1/cards/alerts:
+          $ref: '#/components/responses/Standard'
+  /api/v1/workbench/manifest:
     get:
-      tags: [Cards]
-      summary: 异常提醒卡片数据
+      tags: [Workbench]
+      summary: Query workbench manifest
+      x-agc-function-domain: workbench
+      x-agc-function-name: smartguardian-workbench
       responses:
         '200':
-          description: 成功
+          description: Workbench manifest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardAlertsResponse'
-
+                $ref: '#/components/schemas/WorkbenchEnvelope'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   parameters:
-    PageNum:
-      in: query
-      name: pageNum
-      schema:
-        type: integer
-        default: 1
-    PageSize:
-      in: query
-      name: pageSize
-      schema:
-        type: integer
-        default: 10
     StudentId:
       in: path
       name: studentId
       required: true
       schema:
         type: integer
-        format: int64
     ServiceId:
       in: path
       name: serviceId
       required: true
       schema:
         type: integer
-        format: int64
     OrderId:
       in: path
       name: orderId
       required: true
       schema:
         type: integer
-        format: int64
     SessionId:
       in: path
       name: sessionId
       required: true
       schema:
         type: integer
-        format: int64
-
+    TaskId:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: integer
+    FeedbackId:
+      in: path
+      name: feedbackId
+      required: true
+      schema:
+        type: integer
+    MessageId:
+      in: path
+      name: messageId
+      required: true
+      schema:
+        type: integer
+    AlertId:
+      in: path
+      name: alertId
+      required: true
+      schema:
+        type: integer
+    RefundId:
+      in: path
+      name: refundId
+      required: true
+      schema:
+        type: integer
   responses:
-    BadRequest:
-      description: 参数错误
+    Success:
+      description: Success envelope
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: 未登录或令牌失效
+            $ref: '#/components/schemas/SuccessEnvelope'
+    Standard:
+      description: Standard AGC envelope
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: 资源不存在
+            $ref: '#/components/schemas/StandardEnvelope'
+    Page:
+      description: Standard page envelope
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: 业务冲突
+            $ref: '#/components/schemas/PageEnvelope'
+    Count:
+      description: Standard count envelope
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
+            $ref: '#/components/schemas/CountEnvelope'
   schemas:
-    BaseSuccessResponse:
+    SuccessEnvelope:
       type: object
       properties:
         code:
@@ -1144,81 +826,66 @@ components:
         message:
           type: string
           example: success
+        data:
+          nullable: true
+    StandardEnvelope:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
         data:
           type: object
-          nullable: true
-
-    ErrorResponse:
+          additionalProperties: true
+    PageEnvelope:
       type: object
       properties:
         code:
           type: integer
-          example: 400
         message:
           type: string
-          example: 参数错误
         data:
-          nullable: true
-          example: null
-
-    IdData:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
-
-    IdApiResponse:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            total:
+              type: integer
+            pageNum:
+              type: integer
+            pageSize:
+              type: integer
+    CountEnvelope:
       type: object
       properties:
         code:
           type: integer
-          example: 0
         message:
           type: string
-          example: success
         data:
-          $ref: '#/components/schemas/IdData'
-
+          type: object
+          properties:
+            count:
+              type: number
     LoginRequest:
       type: object
       required: [username, password]
       properties:
         username:
           type: string
-          example: parent_zhang
         password:
           type: string
-          example: '123456'
-
-    LoginResponse:
-      type: object
-      properties:
-        token:
+        roleType:
           type: string
-          example: eyJhbGciOiJIUzI1NiJ9.demo.token
-        userInfo:
-          $ref: '#/components/schemas/UserInfo'
-
-    LoginApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-          example: 0
-        message:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/LoginResponse'
-
     UserInfo:
       type: object
       properties:
         id:
           type: integer
-          format: int64
         username:
           type: string
         realName:
@@ -1227,8 +894,29 @@ components:
           type: string
         roleType:
           type: string
-
-    UserInfoApiResponse:
+        orgId:
+          type: integer
+        schoolId:
+          type: integer
+    LoginData:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresIn:
+          type: integer
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+    LoginEnvelope:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LoginData'
+    UserEnvelope:
       type: object
       properties:
         code:
@@ -1237,951 +925,30 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/UserInfo'
-
-    StudentCreateRequest:
-      type: object
-      required: [studentNo, name, grade]
-      properties:
-        studentNo:
-          type: string
-        name:
-          type: string
-        gender:
-          type: string
-        birthday:
-          type: string
-          format: date
-        grade:
-          type: string
-        guardianUserId:
-          type: integer
-          format: int64
-        healthNotes:
-          type: string
-
-    StudentUpdateRequest:
-      allOf:
-        - $ref: '#/components/schemas/StudentCreateRequest'
-
-    GuardianBindRequest:
-      type: object
-      required: [userId, relationType]
-      properties:
-        userId:
-          type: integer
-          format: int64
-        relationType:
-          type: string
-          example: 母亲
-        isPrimary:
-          type: boolean
-          example: true
-        pickupAuthLevel:
-          type: string
-          example: FULL
-
-    StudentDetail:
+    WorkbenchManifest:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        studentNo:
+        roleType:
           type: string
-        name:
+        version:
           type: string
-        gender:
-          type: string
-        birthday:
-          type: string
-          format: date
-        grade:
-          type: string
-        schoolId:
-          type: integer
-          format: int64
-        classId:
-          type: integer
-          format: int64
-        guardianUserId:
-          type: integer
-          format: int64
-        healthNotes:
-          type: string
-        status:
-          type: string
-
-    StudentDetailApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/StudentDetail'
-
-    StudentPageData:
-      type: object
-      properties:
-        total:
-          type: integer
-        list:
-          type: array
-          items:
-            $ref: '#/components/schemas/StudentDetail'
-
-    StudentPageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/StudentPageData'
-
-    ServiceProduct:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        serviceName:
-          type: string
-        serviceType:
-          type: string
-        orgId:
-          type: integer
-          format: int64
-        price:
-          type: number
-          format: double
-        capacity:
-          type: integer
-        status:
-          type: string
-
-    ServiceProductCreateRequest:
-      type: object
-      required: [serviceName, serviceType, orgId, startTime, endTime, capacity, price]
-      properties:
-        serviceName:
-          type: string
-        serviceType:
-          type: string
-        orgId:
-          type: integer
-          format: int64
-        schoolScope:
-          type: string
-        gradeScope:
-          type: string
-        startTime:
-          type: string
-          example: '16:30:00'
-        endTime:
-          type: string
-          example: '18:30:00'
-        capacity:
-          type: integer
-        price:
-          type: number
-          format: double
-        refundRule:
-          type: string
-
-    ServiceProductUpdateRequest:
-      allOf:
-        - $ref: '#/components/schemas/ServiceProductCreateRequest'
-
-    ServiceProductApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/ServiceProduct'
-
-    ServiceProductListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ServiceProduct'
-
-    OrderCreateRequest:
-      type: object
-      required: [studentId, serviceProductId, startDate, endDate]
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        serviceProductId:
-          type: integer
-          format: int64
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-
-    OrderAuditRequest:
-      type: object
-      required: [auditStatus]
-      properties:
-        auditStatus:
-          type: string
-        auditRemark:
-          type: string
-
-    OrderDetail:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        orderNo:
-          type: string
-        studentId:
-          type: integer
-          format: int64
-        serviceProductId:
-          type: integer
-          format: int64
-        orderStatus:
-          type: string
-        amount:
-          type: number
-          format: double
-        paidAmount:
-          type: number
-          format: double
-        payStatus:
-          type: string
-        auditStatus:
-          type: string
-
-    OrderDetailApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/OrderDetail'
-
-    OrderPageData:
-      type: object
-      properties:
-        total:
-          type: integer
-        list:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderDetail'
-
-    OrderPageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/OrderPageData'
-
-    SessionGenerateRequest:
-      type: object
-      properties:
-        sessionDate:
-          type: string
-          format: date
-        orgId:
-          type: integer
-          format: int64
-        serviceProductId:
-          type: integer
-          format: int64
-
-    SessionUpdateRequest:
-      type: object
-      properties:
-        teacherUserId:
-          type: integer
-          format: int64
-        classroomId:
-          type: integer
-          format: int64
-        startTime:
-          type: string
-        endTime:
-          type: string
-        capacity:
-          type: integer
-
-    SessionInfo:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        sessionDate:
-          type: string
-          format: date
-        startTime:
-          type: string
-        endTime:
-          type: string
-        teacherUserId:
-          type: integer
-          format: int64
-        capacity:
-          type: integer
-        currentCount:
-          type: integer
-
-    SessionStudent:
-      type: object
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        studentName:
-          type: string
-        attendanceStatus:
-          type: string
-
-    SessionListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SessionInfo'
-
-    SessionStudentListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SessionStudent'
-
-    AttendanceSignInRequest:
-      type: object
-      required: [studentId, sessionId, signInType]
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        sessionId:
-          type: integer
-          format: int64
-        signInType:
-          type: string
-        location:
-          type: string
-
-    AttendanceSignOutRequest:
-      type: object
-      required: [studentId, sessionId, signOutType, guardianId]
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        sessionId:
-          type: integer
-          format: int64
-        signOutType:
-          type: string
-        guardianId:
-          type: integer
-          format: int64
-
-    AttendanceRecord:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        studentId:
-          type: integer
-          format: int64
-        orderId:
-          type: integer
-          format: int64
-        sessionId:
-          type: integer
-          format: int64
-        attendanceDate:
-          type: string
-          format: date
-        signInTime:
-          type: string
-          format: date-time
-        signOutTime:
-          type: string
-          format: date-time
-          nullable: true
-        status:
-          type: string
-        abnormalFlag:
-          type: boolean
-
-    AttendanceRecordApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/AttendanceRecord'
-
-    AttendancePageData:
-      type: object
-      properties:
-        total:
-          type: integer
-        list:
-          type: array
-          items:
-            $ref: '#/components/schemas/AttendanceRecord'
-
-    AttendancePageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/AttendancePageData'
-
-    AbnormalEvent:
-      type: object
-      properties:
-        eventId:
-          type: integer
-          format: int64
-        studentId:
-          type: integer
-          format: int64
-        studentName:
-          type: string
-        abnormalType:
-          type: string
-        level:
-          type: string
-        occurTime:
-          type: string
-          format: date-time
-        status:
-          type: string
-
-    AbnormalEventPageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
+        visual:
           type: object
-          properties:
-            total:
-              type: integer
-            list:
-              type: array
-              items:
-                $ref: '#/components/schemas/AbnormalEvent'
-
-    AbnormalHandleRequest:
-      type: object
-      required: [handleResult]
-      properties:
-        handleResult:
-          type: string
-          example: 已联系家长确认
-        handleRemark:
-          type: string
-
-    HomeworkTaskCreateRequest:
-      type: object
-      required: [studentId, subject, title, taskDate]
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        subject:
-          type: string
-        title:
-          type: string
-        content:
-          type: string
-        sourceType:
-          type: string
-        taskDate:
-          type: string
-          format: date
-        dueTime:
-          type: string
-          format: date-time
-          nullable: true
-
-    HomeworkTaskUpdateRequest:
-      type: object
-      properties:
-        status:
-          type: string
-        progressRate:
-          type: integer
-        remark:
-          type: string
-
-    HomeworkTask:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        studentId:
-          type: integer
-          format: int64
-        subject:
-          type: string
-        title:
-          type: string
-        status:
-          type: string
-        taskDate:
-          type: string
-          format: date
-
-    HomeworkTaskListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeworkTask'
-
-    HomeworkFeedbackCreateRequest:
-      type: object
-      required: [homeworkTaskId, studentId, teacherUserId, progressRate]
-      properties:
-        homeworkTaskId:
-          type: integer
-          format: int64
-        studentId:
-          type: integer
-          format: int64
-        teacherUserId:
-          type: integer
-          format: int64
-        progressRate:
-          type: integer
-        feedbackText:
-          type: string
-        performanceTags:
-          type: string
-        attachmentUrls:
-          type: array
-          items:
-            type: string
-
-    Conversation:
-      type: object
-      properties:
-        conversationId:
-          type: integer
-          format: int64
-        targetUserName:
-          type: string
-        lastMessage:
-          type: string
-        unreadCount:
-          type: integer
-
-    ConversationListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Conversation'
-
-    MessageSendRequest:
-      type: object
-      required: [receiverUserId, msgType, content]
-      properties:
-        receiverUserId:
-          type: integer
-          format: int64
-        conversationId:
-          type: integer
-          format: int64
-        msgType:
-          type: string
-        content:
-          type: string
-        bizType:
-          type: string
-
-    MessageInfo:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        senderUserId:
-          type: integer
-          format: int64
-        receiverUserId:
-          type: integer
-          format: int64
-        msgType:
-          type: string
-        content:
-          type: string
-        readStatus:
-          type: string
-        sentAt:
-          type: string
-          format: date-time
-
-    MessagePageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
+          additionalProperties: true
+        summary:
           type: object
-          properties:
-            total:
-              type: integer
-            list:
-              type: array
-              items:
-                $ref: '#/components/schemas/MessageInfo'
-
-    TimelineCreateRequest:
-      type: object
-      required: [studentId, bizDate, eventType, eventTitle]
-      properties:
-        studentId:
-          type: integer
-          format: int64
-        bizDate:
-          type: string
-          format: date
-        eventType:
-          type: string
-        eventTitle:
-          type: string
-        eventDetail:
-          type: string
-        relatedBizId:
-          type: integer
-          format: int64
-
-    TimelineEvent:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        eventType:
-          type: string
-        eventTitle:
-          type: string
-        eventDetail:
-          type: string
-        bizDate:
-          type: string
-          format: date
-
-    TimelineListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TimelineEvent'
-
-    PaymentCreateRequest:
-      type: object
-      required: [orderId, payChannel]
-      properties:
-        orderId:
-          type: integer
-          format: int64
-        payChannel:
-          type: string
-
-    PaymentInfo:
-      type: object
-      properties:
-        paymentNo:
-          type: string
-        orderId:
-          type: integer
-          format: int64
-        payChannel:
-          type: string
-        payAmount:
-          type: number
-          format: double
-        payStatus:
-          type: string
-        refundStatus:
-          type: string
-
-    PaymentApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/PaymentInfo'
-
-    ReportAttendanceResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            totalStudents:
-              type: integer
-            signedInCount:
-              type: integer
-            absentCount:
-              type: integer
-            abnormalCount:
-              type: integer
-
-    FinanceReportApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            totalIncome:
-              type: number
-              format: double
-            refundAmount:
-              type: number
-              format: double
-            unpaidAmount:
-              type: number
-              format: double
-
-    TeacherPerformanceApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
+          additionalProperties: true
+        primaryFlows:
           type: array
           items:
             type: object
-            properties:
-              teacherUserId:
-                type: integer
-                format: int64
-              teacherName:
-                type: string
-              classCount:
-                type: integer
-              attendanceCount:
-                type: integer
-              feedbackCount:
-                type: integer
-
-    AbnormalReportApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            total:
-              type: integer
-            byType:
-              type: array
-              items:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  count:
-                    type: integer
-
-    CardTodayStatusResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            studentId:
-              type: integer
-              format: int64
-            studentName:
-              type: string
-            currentStatus:
-              type: string
-            latestEventTime:
-              type: string
-              format: date-time
-            classroom:
-              type: string
-
-    CardHomeworkSummaryResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            studentId:
-              type: integer
-              format: int64
-            totalTasks:
-              type: integer
-            completedTasks:
-              type: integer
-            pendingTasks:
-              type: integer
-            latestComment:
-              type: string
-            needParentConfirm:
-              type: boolean
-
-    CardAlertsResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
+            additionalProperties: true
+        modules:
           type: array
           items:
             type: object
-            properties:
-              alertType:
-                type: string
-              title:
-                type: string
-              level:
-                type: string
-              eventTime:
-                type: string
-                format: date-time
-
-    # ========== 告警相关 Schema ==========
-    AlertDetail:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        studentId:
-          type: integer
-          format: int64
-        studentName:
-          type: string
-        alertType:
-          type: string
-          description: "告警类型：ATTENDANCE_ABNORMAL/PICKUP_ABNORMAL/SAFETY_ABNORMAL/PAYMENT_ABNORMAL/SYSTEM_ERROR"
-        severity:
-          type: string
-          description: "严重程度：LOW/MEDIUM/HIGH/CRITICAL"
-        title:
-          type: string
-        description:
-          type: string
-        status:
-          type: string
-          description: "告警状态：ACTIVE/ACKNOWLEDGED/RESOLVED/DISMISSED"
-        occurredAt:
-          type: string
-          format: date-time
-        acknowledgedBy:
-          type: integer
-          format: int64
-          nullable: true
-        acknowledgedAt:
-          type: string
-          format: date-time
-          nullable: true
-        resolvedBy:
-          type: integer
-          format: int64
-          nullable: true
-        resolvedAt:
-          type: string
-          format: date-time
-          nullable: true
-        resolution:
-          type: string
-          nullable: true
-
-    AlertPageResponse:
+            additionalProperties: true
+    WorkbenchEnvelope:
       type: object
       properties:
         code:
@@ -2189,128 +956,4 @@ components:
         message:
           type: string
         data:
-          type: object
-          properties:
-            total:
-              type: integer
-            list:
-              type: array
-              items:
-                $ref: '#/components/schemas/AlertDetail'
-
-    AlertResolveRequest:
-      type: object
-      required: [resolution]
-      properties:
-        resolution:
-          type: string
-
-    AlertDismissRequest:
-      type: object
-      properties:
-        reason:
-          type: string
-
-    # ========== 退款相关 Schema ==========
-    RefundDetail:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        refundNo:
-          type: string
-        orderId:
-          type: integer
-          format: int64
-        orderNo:
-          type: string
-        studentId:
-          type: integer
-          format: int64
-        studentName:
-          type: string
-        refundAmount:
-          type: number
-          format: double
-        reasonType:
-          type: string
-          description: "退款原因类型：SERVICE_UNSATISFIED/SCHEDULE_CHANGE/PERSONAL_REASON/OTHER"
-        reason:
-          type: string
-        status:
-          type: string
-          description: "退款状态：PENDING/APPROVED/REJECTED/PROCESSING/COMPLETED/CANCELLED"
-        appliedAt:
-          type: string
-          format: date-time
-        reviewedBy:
-          type: integer
-          format: int64
-          nullable: true
-        reviewedAt:
-          type: string
-          format: date-time
-          nullable: true
-        reviewRemark:
-          type: string
-          nullable: true
-        processedAt:
-          type: string
-          format: date-time
-          nullable: true
-        transactionId:
-          type: string
-          nullable: true
-
-    RefundPageResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        data:
-          type: object
-          properties:
-            total:
-              type: integer
-            list:
-              type: array
-              items:
-                $ref: '#/components/schemas/RefundDetail'
-
-    RefundCreateRequest:
-      type: object
-      required: [orderId, refundAmount, reasonType]
-      properties:
-        orderId:
-          type: integer
-          format: int64
-        refundAmount:
-          type: number
-          format: double
-        reasonType:
-          type: string
-        reason:
-          type: string
-
-    RefundApproveRequest:
-      type: object
-      properties:
-        reviewRemark:
-          type: string
-
-    RefundRejectRequest:
-      type: object
-      required: [reviewRemark]
-      properties:
-        reviewRemark:
-          type: string
-
-    RefundProcessRequest:
-      type: object
-      required: [transactionId]
-      properties:
-        transactionId:
-          type: string
+          $ref: '#/components/schemas/WorkbenchManifest'

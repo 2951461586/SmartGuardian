@@ -1,19 +1,19 @@
-﻿/**
+/**
  * SmartGuardian - Admin Alerts Page
- * Admin alert handling workspace
+ * Admin alert handling workspace on the shared workbench template.
  */
 
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import {
-  Card,
-  EmptyState,
-  EmptyType,
+  AdminAlertListSection,
+  AdminOverviewMetric,
+  AdminOverviewMetricSection,
+  AdminStatusFilterCard,
   HeaderTheme,
-  LoadingSize,
-  LoadingState,
   PageHeader,
-  SectionHeader,
-  StatCard,
-  TabBar
+  StatefulContainer,
+  ViewState,
+  WorkbenchListPageTemplate
 } from '../../components/common';
 import { AlertQueryParams, AlertRecord, AlertStatistics } from '../../models/alert';
 import { AlertService } from '../../services/api/alert';
@@ -56,10 +56,8 @@ struct AdminAlertsPage {
     this.errorMessage = '';
 
     try {
-      const alertsPromise = AlertService.getAlerts(this.buildQueryParams());
-      const statisticsPromise = AlertService.getStatistics();
-      const alertsResponse = await alertsPromise;
-      const statisticsResponse = await statisticsPromise;
+      const alertsResponse = await AlertService.getAlerts(this.buildQueryParams());
+      const statisticsResponse = await AlertService.getStatistics();
 
       if (alertsResponse.code === 0 && alertsResponse.data) {
         this.alerts = alertsResponse.data.list ? alertsResponse.data.list : [];
@@ -152,15 +150,15 @@ struct AdminAlertsPage {
 
   private getSeverityColor(severity: string): string {
     if (severity === 'CRITICAL') {
-      return '#DC2626';
+      return HarmonyReport.danger;
     }
     if (severity === 'HIGH') {
-      return '#EA580C';
+      return HarmonyReport.caution;
     }
     if (severity === 'MEDIUM') {
-      return '#D97706';
+      return HarmonyReport.caution;
     }
-    return '#526F95';
+    return HarmonyColor.info;
   }
 
   private getStatusText(status: string): string {
@@ -179,35 +177,49 @@ struct AdminAlertsPage {
     return status;
   }
 
+  private getViewState(): ViewState {
+    if (this.isLoading) {
+      return ViewState.LOADING;
+    }
+    if (this.alerts.length === 0) {
+      return ViewState.EMPTY;
+    }
+    return ViewState.CONTENT;
+  }
+
+  private getOverviewMetrics(): AdminOverviewMetric[] {
+    return [
+      {
+        value: this.statistics ? this.statistics.active : 0,
+        label: '待处理',
+        icon: $r('app.media.ic_alert_center'),
+        iconColor: HarmonyReport.danger
+      },
+      {
+        value: this.statistics ? this.statistics.acknowledged : 0,
+        label: '已确认',
+        icon: $r('app.media.ic_info'),
+        iconColor: HarmonyReport.caution
+      },
+      {
+        value: this.statistics ? this.statistics.resolved : 0,
+        label: '已解决',
+        icon: $r('app.media.ic_attendance'),
+        iconColor: HarmonyReport.positive
+      }
+    ];
+  }
+
   build() {
     Column() {
-      PageHeader({
-        title: '告警中心',
-        subtitle: '集中处理考勤、安全、费用等异常告警，形成闭环。',
-        showBack: true,
-        onBackClick: () => this.getUIContext().getRouter().back(),
-        theme: HeaderTheme.PRIMARY
+      WorkbenchListPageTemplate({
+        scrollable: false,
+        enableWideContent: true,
+        header: this.buildHeader,
+        overview: this.buildOverviewSection,
+        controls: this.buildFilterSection,
+        content: this.buildAlertContent
       })
-
-      if (this.isLoading) {
-        LoadingState({
-          loadingSize: LoadingSize.DEFAULT,
-          message: '正在加载告警...'
-        })
-      } else {
-        Scroll() {
-          Column() {
-            this.buildOverviewPanel()
-            this.buildFilterPanel()
-            this.buildAlertList()
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
-      }
     }
     .width('100%')
     .height('100%')
@@ -215,56 +227,29 @@ struct AdminAlertsPage {
   }
 
   @Builder
-  private buildOverviewPanel() {
-    Column() {
-      SectionHeader({
-        title: '告警概览',
-        subtitle: '先看活动量，再看确认与解决进度。'
-      })
-
-      Row() {
-        StatCard({
-          value: this.statistics ? this.statistics.active : 0,
-          label: '待处理',
-          icon: $r('app.media.ic_alert_center'),
-          iconColor: '#DC2626'
-        })
-        .layoutWeight(1)
-
-        StatCard({
-          value: this.statistics ? this.statistics.acknowledged : 0,
-          label: '已确认',
-          icon: $r('app.media.ic_info'),
-          iconColor: '#D97706'
-        })
-        .layoutWeight(1)
-        .margin({ left: 12, right: 12 })
-
-        StatCard({
-          value: this.statistics ? this.statistics.resolved : 0,
-          label: '已解决',
-          icon: $r('app.media.ic_success'),
-          iconColor: '#2F9E77'
-        })
-        .layoutWeight(1)
-      }
-      .width('100%')
-    }
-    .width('100%')
-  }
-
-  @Builder
-  private buildFilterPanel() {
-    Card({
-      title: '状态筛选',
-      subtitle: '按当前处理进度切换告警池，避免遗漏。',
-      content: this.buildFilterContent
+  private buildHeader() {
+    PageHeader({
+      title: '告警中心',
+      subtitle: '集中处理考勤、安全、费用等异常告警，形成闭环。',
+      showBack: true,
+      onBackClick: () => this.getUIContext().getRouter().back(),
+      theme: HeaderTheme.WHITE
     })
   }
 
   @Builder
-  private buildFilterContent() {
-    TabBar({
+  private buildOverviewSection() {
+    AdminOverviewMetricSection({
+      title: '告警概览',
+      subtitle: '先看活动量，再看确认与解决进度。',
+      metrics: this.getOverviewMetrics()
+    })
+  }
+
+  @Builder
+  private buildFilterSection() {
+    AdminStatusFilterCard({
+      subtitle: '按当前处理进度切换告警池，避免遗漏。',
       tabs: this.tabs,
       currentIndex: this.currentTab,
       onTabChange: (index: number) => {
@@ -275,145 +260,41 @@ struct AdminAlertsPage {
   }
 
   @Builder
-  private buildAlertList() {
-    Column() {
-      SectionHeader({
-        title: '告警列表',
-        subtitle: this.errorMessage ? this.errorMessage : `当前共 ${this.alerts.length} 条告警`
-      })
-
-      if (this.alerts.length === 0) {
-        EmptyState({
-          type: EmptyType.DEFAULT,
-          customTitle: '暂无告警',
-          customDescription: this.errorMessage ? this.errorMessage : '当前筛选条件下没有待关注的告警。',
-          actionText: '刷新',
-          onAction: () => {
-            this.loadData();
-          }
-        })
-      } else {
-        Column() {
-          ForEach(this.alerts, (alert: AlertRecord) => {
-            this.buildAlertItem(alert);
-          })
-        }
-        .width('100%')
-      }
-    }
-    .width('100%')
+  private buildAlertContent() {
+    StatefulContainer({
+      state: this.getViewState(),
+      loadingMessage: '正在加载告警...',
+      emptyTitle: '暂无告警',
+      emptyDescription: this.errorMessage ? this.errorMessage : '当前筛选条件下没有待关注的告警。',
+      emptyActionText: '刷新',
+      onEmptyAction: () => {
+        this.loadData();
+      },
+      content: this.buildAlertListSection
+    })
+      .layoutWeight(1)
   }
 
   @Builder
-  private buildAlertItem(alert: AlertRecord) {
-    Column() {
-      Row() {
-        Column() {
-          Text(alert.title)
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(`${alert.studentName} · ${alert.alertType}`)
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 6 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-
-        Text(this.getStatusText(alert.status))
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.getSeverityColor(alert.severity))
+  private buildAlertListSection() {
+    AdminAlertListSection({
+      alerts: this.alerts,
+      subtitle: this.errorMessage ? this.errorMessage : `当前共 ${this.alerts.length} 条告警`,
+      severityTextResolver: (severity: string): string => this.getSeverityText(severity),
+      severityColorResolver: (severity: string): string => this.getSeverityColor(severity),
+      statusTextResolver: (status: string): string => this.getStatusText(status),
+      onPrimary: (alert: AlertRecord) => {
+        this.acknowledgeAlert(alert);
+      },
+      onSecondary: (alert: AlertRecord) => {
+        this.resolveAlert(alert);
+      },
+      onTertiary: (alert: AlertRecord) => {
+        this.dismissAlert(alert);
+      },
+      onEmptyAction: () => {
+        this.loadData();
       }
-      .width('100%')
-
-      Text(alert.description)
-        .width('100%')
-        .fontSize(13)
-        .lineHeight(20)
-        .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 12 })
-
-      Row() {
-        Text(`严重级别：${this.getSeverityText(alert.severity)}`)
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.getSeverityColor(alert.severity))
-
-        Blank()
-
-        Text(alert.createdAt)
-          .fontSize(12)
-          .fontColor($r('app.color.text_tertiary'))
-      }
-      .width('100%')
-      .margin({ top: 12 })
-
-      if (alert.suggestedAction) {
-        Text(`建议动作：${alert.suggestedAction}`)
-          .width('100%')
-          .fontSize(12)
-          .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 10 })
-      }
-
-      if (alert.status === 'ACTIVE') {
-        Row() {
-          this.buildActionText('确认', '#526F95', () => {
-            this.acknowledgeAlert(alert);
-          })
-
-          this.buildActionText('解决', '#2F9E77', () => {
-            this.resolveAlert(alert);
-          })
-
-          this.buildActionText('忽略', '#DC2626', () => {
-            this.dismissAlert(alert);
-          })
-        }
-        .width('100%')
-        .margin({ top: 14 })
-      } else if (alert.status === 'ACKNOWLEDGED') {
-        Row() {
-          this.buildActionText('标记解决', '#2F9E77', () => {
-            this.resolveAlert(alert);
-          })
-        }
-        .width('100%')
-        .margin({ top: 14 })
-      }
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
     })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .margin({ bottom: 12 })
-  }
-
-  @Builder
-  private buildActionText(label: string, color: string, onClick: () => void) {
-    Text(label)
-      .fontSize(13)
-      .fontWeight(FontWeight.Medium)
-      .fontColor(color)
-      .margin({ right: 18 })
-      .onClick(() => {
-        onClick();
-      })
   }
 }
-

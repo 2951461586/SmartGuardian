@@ -4,20 +4,45 @@
  */
 
 import { StudentService } from '../../services/api/auth';
+import { RouteUrls } from '../../constants/app.constants';
 import { Student } from '../../models/user';
 import { StudentStore } from '../../stores/studentStore';
 import { DataMaskUtil } from '../../utils/DataMaskUtil';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
 import { LogUtil } from '../../utils/LogUtil';
-import { Card, EmptyState, EmptyType, HeaderTheme, IconActionButton, LoadingSize, LoadingState, PageHeader, SectionHeader, StatCard } from '../../components/common';
-
-interface StudentWithGuardian extends Student {
-  guardianName?: string;
-  guardianMobile?: string;
-}
+import { HarmonyColor } from '../../common/HarmonyDesign';
+import {
+  AdminStudentListItemCard,
+  AdminStudentsControlCard,
+  AdminStudentsExecutiveCard,
+  AdminStudentsOverviewRow,
+  AdminStudentsPaginationCard,
+  AdminStudentsSummaryCard,
+  EmptyState,
+  EmptyType,
+  HeaderTheme,
+  IconActionButton,
+  LoadingSize,
+  LoadingState,
+  PageHeader,
+  SectionHeader,
+  StudentWithGuardian
+} from '../../components/common';
 
 @Entry
 @Component
-export struct AdminStudentsPage {
+struct AdminStudentsPage {
+  build() {
+    Stack() {
+      AdminStudentsPageContent()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+@Component
+export struct AdminStudentsPageContent {
   @StorageLink('student_list') studentList: StudentWithGuardian[] = [];
 
   @State isLoading: boolean = false;
@@ -31,6 +56,7 @@ export struct AdminStudentsPage {
   private readonly CACHE_DURATION: number = 5 * 60 * 1000;
   private readonly pageSize: number = 20;
   private grades: string[] = ['ALL', '1', '2', '3', '4', '5', '6'];
+  private studentDataSource: LazyArrayDataSource<StudentWithGuardian> = new LazyArrayDataSource<StudentWithGuardian>();
 
   aboutToAppear() {
     this.loadStudentsWithCache();
@@ -96,12 +122,14 @@ export struct AdminStudentsPage {
         this.allStudents = [];
         this.studentList = [];
         this.totalPages = 1;
+        this.studentDataSource.clear();
       }
     } catch (error) {
       LogUtil.error('AdminStudentsPage', `Load students failed: ${String(error)}`);
       this.allStudents = [];
       this.studentList = [];
       this.totalPages = 1;
+      this.studentDataSource.clear();
     } finally {
       this.isLoading = false;
     }
@@ -124,6 +152,7 @@ export struct AdminStudentsPage {
 
     const start = (this.currentPage - 1) * this.pageSize;
     this.studentList = filtered.slice(start, start + this.pageSize);
+    this.studentDataSource.setItems(this.studentList);
   }
 
   private getFilteredTotal(): number {
@@ -137,14 +166,6 @@ export struct AdminStudentsPage {
     }).length;
   }
 
-  private getExecutiveTitle(): string {
-    return '学生档案控制台';
-  }
-
-  private getExecutiveSubtitle(): string {
-    return '先定位年级和关键词，再进入档案列表进行查看与编辑';
-  }
-
   build() {
     Column() {
       PageHeader({
@@ -156,19 +177,7 @@ export struct AdminStudentsPage {
         rightContent: this.buildHeaderAction
       })
 
-      Scroll() {
-        Column() {
-          this.buildExecutivePanel()
-          this.buildOverviewPanel()
-          this.buildControlDeck()
-          this.buildStudentList()
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
+      this.buildPageList()
     }
     .width('100%')
     .height('100%')
@@ -176,422 +185,154 @@ export struct AdminStudentsPage {
   }
 
   @Builder
+  buildPageList() {
+    List() {
+      ListItem() {
+        this.buildExecutivePanel()
+      }
+
+      ListItem() {
+        this.buildOverviewPanel()
+      }
+
+      ListItem() {
+        this.buildControlDeck()
+      }
+
+      this.buildStudentListSections()
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .divider({ strokeWidth: 0 })
+    .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
+    .cachedCount(8)
+  }
+
+  @Builder
   buildHeaderAction() {
     IconActionButton({
       icon: $r('app.media.ic_add'),
-      iconColor: Color.White,
-      boxBgColor: '#FFFFFF1F',
-      boxBorderColor: '#FFFFFF29',
+      iconColor: HarmonyColor.textInverse,
+      boxBgColor: HarmonyColor.overlayInverseSoft,
+      boxBorderColor: HarmonyColor.overlayInverseBorder,
       boxSize: 42,
       iconSize: 22,
       onButtonClick: () => {
-        this.getUIContext().getRouter().pushUrl({ url: 'pages/admin/AdminStudentEditPage' });
+        this.getUIContext().getRouter().pushUrl({ url: RouteUrls.ADMIN_STUDENT_EDIT });
       }
     })
   }
 
   @Builder
   buildExecutivePanel() {
-    Card({
-      title: this.getExecutiveTitle(),
-      subtitle: this.getExecutiveSubtitle(),
-      customPadding: 18,
-      content: this.buildExecutiveContent
+    AdminStudentsExecutiveCard({
+      filteredTotal: this.getFilteredTotal(),
+      selectedGradeText: this.getSelectedGradeText(),
+      currentPage: this.currentPage,
+      totalPages: this.totalPages
     })
-    .margin({ bottom: 14 })
-  }
-
-  @Builder
-  buildExecutiveContent() {
-    Row() {
-      Column() {
-        Text('档案范围')
-          .fontSize(11)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary'))
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .backgroundColor('#F6F0E9')
-          .borderRadius(999)
-
-        Text(`${this.getFilteredTotal()}`)
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 14 })
-
-        Text('当前筛选范围内的学生档案数')
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Column() {
-        this.buildExecutiveMetric('年级', this.getSelectedGradeText(), '#2F9E77')
-        this.buildExecutiveMetric('页码', `${this.currentPage}/${this.totalPages}`, '#526F95')
-      }
-      .width(128)
-    }
-    .width('100%')
-  }
-
-  @Builder
-  buildExecutiveMetric(label: string, value: string, valueColor: string) {
-    Column() {
-      Text(label)
-        .fontSize(11)
-        .fontColor($r('app.color.text_secondary'))
-
-      Text(value)
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(valueColor)
-        .margin({ top: 6 })
-    }
-    .width('100%')
-    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-    .backgroundColor('#F7FAFE')
-    .borderRadius(16)
-    .alignItems(HorizontalAlign.Start)
-    .margin({ bottom: 10 })
+      .margin({ bottom: 14 })
   }
 
   @Builder
   buildOverviewPanel() {
-    Row() {
-      StatCard({
-        value: this.allStudents.length,
-        label: '学生总数',
-        icon: $r('app.media.ic_user'),
-        iconColor: '#526F95'
-      })
-      .layoutWeight(1)
-
-      StatCard({
-        value: this.studentList.length,
-        label: '当前页条数',
-        icon: $r('app.media.ic_report'),
-        iconColor: '#D97706'
-      })
-      .layoutWeight(1)
-      .margin({ left: 12, right: 12 })
-
-      StatCard({
-        value: this.getSelectedGradeText(),
-        label: '筛选年级',
-        icon: $r('app.media.ic_filter'),
-        iconColor: '#2F9E77'
-      })
-      .layoutWeight(1)
-    }
-    .width('100%')
-    .alignItems(VerticalAlign.Top)
-    .margin({ bottom: 12 })
+    AdminStudentsOverviewRow({
+      totalStudents: this.allStudents.length,
+      pageCount: this.studentList.length,
+      selectedGradeText: this.getSelectedGradeText()
+    })
+      .margin({ bottom: 12 })
   }
 
   @Builder
   buildControlDeck() {
-    Card({
-      title: '检索控制台',
-      subtitle: '统一控制关键词搜索和年级切换，再进入档案列表',
-      customPadding: 14,
-      content: this.buildControlDeckContent
+    AdminStudentsControlCard({
+      searchKeyword: this.searchKeyword,
+      selectedGrade: this.selectedGrade,
+      grades: this.grades,
+      onSearchChange: (value: string) => {
+        this.searchKeyword = value;
+      },
+      onSearchSubmit: () => {
+        this.currentPage = 1;
+        this.loadStudents();
+      },
+      onGradeSelect: (grade: string) => {
+        this.selectedGrade = grade;
+        this.currentPage = 1;
+        this.applyFiltersAndPagination();
+      }
     })
-    .margin({ bottom: 12 })
+      .margin({ bottom: 12 })
   }
 
   @Builder
-  buildControlDeckContent() {
-    Column() {
-      this.buildSearchBarContent()
-
-      SectionHeader({
-        title: '年级筛选',
-        subtitle: '快速限定当前档案池'
-      })
-      .margin({ top: 14 })
-
-      this.buildGradeFilterContent()
-    }
-    .width('100%')
-  }
-
-  @Builder
-  buildSearchBar() {
-    Card({
-      title: '搜索学生',
-      subtitle: '支持按学生姓名或学号快速检索档案。',
-      content: this.buildSearchBarContent
-    })
-  }
-
-  @Builder
-  buildSearchBarContent() {
-    Row() {
-      Image($r('app.media.ic_search'))
-        .width(18)
-        .height(18)
-        .fillColor($r('app.color.text_tertiary'))
-
-      TextInput({
-        placeholder: '搜索学生姓名或学号',
-        text: this.searchKeyword
-      })
-        .fontSize($r('app.float.text_primary_size'))
-        .backgroundColor(Color.Transparent)
-        .flexGrow(1)
-        .margin({ left: 8, right: 8 })
-        .onChange((value: string) => {
-          this.searchKeyword = value;
-        })
-        .onSubmit(() => {
-          this.currentPage = 1;
-          this.loadStudents();
-        })
-    }
-    .width('100%')
-    .padding(12)
-    .backgroundColor('#F7FAFD')
-    .borderRadius(16)
-  }
-
-  @Builder
-  buildGradeFilter() {
-    Card({
-      title: '年级筛选',
-      subtitle: '按年级快速切换当前档案池。',
-      customPadding: 14,
-      content: this.buildGradeFilterContent
-    })
-  }
-
-  @Builder
-  buildGradeFilterContent() {
-    Scroll() {
-      Row() {
-        ForEach(this.grades, (grade: string) => {
-          Text(grade === 'ALL' ? '全部' : `${grade}年级`)
-            .fontSize($r('app.float.text_secondary_size'))
-            .fontColor(this.selectedGrade === grade ? Color.White : $r('app.color.text_secondary'))
-            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-            .backgroundColor(this.selectedGrade === grade ? $r('app.color.primary') : '#F3F7FB')
-            .borderRadius(16)
-            .onClick(() => {
-              this.selectedGrade = grade;
-              this.currentPage = 1;
-              this.applyFiltersAndPagination();
-            })
-            .margin({ right: 8 })
+  buildStudentListSections() {
+    if (this.isLoading && this.studentList.length === 0) {
+      ListItem() {
+        LoadingState({
+          loadingSize: LoadingSize.LARGE,
+          fullscreen: false
         })
       }
-    }
-    .width('100%')
-    .scrollBar(BarState.Off)
-    .padding({ left: 2, right: 2, top: 4, bottom: 4 })
-  }
-
-  @Builder
-  buildStudentList() {
-    if (this.isLoading && this.studentList.length === 0) {
-      LoadingState({
-        loadingSize: LoadingSize.LARGE,
-        fullscreen: false
-      })
     } else if (this.studentList.length === 0) {
-      EmptyState({
-        type: EmptyType.NO_STUDENT,
-        customTitle: '暂无学生档案',
-        customDescription: '当前筛选条件下没有匹配的学生信息。',
-        actionText: '重新加载',
-        onAction: () => {
-          this.loadStudents();
-        }
-      })
+      ListItem() {
+        EmptyState({
+          type: EmptyType.NO_STUDENT,
+          customTitle: '暂无学生档案',
+          customDescription: '当前筛选条件下没有匹配的学生信息。',
+          actionText: '重新加载',
+          onAction: () => {
+            this.loadStudents();
+          }
+        })
+      }
     } else {
-      Column() {
+      ListItem() {
         SectionHeader({
           title: '学生列表',
           subtitle: `第 ${this.currentPage} 页，共 ${this.totalPages} 页`
         })
-
-        Card({
-          customPadding: 14,
-          customBgColor: '#F8FBFF',
-          content: this.buildListSummary
-        })
-
-        Column() {
-          ForEach(this.studentList, (student: StudentWithGuardian) => {
-            this.buildStudentCard(student)
-          })
-        }
-        .width('100%')
-
-        this.buildPagination()
       }
-      .width('100%')
-    }
-  }
 
-  @Builder
-  buildListSummary() {
-    Row() {
-      this.buildExecutiveMetric('当前页', `${this.studentList.length}`, '#526F95')
-      Blank().width(10)
-      this.buildExecutiveMetric('筛选总量', `${this.getFilteredTotal()}`, '#D97706')
-      Blank().width(10)
-      this.buildExecutiveMetric('检索词', this.searchKeyword || '未输入', '#10203A')
-    }
-    .width('100%')
-  }
+      ListItem() {
+        AdminStudentsSummaryCard({
+          pageCount: this.studentList.length,
+          filteredTotal: this.getFilteredTotal(),
+          searchKeyword: this.searchKeyword
+        })
+      }
 
-  @Builder
-  buildStudentCard(student: StudentWithGuardian) {
-    Row() {
-      Image($r('app.media.ic_default_avatar'))
-        .width(48)
-        .height(48)
-        .borderRadius(24)
-        .backgroundColor($r('app.color.primary_light'))
-        .margin({ right: 12 })
-
-      Column() {
-        Row() {
-          Text(student.name)
-            .fontSize($r('app.float.text_primary_size'))
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-
-          if (student.gender) {
-            Text(student.gender === 'MALE' ? '男' : '女')
-              .fontSize(12)
-              .fontColor(student.gender === 'MALE' ? '#526F95' : '#8A6A9E')
-              .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-              .backgroundColor(student.gender === 'MALE' ? '#F8F0DE' : '#FDF0FF')
-              .borderRadius(999)
-              .margin({ left: 8 })
-          }
+      LazyForEach(this.studentDataSource, (student: StudentWithGuardian) => {
+        ListItem() {
+          AdminStudentListItemCard({
+            student: student
+          })
+            .margin({ bottom: $r('app.float.card_margin') })
         }
+      }, (student: StudentWithGuardian) => `${student.id}`)
 
-        Text(`学号：${student.studentNo || '--'}`)
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 6 })
-
-        Text(`${student.grade || '--'} 年级 · ${student.className || '--'}`)
-          .fontSize($r('app.float.text_secondary_size'))
-          .fontColor($r('app.color.text_tertiary'))
-          .margin({ top: 4 })
-
-        if (student.guardianName) {
-          Row() {
-            Image($r('app.media.ic_user'))
-              .width(12)
-              .height(12)
-              .fillColor($r('app.color.text_tertiary'))
-
-            Text(` 监护人：${student.guardianName}`)
-              .fontSize($r('app.float.text_tiny_size'))
-              .fontColor($r('app.color.text_tertiary'))
-
-            if (student.guardianMobile) {
-              Text(` ${student.guardianMobile}`)
-                .fontSize($r('app.float.text_tiny_size'))
-                .fontColor($r('app.color.text_tertiary'))
+      ListItem() {
+        AdminStudentsPaginationCard({
+          currentPage: this.currentPage,
+          totalPages: this.totalPages,
+          onPrevious: () => {
+            if (this.currentPage > 1) {
+              this.currentPage--;
+              this.applyFiltersAndPagination();
+            }
+          },
+          onNext: () => {
+            if (this.currentPage < this.totalPages) {
+              this.currentPage++;
+              this.applyFiltersAndPagination();
             }
           }
-          .margin({ top: 4 })
-        }
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-
-      Column() {
-        Image($r('app.media.ic_arrow_right'))
-          .width(16)
-          .height(16)
-          .fillColor($r('app.color.text_tertiary'))
-      }
-      .onClick(() => {
-        this.getUIContext().getRouter().pushUrl({
-          url: 'pages/admin/AdminStudentDetailPage',
-          params: { studentId: student.id }
-        });
-      })
-    }
-    .width('100%')
-    .padding($r('app.float.card_padding'))
-    .backgroundColor(Color.White)
-    .borderRadius(20)
-    .margin({ bottom: $r('app.float.card_margin') })
-    .border({
-      width: 1,
-      color: '#EEF3F8',
-      radius: 20,
-      style: BorderStyle.Solid
-    })
-    .shadow({
-      radius: 10,
-      color: '#10172F12',
-      offsetX: 0,
-      offsetY: 4
-    })
-  }
-
-  @Builder
-  buildPagination() {
-    Card({
-      title: '分页导航',
-      subtitle: '按页浏览更多学生档案。',
-      customPadding: 16,
-      content: this.buildPaginationContent
-    })
-  }
-
-  @Builder
-  buildPaginationContent() {
-    Row() {
-      Button('上一页')
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor(this.currentPage > 1 ? $r('app.color.primary') : $r('app.color.text_tertiary'))
-        .backgroundColor(Color.Transparent)
-        .border({ width: 1, color: this.currentPage > 1 ? $r('app.color.primary') : '#D7E1EE', radius: 14 })
-        .borderRadius(14)
-        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-        .enabled(this.currentPage > 1)
-        .opacity(this.currentPage > 1 ? 1 : 0.4)
-        .onClick(() => {
-          if (this.currentPage > 1) {
-            this.currentPage--;
-            this.applyFiltersAndPagination();
-          }
         })
-
-      Text(`${this.currentPage} / ${this.totalPages}`)
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor($r('app.color.text_primary'))
-        .margin({ left: 20, right: 20 })
-
-      Button('下一页')
-        .fontSize($r('app.float.text_secondary_size'))
-        .fontColor(this.currentPage < this.totalPages ? $r('app.color.primary') : $r('app.color.text_tertiary'))
-        .backgroundColor(Color.Transparent)
-        .border({ width: 1, color: this.currentPage < this.totalPages ? $r('app.color.primary') : '#D7E1EE', radius: 14 })
-        .borderRadius(14)
-        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-        .enabled(this.currentPage < this.totalPages)
-        .opacity(this.currentPage < this.totalPages ? 1 : 0.4)
-        .onClick(() => {
-          if (this.currentPage < this.totalPages) {
-            this.currentPage++;
-            this.applyFiltersAndPagination();
-          }
-        })
+      }
     }
-    .width('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(VerticalAlign.Center)
   }
 
   private getSelectedGradeText(): string {

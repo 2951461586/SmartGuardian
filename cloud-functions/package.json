@@ -1,0 +1,18 @@
+{
+  "name": "smartguardian-cloud-functions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AGC cloud functions runtime for SmartGuardian",
+  "main": "shared/router.js",
+  "type": "commonjs",
+  "scripts": {
+    "smoke": "node ../scripts/cloud-functions-smoke.js",
+    "migration:plan": "node ../scripts/generate-cloud-db-migration.js",
+    "migration:seed": "node ../scripts/apply-cloud-db-seed.js",
+    "migration:seed:reset": "node ../scripts/apply-cloud-db-seed.js --reset",
+    "migration:seed:dry-run": "node ../scripts/apply-cloud-db-seed.js --dry-run"
+  },
+  "dependencies": {
+    "@hw-agconnect/cloud-server": "^1.0.5"
+  }
+}

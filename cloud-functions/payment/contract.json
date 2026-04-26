@@ -1,0 +1,6 @@
+{
+  "domain": "payment",
+  "functionName": "smartguardian-payment",
+  "routePrefixes": ["/api/v1/payments"],
+  "collections": ["payments", "payment_callbacks", "orders"]
+}

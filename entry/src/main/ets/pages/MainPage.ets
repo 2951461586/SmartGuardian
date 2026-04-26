@@ -4,35 +4,22 @@
  */
 
 import { ApiConfig } from '../config/api.config';
+import { HarmonyColor, harmonyShadowColor } from '../common/HarmonyDesign';
 import { getRolePalette } from '../common/RoleTheme';
+import {
+  WorkbenchNavItem,
+  getWorkbenchNavItems,
+  getWorkbenchScope,
+  normalizeWorkbenchNavCode
+} from '../common/WorkbenchRegistry';
+import { RoleWorkbenchHost } from '../components/common/RoleWorkbenchHost';
+import { RouteUrls, StorageKeys } from '../constants/app.constants';
 import { UserRole } from '../models/common';
-import { WorkbenchManifest, WorkbenchModule } from '../models/workbench';
-import { AuthService } from '../services/api/auth';
+import { WorkbenchManifest } from '../models/workbench';
+import { AppLaunchCoordinatorService } from '../services/AppLaunchCoordinatorService';
+import { SessionBootstrapService } from '../services/SessionBootstrapService';
 import { WorkbenchService } from '../services/api/workbench';
 import { UserStore } from '../stores/userStore';
-import { getToken } from '../utils/request';
-import { AdminHomePage } from './admin/AdminHomePage';
-import { AdminOrdersPage } from './admin/AdminOrdersPage';
-import { AdminReportsPage } from './admin/AdminReportsPage';
-import { AdminStudentsPage } from './admin/AdminStudentsPage';
-import { AdminProfilePage } from './admin/AdminProfilePage';
-import { ParentHomePage } from './parent/ParentHomePage';
-import { ParentMessagesPage } from './parent/ParentMessagesPage';
-import { ParentOrdersPage } from './parent/ParentOrdersPage';
-import { ParentProfilePage } from './parent/ParentProfilePage';
-import { ParentServicesPage } from './parent/ParentServicesPage';
-import { ParentTimelinePage } from './parent/ParentTimelinePage';
-import { TeacherAttendancePage } from './teacher/TeacherAttendancePage';
-import { TeacherHomePage } from './teacher/TeacherHomePage';
-import { TeacherHomeworkPage } from './teacher/TeacherHomeworkPage';
-import { TeacherMessagesPage } from './teacher/TeacherMessagesPage';
-import { TeacherProfilePage } from './teacher/TeacherProfilePage';
-
-interface NavItem {
-  code: string;
-  label: ResourceStr;
-  icon: Resource;
-}
 
 @Entry
 @Component
@@ -48,39 +35,17 @@ struct MainPage {
   }
 
   async initAuthState(): Promise<void> {
-    const token = getToken();
-    if (!token || !UserStore.isLoggedIn()) {
-      UserStore.clearUserInfo();
+    const bootstrap = await SessionBootstrapService.bootstrapCurrentSession();
+    if (!bootstrap.success || !bootstrap.userInfo) {
       this.authLocked = true;
       this.isInitializing = false;
       this.navigateToLogin();
       return;
     }
 
-    try {
-      const resp = await AuthService.getCurrentUser();
-      if (resp.code === 0 && resp.data) {
-        UserStore.setUserInfo(resp.data);
-        this.currentRole = resp.data.roleType;
-      } else {
-        UserStore.clearUserInfo();
-        this.authLocked = true;
-        this.navigateToLogin();
-        return;
-      }
-    } catch (error) {
-      UserStore.clearUserInfo();
-      this.authLocked = true;
-      this.navigateToLogin();
-      return;
-    }
-
-    const userInfo = UserStore.getUserInfo();
-    if (userInfo) {
-      this.currentRole = userInfo.roleType;
-    }
-
+    this.currentRole = bootstrap.role;
     this.authLocked = false;
+    AppLaunchCoordinatorService.markAuthUnlocked();
     await this.loadWorkbenchManifest();
     this.syncStoredNavigationScope();
     this.isInitializing = false;
@@ -91,7 +56,7 @@ struct MainPage {
       const resp = await WorkbenchService.getManifest();
       if (resp.code === 0 && resp.data) {
         this.workbenchManifest = resp.data;
-        AppStorage.setOrCreate('workbench_manifest', resp.data);
+        AppStorage.setOrCreate(StorageKeys.WORKBENCH_MANIFEST, resp.data);
         return;
       }
     } catch (error) {
@@ -99,12 +64,13 @@ struct MainPage {
     }
 
     this.workbenchManifest = null;
-    AppStorage.delete('workbench_manifest');
+    AppStorage.delete(StorageKeys.WORKBENCH_MANIFEST);
   }
 
   private navigateToLogin(): void {
     try {
-      this.getUIContext().getRouter().replaceUrl({ url: 'pages/LoginPage' });
+      AppLaunchCoordinatorService.markAuthLocked();
+      this.getUIContext().getRouter().replaceUrl({ url: RouteUrls.LOGIN });
     } catch (error) {
       this.authLocked = true;
       this.isInitializing = false;
@@ -116,12 +82,12 @@ struct MainPage {
   private syncStoredNavigationScope(): void {
     const userInfo = UserStore.getUserInfo();
     const manifestVersion = this.workbenchManifest?.version ?? 'fallback';
-    const currentScope = `${this.currentRole}:${userInfo?.id ?? 0}:${manifestVersion}`;
-    const storedScope = AppStorage.get<string>('main_navigation_scope') ?? '';
+    const currentScope = getWorkbenchScope(this.currentRole, userInfo?.id ?? 0, manifestVersion);
+    const storedScope = AppStorage.get<string>(StorageKeys.MAIN_NAVIGATION_SCOPE) ?? '';
 
     if (storedScope !== currentScope) {
       this.currentIndex = 0;
-      AppStorage.setOrCreate('main_navigation_scope', currentScope);
+      AppStorage.setOrCreate(StorageKeys.MAIN_NAVIGATION_SCOPE, currentScope);
       return;
     }
 
@@ -130,7 +96,7 @@ struct MainPage {
 
   private ensureValidCurrentIndex(): void {
     const maxIndex = this.getNavItems().length - 1;
-    if (this.currentIndex > maxIndex) {
+    if (maxIndex < 0 || this.currentIndex > maxIndex) {
       this.currentIndex = 0;
     }
   }
@@ -151,100 +117,16 @@ struct MainPage {
     return getRolePalette(this.currentRole).shadow;
   }
 
-  private getNavItems(): NavItem[] {
-    const manifestNavItems = this.getManifestNavItems();
-    if (manifestNavItems.length > 0) {
-      return manifestNavItems;
-    }
-
-    if (this.currentRole === UserRole.PARENT) {
-      return [
-        { code: 'home', label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
-        { code: 'orders', label: $r('app.string.nav_orders'), icon: $r('app.media.ic_order') },
-        { code: 'messages', label: $r('app.string.nav_messages'), icon: $r('app.media.ic_message') },
-        { code: 'profile', label: $r('app.string.nav_profile'), icon: $r('app.media.ic_profile') }
-      ];
-    }
-
-    if (this.currentRole === UserRole.TEACHER) {
-      return [
-        { code: 'home', label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
-        { code: 'attendance', label: $r('app.string.nav_attendance'), icon: $r('app.media.ic_attendance') },
-        { code: 'homework', label: $r('app.string.nav_homework'), icon: $r('app.media.ic_homework') }
-      ];
-    }
-
-    return [
-      { code: 'home', label: $r('app.string.nav_home'), icon: $r('app.media.ic_home') },
-      { code: 'orders', label: $r('app.string.nav_orders'), icon: $r('app.media.ic_order') },
-      { code: 'reports', label: $r('app.string.nav_reports'), icon: $r('app.media.ic_report') }
-    ];
-  }
-
-  private getManifestNavItems(): NavItem[] {
-    const modules = this.workbenchManifest?.modules ?? [];
-    const supportedCodes = this.getSupportedNavCodes();
-    const items: NavItem[] = [];
-
-    supportedCodes.forEach((code: string) => {
-      const module = modules.find((item: WorkbenchModule): boolean => item.code === code);
-      if (!module || !module.enabled) {
-        return;
-      }
-      items.push({
-        code: module.code,
-        label: module.name,
-        icon: this.getModuleIcon(module.code)
-      });
-    });
-
-    return items;
-  }
-
-  private getSupportedNavCodes(): string[] {
-    if (this.currentRole === UserRole.PARENT) {
-      return ['home', 'services', 'messages', 'timeline', 'profile'];
-    }
-    if (this.currentRole === UserRole.TEACHER) {
-      return ['home', 'attendance', 'messages', 'homework', 'profile'];
-    }
-    return ['home', 'students', 'orders', 'reports', 'profile'];
-  }
-
-  private getModuleIcon(code: string): Resource {
-    if (code === 'orders') {
-      return $r('app.media.ic_order');
-    }
-    if (code === 'messages') {
-      return $r('app.media.ic_message');
-    }
-    if (code === 'services') {
-      return $r('app.media.ic_service');
-    }
-    if (code === 'timeline') {
-      return $r('app.media.ic_calendar');
-    }
-    if (code === 'students') {
-      return $r('app.media.ic_child');
-    }
-    if (code === 'profile') {
-      return $r('app.media.ic_profile');
-    }
-    if (code === 'attendance') {
-      return $r('app.media.ic_attendance');
-    }
-    if (code === 'homework') {
-      return $r('app.media.ic_homework');
-    }
-    if (code === 'reports') {
-      return $r('app.media.ic_report');
-    }
-    return $r('app.media.ic_home');
+  private getNavItems(): WorkbenchNavItem[] {
+    return getWorkbenchNavItems(this.currentRole, this.workbenchManifest);
   }
 
   private getCurrentNavCode(): string {
-    const navItems = this.getNavItems();
-    return navItems[this.currentIndex]?.code ?? 'home';
+    return normalizeWorkbenchNavCode(
+      this.currentRole,
+      this.getNavItems()[this.currentIndex]?.code ?? 'home',
+      this.workbenchManifest
+    );
   }
 
   build() {
@@ -268,7 +150,7 @@ struct MainPage {
     Column() {
       Column() {
         LoadingProgress()
-          .color(Color.White)
+          .color(HarmonyColor.textInverse)
           .width(36)
           .height(36)
       }
@@ -326,7 +208,7 @@ struct MainPage {
           .height(48)
           .fontSize(15)
           .fontWeight(FontWeight.Medium)
-          .fontColor(Color.White)
+          .fontColor(HarmonyColor.textInverse)
           .backgroundColor(this.getRolePrimary())
           .borderRadius(18)
           .margin({ top: 22 })
@@ -340,7 +222,7 @@ struct MainPage {
       .borderRadius(28)
       .border({
         width: 1,
-        color: '#E6ECF5',
+        color: HarmonyColor.line,
         radius: 28,
         style: BorderStyle.Solid
       })
@@ -360,47 +242,10 @@ struct MainPage {
 
   @Builder
   private buildContent() {
-    Stack() {
-      if (this.currentRole === UserRole.PARENT) {
-        if (this.getCurrentNavCode() === 'home') {
-          ParentHomePage()
-        } else if (this.getCurrentNavCode() === 'services') {
-          ParentServicesPage()
-        } else if (this.getCurrentNavCode() === 'messages') {
-          ParentMessagesPage()
-        } else if (this.getCurrentNavCode() === 'timeline') {
-          ParentTimelinePage()
-        } else if (this.getCurrentNavCode() === 'orders') {
-          ParentOrdersPage()
-        } else {
-          ParentProfilePage()
-        }
-      } else if (this.currentRole === UserRole.TEACHER) {
-        if (this.getCurrentNavCode() === 'home') {
-          TeacherHomePage()
-        } else if (this.getCurrentNavCode() === 'attendance') {
-          TeacherAttendancePage()
-        } else if (this.getCurrentNavCode() === 'messages') {
-          TeacherMessagesPage()
-        } else if (this.getCurrentNavCode() === 'homework') {
-          TeacherHomeworkPage()
-        } else {
-          TeacherProfilePage()
-        }
-      } else {
-        if (this.getCurrentNavCode() === 'home') {
-          AdminHomePage()
-        } else if (this.getCurrentNavCode() === 'students') {
-          AdminStudentsPage()
-        } else if (this.getCurrentNavCode() === 'orders') {
-          AdminOrdersPage()
-        } else if (this.getCurrentNavCode() === 'reports') {
-          AdminReportsPage()
-        } else {
-          AdminProfilePage()
-        }
-      }
-    }
+    RoleWorkbenchHost({
+      role: this.currentRole,
+      navCode: this.getCurrentNavCode()
+    })
     .width('100%')
     .layoutWeight(1)
   }
@@ -409,10 +254,10 @@ struct MainPage {
   private buildBottomNav() {
     Column() {
       Divider()
-        .color('#EEF3FA')
+        .color(HarmonyColor.line)
 
       Row() {
-        ForEach(this.getNavItems(), (item: NavItem, index: number) => {
+        ForEach(this.getNavItems(), (item: WorkbenchNavItem, index: number) => {
           this.buildNavItem(index, item.label, item.icon)
         })
       }
@@ -423,7 +268,7 @@ struct MainPage {
     .backgroundColor($r('app.color.bottom_nav_background'))
     .shadow({
       radius: 16,
-      color: '#18233F12',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: -2
     })
@@ -449,11 +294,11 @@ struct MainPage {
     .padding({ top: 6, bottom: 6 })
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(this.currentIndex === index ? this.getRoleLight() : Color.Transparent)
+    .backgroundColor(this.currentIndex === index ? this.getRoleLight() : $r('app.color.bottom_nav_background'))
     .borderRadius(18)
     .border({
       width: this.currentIndex === index ? 1 : 0,
-      color: this.currentIndex === index ? this.getRoleBorder() : Color.Transparent,
+      color: this.currentIndex === index ? this.getRoleBorder() : $r('app.color.bottom_nav_background'),
       radius: 18,
       style: BorderStyle.Solid
     })

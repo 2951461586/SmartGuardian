@@ -1,14 +1,17 @@
 /**
  * SmartGuardian - Notification Utility
- * Handle local notifications and custom channels
+ * Handle local notifications and notification click routing.
  */
 
-import { notificationManager } from '@kit.NotificationKit';
 import { wantAgent, WantAgent } from '@kit.AbilityKit';
+import { notificationManager } from '@kit.NotificationKit';
 import { LogUtil } from './LogUtil';
 
 const TAG = 'NotificationUtil';
 const APP_BUNDLE_NAME = 'com.liziai.smartguardian';
+const DEFAULT_ENTRY_ABILITY = 'EntryAbility';
+const ROUTE_PARAMETER_KEY = 'smartguardian.route';
+const PARAMS_PARAMETER_KEY = 'smartguardian.params';
 
 /**
  * Notification channel types
@@ -28,27 +31,42 @@ export class NotificationUtil {
 
   /**
    * Initialize notification channels
-   * Note: Slots are created automatically by the system
+   * Note: Slots are created automatically by the system.
    */
   static async initChannels(): Promise<void> {
     LogUtil.info(TAG, 'Notification system ready');
   }
 
+  private static buildCacheKey(abilityName: string, route: string, paramsJson: string): string {
+    return `${abilityName}|${route}|${paramsJson}`;
+  }
+
   /**
-   * Create want agent for notification click
+   * Create want agent for notification click.
    */
-  private static async getWantAgent(abilityName: string): Promise<WantAgent> {
-    const cacheKey = abilityName;
+  private static async getWantAgent(abilityName: string, route?: string, paramsJson?: string): Promise<WantAgent> {
+    const resolvedRoute = route ?? '';
+    const resolvedParamsJson = paramsJson ?? '';
+    const cacheKey = NotificationUtil.buildCacheKey(abilityName, resolvedRoute, resolvedParamsJson);
     const cached = NotificationUtil.wantAgentCache.get(cacheKey);
     if (cached) {
       return cached;
+    }
+
+    const parameters: Record<string, string> = {};
+    if (resolvedRoute.length > 0) {
+      parameters[ROUTE_PARAMETER_KEY] = resolvedRoute;
+    }
+    if (resolvedParamsJson.length > 0) {
+      parameters[PARAMS_PARAMETER_KEY] = resolvedParamsJson;
     }
 
     const wantAgentInfo: wantAgent.WantAgentInfo = {
       wants: [
         {
           bundleName: APP_BUNDLE_NAME,
-          abilityName: abilityName
+          abilityName: abilityName,
+          parameters: parameters
         }
       ],
       requestCode: 0,
@@ -67,30 +85,52 @@ export class NotificationUtil {
     }
   }
 
+  private static buildRequest(title: string, content: string, agent: WantAgent): notificationManager.NotificationRequest {
+    return {
+      id: Date.now() % 2147483647,
+      content: {
+        notificationContentType: notificationManager.ContentType.NOTIFICATION_CONTENT_BASIC_TEXT,
+        normal: {
+          title: title,
+          text: content
+        }
+      },
+      wantAgent: agent
+    };
+  }
+
   /**
-   * Show attendance notification
+   * Show system notification.
+   */
+  static async showSystemNotification(
+    title: string,
+    content: string,
+    route?: string,
+    paramsJson?: string
+  ): Promise<void> {
+    try {
+      const agent = await NotificationUtil.getWantAgent(DEFAULT_ENTRY_ABILITY, route, paramsJson);
+      await notificationManager.publish(NotificationUtil.buildRequest(title, content, agent));
+      LogUtil.info(TAG, `System notification published: ${title}`);
+    } catch (error) {
+      const err = error as Error;
+      LogUtil.error(TAG, `Show system notification failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Show attendance notification.
    */
   static async showAttendanceNotification(
     title: string,
     content: string,
-    studentName?: string
+    studentName?: string,
+    route?: string,
+    paramsJson?: string
   ): Promise<void> {
     try {
-      const agent = await NotificationUtil.getWantAgent('EntryAbility');
-
-      const request: notificationManager.NotificationRequest = {
-        id: Date.now() % 2147483647,
-        content: {
-          notificationContentType: notificationManager.ContentType.NOTIFICATION_CONTENT_BASIC_TEXT,
-          normal: {
-            title: title,
-            text: content
-          }
-        },
-        wantAgent: agent
-      };
-
-      await notificationManager.publish(request);
+      const agent = await NotificationUtil.getWantAgent(DEFAULT_ENTRY_ABILITY, route, paramsJson);
+      await notificationManager.publish(NotificationUtil.buildRequest(title, content, agent));
       LogUtil.info(TAG, `Attendance notification published: ${title}`);
     } catch (error) {
       const err = error as Error;
@@ -99,28 +139,17 @@ export class NotificationUtil {
   }
 
   /**
-   * Show homework notification
+   * Show homework notification.
    */
   static async showHomeworkNotification(
     title: string,
-    content: string
+    content: string,
+    route?: string,
+    paramsJson?: string
   ): Promise<void> {
     try {
-      const agent = await NotificationUtil.getWantAgent('EntryAbility');
-
-      const request: notificationManager.NotificationRequest = {
-        id: Date.now() % 2147483647,
-        content: {
-          notificationContentType: notificationManager.ContentType.NOTIFICATION_CONTENT_BASIC_TEXT,
-          normal: {
-            title: title,
-            text: content
-          }
-        },
-        wantAgent: agent
-      };
-
-      await notificationManager.publish(request);
+      const agent = await NotificationUtil.getWantAgent(DEFAULT_ENTRY_ABILITY, route, paramsJson);
+      await notificationManager.publish(NotificationUtil.buildRequest(title, content, agent));
       LogUtil.info(TAG, `Homework notification published: ${title}`);
     } catch (error) {
       const err = error as Error;
@@ -129,28 +158,17 @@ export class NotificationUtil {
   }
 
   /**
-   * Show alert notification
+   * Show alert notification.
    */
   static async showAlertNotification(
     title: string,
-    content: string
+    content: string,
+    route?: string,
+    paramsJson?: string
   ): Promise<void> {
     try {
-      const agent = await NotificationUtil.getWantAgent('EntryAbility');
-
-      const request: notificationManager.NotificationRequest = {
-        id: Date.now() % 2147483647,
-        content: {
-          notificationContentType: notificationManager.ContentType.NOTIFICATION_CONTENT_BASIC_TEXT,
-          normal: {
-            title: `⚠️ ${title}`,
-            text: content
-          }
-        },
-        wantAgent: agent
-      };
-
-      await notificationManager.publish(request);
+      const agent = await NotificationUtil.getWantAgent(DEFAULT_ENTRY_ABILITY, route, paramsJson);
+      await notificationManager.publish(NotificationUtil.buildRequest(`提醒 · ${title}`, content, agent));
       LogUtil.info(TAG, `Alert notification published: ${title}`);
     } catch (error) {
       const err = error as Error;
@@ -159,7 +177,7 @@ export class NotificationUtil {
   }
 
   /**
-   * Cancel notification by id
+   * Cancel notification by id.
    */
   static async cancelNotification(id: number): Promise<void> {
     try {
@@ -172,7 +190,7 @@ export class NotificationUtil {
   }
 
   /**
-   * Cancel all notifications
+   * Cancel all notifications.
    */
   static async cancelAllNotifications(): Promise<void> {
     try {
@@ -185,12 +203,11 @@ export class NotificationUtil {
   }
 
   /**
-   * Get badge number
+   * Get badge number.
    */
   static async getBadgeNumber(): Promise<number> {
     try {
-      const count = await notificationManager.getBadgeNumber();
-      return count;
+      return await notificationManager.getBadgeNumber();
     } catch (error) {
       const err = error as Error;
       LogUtil.error(TAG, `Get badge number failed: ${err.message}`);
@@ -199,7 +216,7 @@ export class NotificationUtil {
   }
 
   /**
-   * Set badge number
+   * Set badge number.
    */
   static async setBadgeNumber(count: number): Promise<void> {
     try {

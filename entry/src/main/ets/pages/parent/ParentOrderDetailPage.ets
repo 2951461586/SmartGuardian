@@ -3,7 +3,9 @@
  * View order details, payment progress and follow-up actions
  */
 
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
 import { Card, EmptyState, EmptyType, HeaderTheme, InfoCard, InfoItem, LoadingSize, LoadingState, PageHeader, SectionHeader } from '../../components/common';
+import { RouteUrls } from '../../constants/app.constants';
 import { Order } from '../../models/service';
 import { OrderService as OrderAPIService } from '../../services/api/service';
 import { OrderStore } from '../../stores/orderStore';
@@ -88,7 +90,7 @@ struct ParentOrderDetailPage {
     }
     try {
       this.getUIContext().getRouter().pushUrl({
-        url: 'pages/parent/ParentPaymentPage',
+        url: RouteUrls.PARENT_PAYMENT,
         params: {
           orderId: this.orderDetail.id,
           amount: this.getPayAmount()
@@ -125,18 +127,18 @@ struct ParentOrderDetailPage {
   private getStatusColor(status: string): string {
     switch (status) {
       case 'PENDING':
-        return '#D97706';
+        return HarmonyReport.caution;
       case 'APPROVED':
-        return '#526F95';
+        return HarmonyColor.info;
       case 'REJECTED':
-        return '#E5484D';
+        return HarmonyReport.danger;
       case 'CANCELLED':
       case 'REFUNDED':
-        return '#7A879A';
+        return HarmonyColor.textTertiary;
       case 'COMPLETED':
-        return '#2F9E77';
+        return HarmonyReport.positive;
       default:
-        return '#5B6678';
+        return HarmonyColor.textSecondary;
     }
   }
 
@@ -316,7 +318,7 @@ struct ParentOrderDetailPage {
       }
 
       Divider()
-        .color('#E0E8F2')
+        .color(HarmonyColor.line)
         .margin({ top: 12, bottom: 12 })
 
       Row() {
@@ -330,7 +332,7 @@ struct ParentOrderDetailPage {
         Text(`¥${this.getPayAmount().toFixed(2)}`)
           .fontSize(26)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#E5484D')
+          .fontColor(HarmonyReport.danger)
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
@@ -349,7 +351,7 @@ struct ParentOrderDetailPage {
 
       Text(value)
         .fontSize($r('app.float.text_primary_size'))
-        .fontColor(highlight ? '#D97706' : $r('app.color.text_primary'))
+        .fontColor(highlight ? HarmonyReport.caution : $r('app.color.text_primary'))
     }
     .width('100%')
     .margin({ top: 8, bottom: 8 })
@@ -364,7 +366,7 @@ struct ParentOrderDetailPage {
           .height(46)
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
-          .fontColor(Color.White)
+          .fontColor(HarmonyColor.textInverse)
           .backgroundColor($r('app.color.primary'))
           .borderRadius(18)
           .onClick(() => this.handlePay())
@@ -375,17 +377,17 @@ struct ParentOrderDetailPage {
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor('#F2F5F8')
+          .backgroundColor(HarmonyColor.surfaceSubtle)
           .borderRadius(18)
           .onClick(() => this.handleCancel())
       }
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 18 })
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
     .shadow({
       radius: 10,
-      color: '#10172F14',
+      color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: -4
     })

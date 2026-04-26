@@ -3,6 +3,9 @@
  * 关于我们页面
  */
 
+import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HeaderTheme, PageHeader } from '../../components/common';
+
 @Entry
 @Component
 struct ParentAboutPage {
@@ -10,25 +13,13 @@ struct ParentAboutPage {
 
   build() {
     Column() {
-      Row() {
-        Image($r('app.media.ic_arrow_left'))
-          .width(24)
-          .height(24)
-          .fillColor($r('app.color.text_primary'))
-          .onClick(() => this.getUIContext().getRouter().back())
-
-        Text('关于我们')
-          .fontSize($r('app.float.page_title_size'))
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.text_primary'))
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-
-        Text('').width(24)
-      }
-      .width('100%')
-      .padding($r('app.float.page_padding'))
-      .backgroundColor(Color.White)
+      PageHeader({
+        title: '关于我们',
+        subtitle: '查看产品版本、能力说明与版权信息。',
+        showBack: true,
+        onBackClick: () => this.getUIContext().getRouter().back(),
+        theme: HeaderTheme.WHITE
+      })
 
       Column() {
         Image($r('app.media.ic_logo'))
@@ -83,7 +74,7 @@ struct ParentAboutPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(Color.White)
+    .backgroundColor(HarmonyColor.surface)
   }
 
   @Builder

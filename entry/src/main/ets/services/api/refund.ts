@@ -29,6 +29,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class RefundService {
+  static readonly AGC_DOMAIN: string = 'refund';
+  static readonly AGC_FUNCTION: string = 'smartguardian-refund';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.REFUNDS;
+
   /**
    * Create refund application
    * 
@@ -69,8 +73,8 @@ export class RefundService {
    * @param params 取消参数（退款ID、取消原因等）
    * @returns 操作响应
    */
-  static async cancelRefund(params: CancelRefundParams): Promise<ApiResponse<void>> {
-    return post<void>(ApiEndpoints.refundCancel(params.refundId), params);
+  static async cancelRefund(params: CancelRefundParams): Promise<ApiResponse<RefundRecord>> {
+    return post<RefundRecord>(ApiEndpoints.refundCancel(params.refundId), params);
   }
 
   /**

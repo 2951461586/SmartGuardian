@@ -3,6 +3,7 @@
  * Parent profile edit page with unified card layout
  */
 
+import { HarmonyColor } from '../../common/HarmonyDesign';
 import { Card, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
 import { UserStore } from '../../stores/userStore';
 
@@ -83,7 +84,7 @@ struct ParentProfileEditPage {
     Text(this.isSaving ? '保存中' : '保存')
       .fontSize(14)
       .fontWeight(FontWeight.Medium)
-      .fontColor(Color.White)
+      .fontColor(HarmonyColor.textInverse)
       .opacity(this.isSaving ? 0.7 : 1)
       .onClick(() => {
         if (!this.isSaving) {
@@ -172,7 +173,7 @@ struct ParentProfileEditPage {
         .width('100%')
         .height(52)
         .fontSize(15)
-        .backgroundColor('#F7FAFD')
+        .backgroundColor(HarmonyColor.surfaceSubtle)
         .borderRadius(16)
         .margin({ top: 8 })
         .padding({ left: 14, right: 14 })

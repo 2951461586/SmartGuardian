@@ -28,6 +28,10 @@ import { ApiEndpoints } from '../../constants/ApiEndpoints';
  * @class
  */
 export class AlertService {
+  static readonly AGC_DOMAIN: string = 'alert';
+  static readonly AGC_FUNCTION: string = 'smartguardian-alert';
+  static readonly AGC_ROUTE_SCOPE: string = ApiEndpoints.ALERTS;
+
   static async getAlerts(params: AlertQueryParams): Promise<ApiResponse<PageResponse<AlertRecord>>> {
     return get<PageResponse<AlertRecord>>(ApiEndpoints.ALERTS, params);
   }
@@ -43,16 +47,16 @@ export class AlertService {
    * @param params 确认参数（家长/教师操作）
    * @returns 确认结果响应
    */
-  static async acknowledgeAlert(params: AcknowledgeAlertParams): Promise<ApiResponse<void>> {
-    return post<void>(ApiEndpoints.alertAcknowledge(params.alertId), params);
+  static async acknowledgeAlert(params: AcknowledgeAlertParams): Promise<ApiResponse<AlertRecord>> {
+    return post<AlertRecord>(ApiEndpoints.alertAcknowledge(params.alertId), params);
   }
 
-  static async resolveAlert(params: ResolveAlertParams): Promise<ApiResponse<void>> {
-    return post<void>(ApiEndpoints.alertResolve(params.alertId), params);
+  static async resolveAlert(params: ResolveAlertParams): Promise<ApiResponse<AlertRecord>> {
+    return post<AlertRecord>(ApiEndpoints.alertResolve(params.alertId), params);
   }
 
-  static async dismissAlert(alertId: number): Promise<ApiResponse<void>> {
-    return post<void>(ApiEndpoints.alertDismiss(alertId));
+  static async dismissAlert(alertId: number): Promise<ApiResponse<AlertRecord>> {
+    return post<AlertRecord>(ApiEndpoints.alertDismiss(alertId));
   }
 
   static async getActiveCount(): Promise<ApiResponse<{ count: number }>> {

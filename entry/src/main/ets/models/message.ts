@@ -42,6 +42,13 @@ export interface MessageStatistics {
 }
 
 /**
+ * Message unread count response
+ */
+export interface MessageUnreadCount {
+  count: number;
+}
+
+/**
  * Message detail with related business info
  */
 export interface MessageDetail extends MessageRecord {

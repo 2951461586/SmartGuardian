@@ -1,0 +1,5985 @@
+{
+  "generatedAt": "2026-04-26T10:02:36.330Z",
+  "sourceSchema": "cloud-functions/cloud-db/schema.json",
+  "database": "smartguardian-cloud-db",
+  "zoneHint": "ClouddbDev",
+  "usage": [
+    "This file is a generated reference for creating AGC Cloud DB object types in AppGallery Connect Console.",
+    "Huawei official docs confirm Cloud DB object types are created and managed in Console. This file is not presented as an official import payload format.",
+    "Fields marked storageMode=json-string should be created as String and written with JSON.stringify / read with JSON.parse.",
+    "defaultPermissions assumes the app accesses Cloud DB only through Cloud Functions and Server SDK. Keep client roles closed unless you intentionally expose direct Cloud DB access."
+  ],
+  "objectTypeCount": 32,
+  "objectTypes": [
+    {
+      "name": "organizations",
+      "primaryKey": "id",
+      "indexes": [
+        "status"
+      ],
+      "uniqueGroups": [
+        [
+          "orgCode"
+        ]
+      ],
+      "foreignKeys": [],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orgCode",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "orgCode"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "INACTIVE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "contactPhone",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "address",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "primaryKey": "id",
+      "indexes": [
+        "roleType",
+        "orgId",
+        "status"
+      ],
+      "uniqueGroups": [
+        [
+          "username"
+        ],
+        [
+          "mobile"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "username",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "username"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "password",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "realName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "mobile",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "mobile"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "roleType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PARENT",
+            "TEACHER",
+            "ADMIN"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "avatar",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "organizations",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "schoolId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "INACTIVE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "user_profiles",
+      "primaryKey": "id",
+      "indexes": [
+        "userId"
+      ],
+      "uniqueGroups": [
+        [
+          "userId"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "userId"
+            ]
+          ],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "displayName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "bio",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "user_roles",
+      "primaryKey": "id",
+      "indexes": [
+        "userId",
+        "roleType"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "roleType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PARENT",
+            "TEACHER",
+            "ADMIN"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "scope",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "user_sessions",
+      "primaryKey": "id",
+      "indexes": [
+        "userId",
+        "sessionStatus",
+        "expireAt",
+        "deviceId",
+        "notificationProvider"
+      ],
+      "uniqueGroups": [
+        [
+          "token"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "token",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "token"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "sessionStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "LOGGED_OUT",
+            "EXPIRED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "deviceId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "notificationToken",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "notificationProvider",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "authUid",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "authPhone",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "clientVersion",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "clientPlatform",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "lastActiveAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "expireAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "students",
+      "primaryKey": "id",
+      "indexes": [
+        "schoolId",
+        "guardianUserId",
+        "orgId",
+        "status",
+        "classId"
+      ],
+      "uniqueGroups": [
+        [
+          "studentNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "guardianUserId",
+          "collection": "users",
+          "refField": "id"
+        },
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentNo",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "studentNo"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "name",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "schoolId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "classId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "className",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "grade",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "gender",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [
+            "MALE",
+            "FEMALE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "birthDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "guardianUserId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "healthNotes",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "organizations",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "INACTIVE",
+            "GRADUATED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "schoolName",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "guardians",
+      "primaryKey": "id",
+      "indexes": [
+        "orgId",
+        "mobile"
+      ],
+      "uniqueGroups": [
+        [
+          "userId"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        },
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "userId"
+            ]
+          ],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "realName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "mobile",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "organizations",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "student_guardians",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "userId",
+        "relation"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "relation",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "FATHER",
+            "MOTHER",
+            "GRANDPA",
+            "GRANDMA",
+            "OTHER"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "isPrimary",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "boolean",
+          "agcRecommendedType": "Boolean",
+          "storageMode": "native"
+        },
+        {
+          "name": "authorizedPickup",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "boolean",
+          "agcRecommendedType": "Boolean",
+          "storageMode": "native"
+        },
+        {
+          "name": "pickupCode",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "service_products",
+      "primaryKey": "id",
+      "indexes": [
+        "serviceType",
+        "status",
+        "orgId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "orgId",
+          "collection": "organizations",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "serviceName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "serviceType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "description",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "price",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "unit",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "gradeRange",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "capacity",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "maxStudents",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "alternativeTypes": [
+            "Double"
+          ],
+          "storageMode": "native",
+          "note": "Defaulted to Integer. Switch to Double if this field needs decimals."
+        },
+        {
+          "name": "currentStudents",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "alternativeTypes": [
+            "Double"
+          ],
+          "storageMode": "native",
+          "note": "Defaulted to Integer. Switch to Double if this field needs decimals."
+        },
+        {
+          "name": "serviceStartDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "serviceEndDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signInStartTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signInEndTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signOutStartTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signOutEndTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "organizations",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orgName",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "INACTIVE",
+            "FULL"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "serviceProductId",
+        "orderStatus",
+        "payStatus",
+        "createdAt"
+      ],
+      "uniqueGroups": [
+        [
+          "orderNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderNo",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "orderNo"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "serviceProductId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "service_products",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED",
+            "CANCELLED",
+            "COMPLETED",
+            "REFUNDED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "amount",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "paidAmount",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "payStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "UNPAID",
+            "PARTIAL",
+            "PAID",
+            "REFUNDING",
+            "REFUNDED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "auditStatus",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "startDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "endDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "totalAmount",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "discountAmount",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "actualAmount",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "payTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "auditTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "auditUserId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "auditRemark",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "primaryKey": "id",
+      "indexes": [
+        "orderId",
+        "serviceProductId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "orders",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "serviceProductId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "service_products",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "quantity",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "unitPrice",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "order_audits",
+      "primaryKey": "id",
+      "indexes": [
+        "orderId",
+        "auditorId",
+        "auditStatus"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "auditorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "orders",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "auditStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "APPROVED",
+            "REJECTED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "auditorId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "auditRemark",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "sessions",
+      "primaryKey": "id",
+      "indexes": [
+        "sessionDate",
+        "serviceProductId",
+        "teacherUserId",
+        "status"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "serviceProductId",
+          "collection": "service_products",
+          "refField": "id"
+        },
+        {
+          "field": "teacherUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "sessionDate",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "startTime",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "endTime",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "teacherUserId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "capacity",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "currentCount",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "sessionNo",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "serviceProductId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "service_products",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "maxCapacity",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "location",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "SCHEDULED",
+            "ONGOING",
+            "ENDED",
+            "CANCELLED",
+            "IN_PROGRESS",
+            "COMPLETED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "session_students",
+      "primaryKey": "id",
+      "indexes": [
+        "sessionId",
+        "studentId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        },
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "sessionId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "sessions",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "session_teachers",
+      "primaryKey": "id",
+      "indexes": [
+        "sessionId",
+        "teacherUserId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        },
+        {
+          "field": "teacherUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "sessionId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "sessions",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "teacherUserId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "attendance_records",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "attendanceDate",
+        "status",
+        "abnormalFlag"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "sessionId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "sessions",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "signInTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signOutTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signInMethod",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signOutMethod",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signInLocation",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "signOutLocation",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "operatorUserId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "abnormalFlag",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "boolean",
+          "agcRecommendedType": "Boolean",
+          "storageMode": "native"
+        },
+        {
+          "name": "abnormalType",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "abnormalDesc",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "NOT_SIGNED",
+            "SIGNED_IN",
+            "SIGNED_OUT",
+            "ABSENT",
+            "LATE",
+            "LEAVE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "attendanceDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "leave_requests",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "leaveDate",
+        "status"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "leaveDate",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "leaveType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reason",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "attachments",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "array",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize arrays with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED",
+            "CANCELLED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reviewerId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "reviewRemark",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reviewedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "homework_tasks",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "taskDate",
+        "status"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        },
+        {
+          "field": "sessionId",
+          "collection": "sessions",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "taskDate",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "subject",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "title",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "content",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "sourceType",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PENDING",
+            "IN_PROGRESS",
+            "COMPLETED",
+            "CONFIRMED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "taskNo",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "sessionId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "sessions",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "teacherId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "attachments",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "array",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize arrays with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "completedTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "homework_feedback",
+      "primaryKey": "id",
+      "indexes": [
+        "taskId",
+        "studentId",
+        "status"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "taskId",
+          "collection": "homework_tasks",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "taskId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "homework_tasks",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "teacherId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "teacherName",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "feedbackContent",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "performance",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [
+            "EXCELLENT",
+            "GOOD",
+            "AVERAGE",
+            "NEEDS_IMPROVEMENT"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "attachments",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "array",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize arrays with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [
+            "PENDING",
+            "IN_PROGRESS",
+            "COMPLETED",
+            "CONFIRMED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "guardianConfirmTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "guardianRemark",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "messages",
+      "primaryKey": "id",
+      "indexes": [
+        "userId",
+        "msgType",
+        "readStatus",
+        "createdAt"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "userId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "userId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "msgType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "title",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "content",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "bizType",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "bizId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "readStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "boolean",
+          "agcRecommendedType": "Boolean",
+          "storageMode": "native"
+        },
+        {
+          "name": "readAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "message_receipts",
+      "primaryKey": "id",
+      "indexes": [
+        "messageId",
+        "receiverUserId",
+        "readStatus"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "messageId",
+          "collection": "messages",
+          "refField": "id"
+        },
+        {
+          "field": "receiverUserId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "messageId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "messages",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "receiverUserId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "readStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "boolean",
+          "agcRecommendedType": "Boolean",
+          "storageMode": "native"
+        },
+        {
+          "name": "readAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "alerts",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "alertType",
+        "severity",
+        "status",
+        "createdAt"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "alertType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "severity",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "title",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "description",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "suggestedAction",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "ACKNOWLEDGED",
+            "RESOLVED",
+            "DISMISSED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "acknowledgedBy",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "alternativeTypes": [
+            "Double"
+          ],
+          "storageMode": "native",
+          "note": "Defaulted to Integer. Switch to Double if this field needs decimals."
+        },
+        {
+          "name": "acknowledgedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "resolvedBy",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "alternativeTypes": [
+            "Double"
+          ],
+          "storageMode": "native",
+          "note": "Defaulted to Integer. Switch to Double if this field needs decimals."
+        },
+        {
+          "name": "resolvedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "resolution",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "alert_actions",
+      "primaryKey": "id",
+      "indexes": [
+        "alertId",
+        "actionType",
+        "operatorId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "alertId",
+          "collection": "alerts",
+          "refField": "id"
+        },
+        {
+          "field": "operatorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "alertId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "alerts",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "actionType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACKNOWLEDGE",
+            "RESOLVE",
+            "DISMISS"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "operatorId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "note",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "refunds",
+      "primaryKey": "id",
+      "indexes": [
+        "orderId",
+        "studentId",
+        "status",
+        "createdAt"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        },
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderNo",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orderId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "orders",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "serviceProductId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "serviceName",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "refundAmount",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "reason",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reasonType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "description",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED",
+            "PROCESSING",
+            "COMPLETED",
+            "CANCELLED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "appliedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reviewedBy",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "alternativeTypes": [
+            "Double"
+          ],
+          "storageMode": "native",
+          "note": "Defaulted to Integer. Switch to Double if this field needs decimals."
+        },
+        {
+          "name": "reviewedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reviewRemark",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "processedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "completedAt",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "refund_audits",
+      "primaryKey": "id",
+      "indexes": [
+        "refundId",
+        "auditStatus",
+        "auditorId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "refundId",
+          "collection": "refunds",
+          "refField": "id"
+        },
+        {
+          "field": "auditorId",
+          "collection": "users",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "refundId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "refunds",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "auditStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "auditorId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "users",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "remark",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "primaryKey": "id",
+      "indexes": [
+        "orderId",
+        "payStatus",
+        "payChannel",
+        "createdAt"
+      ],
+      "uniqueGroups": [
+        [
+          "paymentNo"
+        ]
+      ],
+      "foreignKeys": [
+        {
+          "field": "orderId",
+          "collection": "orders",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "orderId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "orders",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "paymentNo",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [
+            [
+              "paymentNo"
+            ]
+          ],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payChannel",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payAmount",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Double",
+          "storageMode": "native",
+          "note": "Money-like numeric field. Prefer Double in AGC Cloud DB."
+        },
+        {
+          "name": "payStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "CREATED",
+            "PROCESSING",
+            "SUCCESS",
+            "FAILED",
+            "CLOSED",
+            "REFUNDED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "expireTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payUrl",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "qrCode",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "thirdTradeNo",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "payment_callbacks",
+      "primaryKey": "id",
+      "indexes": [
+        "paymentId",
+        "tradeStatus",
+        "createdAt"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "paymentId",
+          "collection": "payments",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "paymentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "payments",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "paymentNo",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "tradeStatus",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "SUCCESS",
+            "FAILED",
+            "CLOSED",
+            "REFUNDED"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "thirdTradeNo",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payTime",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "rawPayload",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "student_timelines",
+      "primaryKey": "id",
+      "indexes": [
+        "studentId",
+        "timelineType",
+        "timestamp"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [
+        {
+          "field": "studentId",
+          "collection": "students",
+          "refField": "id"
+        }
+      ],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": {
+            "collection": "students",
+            "refField": "id"
+          },
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "timelineType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ATTENDANCE",
+            "HOMEWORK",
+            "MESSAGE",
+            "ORDER",
+            "NOTE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "bizId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "title",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "content",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "bizDate",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "timestamp",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "operatorUserId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "operatorName",
+          "primaryKey": false,
+          "required": false,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "daily_reports",
+      "primaryKey": "id",
+      "indexes": [
+        "reportDate",
+        "reportType",
+        "orgId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "reportDate",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "reportType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ATTENDANCE",
+            "FINANCE",
+            "PERFORMANCE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "payload",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "object",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize objects with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "report_snapshots",
+      "primaryKey": "id",
+      "indexes": [
+        "reportType",
+        "orgId",
+        "generatedAt"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "reportType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "orgId",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "payload",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "object",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize objects with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "generatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "form_cards",
+      "primaryKey": "id",
+      "indexes": [
+        "cardType",
+        "targetRole",
+        "studentId"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "cardType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "targetRole",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "studentId",
+          "primaryKey": false,
+          "required": false,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "payload",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "object",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize objects with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    },
+    {
+      "name": "workbench_manifests",
+      "primaryKey": "id",
+      "indexes": [
+        "roleType",
+        "version",
+        "status"
+      ],
+      "uniqueGroups": [],
+      "foreignKeys": [],
+      "defaultPermissions": {
+        "everyone": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "authenticatedUsers": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "dataCreator": {
+          "query": false,
+          "upsert": false,
+          "delete": false
+        },
+        "administrator": {
+          "query": true,
+          "upsert": true,
+          "delete": true
+        }
+      },
+      "fields": [
+        {
+          "name": "id",
+          "primaryKey": true,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "number",
+          "agcRecommendedType": "Integer",
+          "storageMode": "native",
+          "note": "Identifier or count-like numeric field. Prefer Integer in AGC Cloud DB."
+        },
+        {
+          "name": "roleType",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "PARENT",
+            "TEACHER",
+            "ADMIN"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "version",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "status",
+          "primaryKey": false,
+          "required": true,
+          "indexed": true,
+          "enumValues": [
+            "ACTIVE",
+            "INACTIVE"
+          ],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "payload",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "object",
+          "agcRecommendedType": "String",
+          "storageMode": "json-string",
+          "note": "Serialize objects with JSON.stringify before writing to Cloud DB."
+        },
+        {
+          "name": "createdAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        },
+        {
+          "name": "updatedAt",
+          "primaryKey": false,
+          "required": true,
+          "indexed": false,
+          "enumValues": [],
+          "uniqueGroups": [],
+          "relation": null,
+          "sourceType": "string",
+          "agcRecommendedType": "String",
+          "storageMode": "native"
+        }
+      ]
+    }
+  ]
+}

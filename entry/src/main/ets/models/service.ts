@@ -78,19 +78,6 @@ export interface ServiceProduct {
   /** 更新时间 */
   updatedAt?: string;
   
-  // ===== UI 便利字段 (兼容旧代码) =====
-  
-  /** 服务名称 (serviceName的别名) */
-  name?: string;
-  
-  /** 服务分类 (源自serviceType的中文显示) */
-  category?: string;
-  
-  /** 开始时间 (signInStartTime的别名) */
-  startTime?: string;
-  
-  /** 结束时间 (signOutEndTime的别名) */
-  endTime?: string;
 }
 
 /**
