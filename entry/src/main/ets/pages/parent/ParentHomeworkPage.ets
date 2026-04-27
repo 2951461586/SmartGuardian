@@ -174,7 +174,7 @@ export struct ParentHomeworkPageContent {
         Card({
           title: '状态说明',
           subtitle: '待完成会持续追踪，已完成和已确认会进入归档视图。',
-          content: this.buildSummaryContent
+          content: () => { this.buildSummaryContent() }
         })
       }
 

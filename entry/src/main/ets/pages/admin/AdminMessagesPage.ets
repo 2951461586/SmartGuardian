@@ -178,7 +178,7 @@ export struct AdminMessagesPageContent {
           Card({
             title: '管理说明',
             subtitle: '系统消息会统一进入消息中心，后续可以继续扩展筛选和批量已读能力。',
-            content: this.buildMessageSummary
+            content: () => { this.buildMessageSummary() }
           })
         }
 
@@ -252,7 +252,7 @@ export struct AdminMessagesPageContent {
     Card({
       title: '消息类型',
       subtitle: '不同类型会在消息中心展示不同标签。',
-      content: this.buildTypeCardContent
+      content: () => { this.buildTypeCardContent() }
     })
   }
 
@@ -277,8 +277,8 @@ export struct AdminMessagesPageContent {
   private buildPushOptionCard() {
     Card({
       title: '通知下发',
-      subtitle: '模拟环境下使用本地通知预览消息触达效果，真实环境继续走消息接口的 pushNow 标记。',
-      content: this.buildPushOptionCardContent
+      subtitle: '开启后将及时提醒相关家长查看消息。',
+      content: () => { this.buildPushOptionCardContent() }
     })
   }
 
@@ -291,7 +291,7 @@ export struct AdminMessagesPageContent {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
 
-        Text('开启后会在当前设备触发一次官方通知预览。')
+        Text('开启后将同步发送提醒。')
           .fontSize(12)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
@@ -312,7 +312,7 @@ export struct AdminMessagesPageContent {
     Card({
       title: '消息标题',
       subtitle: '标题建议简洁明确，方便家长快速识别。',
-      content: this.buildTitleCardContent
+      content: () => { this.buildTitleCardContent() }
     })
   }
 
@@ -333,7 +333,7 @@ export struct AdminMessagesPageContent {
     Card({
       title: '消息内容',
       subtitle: '正文支持详细描述事件和后续行动要求。',
-      content: this.buildContentCardContent
+      content: () => { this.buildContentCardContent() }
     })
   }
 

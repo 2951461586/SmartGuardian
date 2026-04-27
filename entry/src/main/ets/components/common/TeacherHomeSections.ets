@@ -26,8 +26,8 @@ export struct TeacherHomeWorkbenchSection {
 
   build() {
     ResponsiveSplitPanel({
-      primary: this.buildOverviewPanel,
-      secondary: this.buildQuickActionsPanel
+      primary: () => { this.buildOverviewPanel() },
+      secondary: () => { this.buildQuickActionsPanel() }
     })
       .margin({ bottom: 14 })
   }
@@ -52,7 +52,7 @@ export struct TeacherHomeWorkbenchSection {
     Card({
       title: this.quickActionTitle,
       subtitle: this.quickActionSubtitle,
-      content: this.buildQuickActionsContent
+      content: () => { this.buildQuickActionsContent() }
     })
   }
 
@@ -122,8 +122,8 @@ export struct TeacherHomeSessionSection {
 
   build() {
     ResponsiveSplitPanel({
-      primary: this.buildStatsPanel,
-      secondary: this.buildSessionPanel
+      primary: () => { this.buildStatsPanel() },
+      secondary: () => { this.buildSessionPanel() }
     })
   }
 

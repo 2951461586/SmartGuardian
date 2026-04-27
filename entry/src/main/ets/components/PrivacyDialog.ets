@@ -23,7 +23,7 @@ export struct PrivacyDialog {
 
   build() {
     Column() {
-      Text('Privacy Policy')
+      Text('隐私政策')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
@@ -31,7 +31,7 @@ export struct PrivacyDialog {
 
       Scroll() {
         Column() {
-          Text('SmartGuardian privacy agreement')
+          Text('智慧托管隐私协议')
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.text_primary'))
@@ -50,7 +50,7 @@ export struct PrivacyDialog {
       .scrollBar(BarState.Auto)
 
       Row() {
-        Button('Decline')
+        Button('不同意')
           .layoutWeight(1)
           .height(44)
           .fontSize(15)
@@ -61,7 +61,7 @@ export struct PrivacyDialog {
             this.handleDisagree();
           })
 
-        Button('Agree')
+        Button('同意')
           .layoutWeight(1)
           .height(44)
           .fontSize(15)
@@ -83,7 +83,7 @@ export struct PrivacyDialog {
   }
 
   private getPrivacyContent(): string {
-    return 'This dialog explains how SmartGuardian collects, stores, and uses account, student, attendance, homework, order, and message data. The app will not continue until you agree.';
+    return '智慧托管会在本地和后端服务中处理账号、学生、考勤、作业、订单和消息数据，用于完成托管服务管理、家校沟通和安全提醒。请阅读并同意后继续使用。';
   }
 }
 

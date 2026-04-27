@@ -198,9 +198,9 @@ struct ParentRefundPage {
       PageScaffold({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        content: this.buildPageBody,
-        footer: this.buildFooter,
+        header: () => { this.buildHeader() },
+        content: () => { this.buildPageBody() },
+        footer: () => { this.buildFooter() },
         showFooterDivider: true
       })
     }

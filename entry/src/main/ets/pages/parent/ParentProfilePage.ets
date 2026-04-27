@@ -1,4 +1,4 @@
-﻿import {
+import {
   Card,
   ProfileActionGrid,
   ProfileActionItem,
@@ -68,10 +68,10 @@ export struct ParentProfilePageContent {
   build() {
     Column() {
       ProfileWorkspaceTemplate({
-        hero: this.buildHeroSection,
-        summary: this.buildSummarySection,
-        actions: this.buildActionSection,
-        support: this.buildSupportSection
+        hero: () => { this.buildHeroSection() },
+        summary: () => { this.buildSummarySection() },
+        actions: () => { this.buildActionSection() },
+        support: () => { this.buildSupportSection() }
       })
     }
     .width('100%')
@@ -136,7 +136,7 @@ export struct ParentProfilePageContent {
       onAction: () => {
         this.openRoute(RouteUrls.PARENT_ORDERS);
       },
-      content: this.buildSummaryContent
+      content: () => { this.buildSummaryContent() }
     })
   }
 
@@ -152,7 +152,7 @@ export struct ParentProfilePageContent {
     Card({
       title: '常用功能',
       subtitle: '把孩子档案、托管记录、费用和服务支持集中在一个入口。',
-      content: this.buildActionContent
+      content: () => { this.buildActionContent() }
     })
   }
 
@@ -171,7 +171,7 @@ export struct ParentProfilePageContent {
     Card({
       title: '安全与设置',
       subtitle: '账号安全、帮助说明和平台信息统一归档。',
-      content: this.buildSupportContent
+      content: () => { this.buildSupportContent() }
     })
   }
 

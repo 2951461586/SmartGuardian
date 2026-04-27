@@ -40,7 +40,7 @@ export struct TeacherSessionStatsCard {
     Card({
       title: '当前班次',
       subtitle: this.subtitle,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -125,7 +125,7 @@ export struct TeacherSessionsPreviewCard {
       title: '今日班次',
       actionText: this.actionText,
       onAction: this.onAction,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

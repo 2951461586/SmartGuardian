@@ -86,6 +86,7 @@ $zone = Get-EnvValue 'AGC_CLOUD_DB_ZONE'
 $configPath = Get-EnvValue 'AGC_CONFIG'
 $projectCredential = Get-EnvValue 'PROJECT_CREDENTIAL'
 $region = Get-EnvValue 'AGC_REGION'
+$connectPrivateKeyFile = Get-EnvValue 'AGC_CONNECT_PRIVATE_KEY_FILE'
 
 Write-CheckResult 'SMARTGUARDIAN_CLOUD_DB_PROVIDER' ($provider -eq 'agc') ("current='{0}'" -f $provider)
 if ($provider -ne 'agc') {
@@ -138,6 +139,31 @@ if ([string]::IsNullOrWhiteSpace($region)) {
   Write-CheckResult 'AGC_REGION' $true "unset, runtime will default to 'CN'"
 } else {
   Write-CheckResult 'AGC_REGION' $true ("current='{0}'" -f $region)
+}
+
+if ([string]::IsNullOrWhiteSpace($connectPrivateKeyFile)) {
+  Write-CheckResult 'AGC Connect API private key' $true 'optional, unset'
+} else {
+  $connectKeyExists = Test-Path $connectPrivateKeyFile
+  Write-CheckResult 'AGC Connect API private key' $connectKeyExists $connectPrivateKeyFile
+  if (-not $connectKeyExists) {
+    $hasFailure = $true
+  } else {
+    try {
+      $connectKeyJson = Get-Content -Path $connectPrivateKeyFile -Raw | ConvertFrom-Json
+      $isConnectPrivateKey = -not [string]::IsNullOrWhiteSpace($connectKeyJson.key_id) -and -not [string]::IsNullOrWhiteSpace($connectKeyJson.private_key) -and -not [string]::IsNullOrWhiteSpace($connectKeyJson.sub_account) -and -not [string]::IsNullOrWhiteSpace($connectKeyJson.token_uri)
+
+      if ($isConnectPrivateKey) {
+        Write-CheckResult 'AGC Connect API private key type' $true 'Server auth private key JSON detected'
+      } else {
+        Write-CheckResult 'AGC Connect API private key type' $false 'Expected key_id, private_key, sub_account and token_uri'
+        $hasFailure = $true
+      }
+    } catch {
+      Write-CheckResult 'AGC Connect API private key type' $false 'Private key file is not valid JSON'
+      $hasFailure = $true
+    }
+  }
 }
 
 if ($hasFailure) {

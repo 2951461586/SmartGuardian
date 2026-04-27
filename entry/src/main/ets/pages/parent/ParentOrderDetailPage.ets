@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Parent Order Detail Page
  * View order details, payment progress and follow-up actions
  */
@@ -242,7 +242,7 @@ struct ParentOrderDetailPage {
     Card({
       title: '当前进度',
       subtitle: this.getStatusHint(),
-      content: this.buildStatusCardContent
+      content: () => { this.buildStatusCardContent() }
     })
   }
 
@@ -278,7 +278,7 @@ struct ParentOrderDetailPage {
 
       Card({
         title: '服务信息',
-        content: this.buildServiceInfo
+        content: () => { this.buildServiceInfo() }
       })
     }
     .width('100%')
@@ -302,7 +302,7 @@ struct ParentOrderDetailPage {
 
       Card({
         title: '费用结算',
-        content: this.buildAmountInfo
+        content: () => { this.buildAmountInfo() }
       })
     }
     .width('100%')

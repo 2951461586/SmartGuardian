@@ -1,6 +1,4 @@
 import {
-  EnvironmentSelectorCard,
-  FormPageTemplate,
   FormActionBar,
   FormSecureField,
   FormTextField,
@@ -10,12 +8,11 @@ import {
 import { PrivacyDialog, isPrivacyAgreed } from '../components/PrivacyDialog';
 import { ApiConfig, ApiEnvironment } from '../config/api.config';
 import { RouteUrls } from '../constants/app.constants';
-import { UserRole } from '../models/common';
 import { LoginRequest } from '../models/user';
 import { AuthService } from '../services/api/auth';
 import { AgcRuntimeService } from '../services/agc/AgcRuntimeService';
-import { NotificationLaunchService } from '../services/NotificationLaunchService';
 import { NotificationEndpointRegistrationService } from '../services/NotificationEndpointRegistrationService';
+import { NotificationLaunchService } from '../services/NotificationLaunchService';
 import { UserStore } from '../stores/userStore';
 import { CryptoUtil } from '../utils/CryptoUtil';
 import { LogUtil } from '../utils/LogUtil';
@@ -29,14 +26,12 @@ struct LoginPage {
   @State isLoading: boolean = false;
   @State errorMessage: string = '';
   @State isPrivacyChecked: boolean = false;
-  @State currentEnv: string = ApiConfig.getCurrentEnv();
-  @State apiBaseUrl: string = ApiConfig.getConfiguredBaseUrl();
   @State selectedPortal: string = 'PARENT';
 
   private readonly portalOptions: PortalOption[] = [
-    { value: 'PARENT', label: 'Parent', description: 'Track your child, check attendance, and follow growth records.' },
-    { value: 'TEACHER', label: 'Teacher', description: 'Manage attendance, homework, and classroom communication.' },
-    { value: 'ADMIN', label: 'Admin', description: 'Operate services, orders, reports, and organization data.' }
+    { value: 'PARENT', label: '家长', description: '查看孩子签到、作业反馈和成长记录。' },
+    { value: 'TEACHER', label: '教师', description: '管理考勤、作业和家校沟通。' },
+    { value: 'ADMIN', label: '机构', description: '管理服务、订单、报表和机构数据。' }
   ];
 
   private privacyDialogController: CustomDialogController = new CustomDialogController({
@@ -47,7 +42,7 @@ struct LoginPage {
       },
       onDisagree: () => {
         this.isPrivacyChecked = false;
-        this.errorMessage = 'Please accept the privacy policy before login.';
+        this.errorMessage = '请先阅读并同意隐私政策后再登录。';
       }
     }),
     autoCancel: false,
@@ -56,110 +51,44 @@ struct LoginPage {
   });
 
   aboutToAppear(): void {
+    ApiConfig.applyRuntimeConfig(ApiEnvironment.AGC_SERVERLESS, ApiConfig.getConfiguredBaseUrl());
     this.isPrivacyChecked = isPrivacyAgreed();
-    this.currentEnv = ApiConfig.getCurrentEnv();
-    this.apiBaseUrl = ApiConfig.getConfiguredBaseUrl();
-    this.syncMockDemoAccount(this.selectedPortal);
-
-    if (!this.isPrivacyChecked) {
-      this.privacyDialogController.open();
-    }
   }
 
-  private getSelectedPortalRole(): UserRole {
-    if (this.selectedPortal === 'TEACHER') {
-      return UserRole.TEACHER;
-    }
-    if (this.selectedPortal === 'ADMIN') {
-      return UserRole.ORG_ADMIN;
-    }
-    return UserRole.PARENT;
-  }
-
-  private getDemoUsername(portal: string): string {
-    if (portal === 'TEACHER') {
-      return 'teacher_wang';
-    }
-    if (portal === 'ADMIN') {
-      return 'admin_li';
-    }
-    return 'parent_zhang';
-  }
-
-  private isDemoUsername(value: string): boolean {
-    const trimmed = value.trim();
-    return trimmed === '' || trimmed === 'parent_zhang' || trimmed === 'teacher_wang' || trimmed === 'admin_li';
-  }
-
-  private syncMockDemoAccount(portal: string): void {
-    if (this.currentEnv !== ApiEnvironment.DEV_MOCK) {
-      return;
-    }
-
-    if (this.isDemoUsername(this.username)) {
-      this.username = this.getDemoUsername(portal);
-    }
-
-    if (this.password === '' || this.password === '123456') {
-      this.password = '123456';
-    }
+  private requestPrivacyAgreement(): void {
+    this.privacyDialogController.open();
   }
 
   private handlePortalChange(portal: string): void {
     this.selectedPortal = portal;
     this.errorMessage = '';
-    this.syncMockDemoAccount(portal);
   }
 
-  private handleEnvChange(env: string): void {
-    this.currentEnv = env;
-    this.errorMessage = '';
-
-    if (env === ApiEnvironment.DEV_MOCK) {
-      this.apiBaseUrl = '';
-      this.syncMockDemoAccount(this.selectedPortal);
-      return;
-    }
-
-    this.apiBaseUrl = ApiConfig.getConfiguredBaseUrl();
-  }
-
-  private persistApiConfig(): boolean {
-    if (this.currentEnv === ApiEnvironment.DEV_MOCK) {
-      ApiConfig.applyRuntimeConfig(ApiEnvironment.DEV_MOCK);
-      return true;
-    }
-
-    if (this.currentEnv === ApiEnvironment.AGC_SERVERLESS && !AgcRuntimeService.isClientConfigReady()) {
-      const runtimeError = AgcRuntimeService.getRuntimeError();
-      this.errorMessage = runtimeError.length > 0
-        ? runtimeError
-        : 'AGC client config is not ready. Replace rawfile/agconnect-services.json with the real AppGallery Connect file first.';
+  private isServiceReady(): boolean {
+    if (!AgcRuntimeService.isClientConfigReady()) {
+      this.errorMessage = '服务暂不可用，请稍后再试或联系托管机构。';
       return false;
     }
-
-    const normalizedUrl: string = this.apiBaseUrl.trim();
-    if (!normalizedUrl) {
-      this.errorMessage = 'Enter AGC gateway URL before login.';
+    if (ApiConfig.getConfiguredBaseUrl().length === 0) {
+      this.errorMessage = '服务暂不可用，请稍后再试或联系托管机构。';
       return false;
     }
-
-    ApiConfig.applyRuntimeConfig(this.currentEnv, normalizedUrl);
     return true;
   }
 
   async handleLogin(): Promise<void> {
     if (!this.username.trim() || !this.password.trim()) {
-      this.errorMessage = 'Please enter username and password.';
+      this.errorMessage = '请输入账号和密码。';
       return;
     }
 
     if (!this.isPrivacyChecked && !isPrivacyAgreed()) {
-      this.privacyDialogController.open();
+      this.requestPrivacyAgreement();
       return;
     }
 
-    if (!this.persistApiConfig()) {
+    ApiConfig.applyRuntimeConfig(ApiEnvironment.AGC_SERVERLESS, ApiConfig.getConfiguredBaseUrl());
+    if (!this.isServiceReady()) {
       return;
     }
 
@@ -171,10 +100,6 @@ struct LoginPage {
         username: this.username.trim(),
         password: this.password
       };
-
-      if (this.currentEnv === ApiEnvironment.DEV_MOCK) {
-        request.roleType = this.getSelectedPortalRole();
-      }
 
       LogUtil.info('LoginPage', `Attempting login for user: ${CryptoUtil.encryptSimple(this.username)}`);
       const resp = await AuthService.login(request);
@@ -194,13 +119,9 @@ struct LoginPage {
         return;
       }
 
-      this.errorMessage = resp.message || 'Login failed. Please check your account or service status.';
+      this.errorMessage = resp.message || '登录失败，请检查账号或服务状态。';
     } catch (error) {
-      if (this.currentEnv === ApiEnvironment.AGC_SERVERLESS) {
-        this.errorMessage = 'AGC request failed. Check gateway URL and deployment.';
-      } else {
-        this.errorMessage = 'Network request failed. Please try again later.';
-      }
+      this.errorMessage = '登录失败，请稍后再试。';
       LogUtil.error('LoginPage', `Login error: ${String(error)}`);
     } finally {
       this.isLoading = false;
@@ -209,47 +130,66 @@ struct LoginPage {
 
   private getPortalHint(): string {
     if (this.selectedPortal === 'TEACHER') {
-      return 'Manage attendance, homework, and parent communication.';
+      return '管理考勤、作业和家校沟通。';
     }
     if (this.selectedPortal === 'ADMIN') {
-      return 'Manage service products, orders, reports, and operations.';
+      return '管理服务产品、订单、报表和运营数据。';
     }
-    return 'Track your child, check-in status, and growth records.';
+    return '查看孩子状态、签到信息和成长记录。';
   }
 
   private getAccountPlaceholder(): string {
-    return this.selectedPortal === 'PARENT' ? 'Phone number / parent account' : 'Account';
-  }
-
-  private getEnvironmentHelperText(): string {
-    if (this.currentEnv === ApiEnvironment.DEV_MOCK) {
-      return 'Mock mode uses built-in demo data and does not require a backend URL.';
-    }
-    if (this.currentEnv === ApiEnvironment.AGC_SERVERLESS) {
-      if (!AgcRuntimeService.isClientConfigReady()) {
-        return 'AGC mode is blocked until rawfile/agconnect-services.json is replaced with a real AppGallery Connect client config.';
-      }
-      return 'Use the AGC gateway URL that fronts the current cloud function deployment.';
-    }
-    return 'AGC Serverless is the only real backend path for this app.';
-  }
-
-  private getEnvironmentPlaceholder(): string {
-    return 'AGC gateway URL';
+    return this.selectedPortal === 'PARENT' ? '手机号 / 家长账号' : '账号';
   }
 
   build() {
     Column() {
-      FormPageTemplate({
-        title: 'SmartGuardian',
-        subtitle: 'Unified HarmonyOS ArkTS login entry for parents, teachers, and administrators.',
-        illustration: $r('app.media.sg_illustration_auth_hall'),
-        maxWidth: 620,
-        content: this.buildFormContent
-      })
+      Scroll() {
+        Column() {
+          Image($r('app.media.sg_illustration_auth_hall'))
+            .width('100%')
+            .height(150)
+            .objectFit(ImageFit.Cover)
+            .borderRadius(20)
+
+          Text('智慧托管')
+            .width('100%')
+            .fontSize(28)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
+            .margin({ top: 18 })
+
+          Text('面向家长、教师和托管机构的统一登录入口。')
+            .width('100%')
+            .fontSize(14)
+            .lineHeight(22)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 8, bottom: 18 })
+
+          this.buildFormContent()
+        }
+        .width('100%')
+        .constraintSize({ maxWidth: 620 })
+        .padding(24)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(24)
+        .border({
+          width: 1,
+          color: $r('app.color.divider'),
+          radius: 24,
+          style: BorderStyle.Solid
+        })
+        .alignSelf(ItemAlign.Center)
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
+    .padding({ left: 16, right: 16, top: 24, bottom: 24 })
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
@@ -266,7 +206,7 @@ struct LoginPage {
 
       FormTextField({
         icon: $r('app.media.ic_user'),
-        label: 'Account',
+        label: '账号',
         placeholder: this.getAccountPlaceholder(),
         text: this.username,
         onChange: (value: string) => {
@@ -277,28 +217,11 @@ struct LoginPage {
 
       FormSecureField({
         icon: $r('app.media.ic_lock'),
-        label: 'Password',
-        placeholder: 'Password',
+        label: '密码',
+        placeholder: '请输入密码',
         text: this.password,
         onChange: (value: string) => {
           this.password = value;
-        }
-      })
-        .margin({ top: 14 })
-
-      EnvironmentSelectorCard({
-        currentEnv: this.currentEnv,
-        mockEnvValue: ApiEnvironment.DEV_MOCK,
-        agcEnvValue: ApiEnvironment.AGC_SERVERLESS,
-        apiBaseUrl: this.apiBaseUrl,
-        showUrlInput: this.currentEnv !== ApiEnvironment.DEV_MOCK,
-        urlPlaceholder: this.getEnvironmentPlaceholder(),
-        helperText: this.getEnvironmentHelperText(),
-        onEnvChange: (env: string) => {
-          this.handleEnvChange(env);
-        },
-        onUrlChange: (value: string) => {
-          this.apiBaseUrl = value;
         }
       })
         .margin({ top: 14 })
@@ -310,25 +233,36 @@ struct LoginPage {
           .width(18)
           .height(18)
           .onChange((checked: boolean) => {
-            this.isPrivacyChecked = checked;
+            if (!checked) {
+              this.isPrivacyChecked = false;
+              return;
+            }
+
+            if (isPrivacyAgreed()) {
+              this.isPrivacyChecked = true;
+              return;
+            }
+
+            this.isPrivacyChecked = false;
+            this.requestPrivacyAgreement();
           })
 
-        Text('I have read and agree to the privacy policy')
+        Text('我已阅读并同意隐私政策')
           .layoutWeight(1)
           .fontSize(12)
           .lineHeight(18)
           .fontColor($r('app.color.text_secondary'))
           .margin({ left: 8 })
           .onClick(() => {
-            this.privacyDialogController.open();
+            this.requestPrivacyAgreement();
           })
       }
       .width('100%')
       .margin({ top: 18 })
 
       FormActionBar({
-        primaryText: 'Login',
-        helperText: `Current environment: ${ApiConfig.getEnvironmentLabel()}`,
+        primaryText: '登录',
+        helperText: '登录后将进入对应工作台',
         errorText: this.errorMessage,
         primaryEnabled: !this.isLoading,
         loading: this.isLoading,

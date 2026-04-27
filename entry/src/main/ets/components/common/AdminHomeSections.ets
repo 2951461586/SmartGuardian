@@ -22,8 +22,8 @@ export struct AdminHomeWorkbenchSection {
 
   build() {
     ResponsiveSplitPanel({
-      primary: this.buildOverviewPanel,
-      secondary: this.buildQuickActionsPanel
+      primary: () => { this.buildOverviewPanel() },
+      secondary: () => { this.buildQuickActionsPanel() }
     })
       .margin({ bottom: 14 })
   }
@@ -48,7 +48,7 @@ export struct AdminHomeWorkbenchSection {
     Card({
       title: this.quickActionTitle,
       subtitle: this.quickActionSubtitle,
-      content: this.buildQuickActions
+      content: () => { this.buildQuickActions() }
     })
   }
 
@@ -112,8 +112,8 @@ export struct AdminHomeOperationsSection {
 
   build() {
     ResponsiveSplitPanel({
-      primary: this.buildOperationsPanel,
-      secondary: this.buildActivityPanel
+      primary: () => { this.buildOperationsPanel() },
+      secondary: () => { this.buildActivityPanel() }
     })
   }
 

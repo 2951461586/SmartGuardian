@@ -33,7 +33,7 @@ export interface WorkbenchModule {
 export interface WorkbenchIntegration {
   apiBase: string;
   auth: string;
-  mockDefault: boolean;
+  agcDefault: boolean;
   acceptance: string[];
 }
 

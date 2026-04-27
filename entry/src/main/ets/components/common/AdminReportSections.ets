@@ -19,8 +19,8 @@ export struct AdminReportsOverviewSection {
 
   build() {
     ResponsiveSplitPanel({
-      primary: this.buildExecutivePanel,
-      secondary: this.buildOverviewPanel
+      primary: () => { this.buildExecutivePanel() },
+      secondary: () => { this.buildOverviewPanel() }
     })
       .margin({ bottom: 14 })
   }
@@ -47,7 +47,7 @@ export struct AdminReportsOverviewSection {
       title: '关键指标',
       subtitle: '用同一套指标视角快速理解当前报表状态',
       customPadding: 12,
-      content: this.buildOverviewMetrics
+      content: () => { this.buildOverviewMetrics() }
     })
     .margin({ left: 16, right: 16, top: 12 })
   }
@@ -95,7 +95,7 @@ export struct AdminFinanceReportList {
           title: '财务摘要',
           subtitle: '先看订单、退款和净收入三项核心数据',
           customPadding: 18,
-          content: this.buildSummaryContent
+          content: () => { this.buildSummaryContent() }
         })
       }
 

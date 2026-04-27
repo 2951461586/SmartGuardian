@@ -14,6 +14,12 @@ local.properties
 !.env.example
 **/agconnect-services.json
 **/agc-apiclient*.json
+**/*private*.json
+secrets/
+*.p12
+*.p7b
+*.cer
+*.csr
 
 # IDE
 .idea/

@@ -158,10 +158,10 @@ export struct ParentAlertsPageContent {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildControlSection,
-        content: this.buildAlertsContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildControlSection() },
+        content: () => { this.buildAlertsContent() }
       })
     }
     .width('100%')
@@ -226,7 +226,7 @@ export struct ParentAlertsPageContent {
       onRetry: () => {
         this.loadPageData();
       },
-      content: this.buildAlertList
+      content: () => { this.buildAlertList() }
     })
       .layoutWeight(1)
   }

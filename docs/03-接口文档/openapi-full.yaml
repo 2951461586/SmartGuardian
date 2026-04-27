@@ -59,6 +59,38 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh current AGC session token
+      x-agc-function-domain: auth
+      x-agc-function-name: smartguardian-auth
+      responses:
+        '200':
+          description: Refreshed login response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginEnvelope'
+  /api/v1/auth/session-device:
+    post:
+      tags: [Auth]
+      summary: Bind current AGC session to a HarmonyOS notification endpoint
+      x-agc-function-domain: auth
+      x-agc-function-name: smartguardian-auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionDeviceRegistrationRequest'
+      responses:
+        '200':
+          description: Session endpoint registration response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionDeviceRegistrationEnvelope'
   /api/v1/auth/me:
     get:
       tags: [User]
@@ -916,6 +948,56 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/LoginData'
+    SessionDeviceRegistrationRequest:
+      type: object
+      required: [deviceId, notificationToken, notificationProvider]
+      properties:
+        deviceId:
+          type: string
+        notificationToken:
+          type: string
+        notificationProvider:
+          type: string
+          example: AGC_GATEWAY
+        authUid:
+          type: string
+        authPhone:
+          type: string
+        clientVersion:
+          type: string
+        clientPlatform:
+          type: string
+          example: HarmonyOS
+    SessionDeviceRegistrationData:
+      type: object
+      properties:
+        sessionId:
+          type: integer
+        userId:
+          type: integer
+        deviceId:
+          type: string
+        notificationProvider:
+          type: string
+        notificationTokenBound:
+          type: boolean
+        authUid:
+          type: string
+        lastActiveAt:
+          type: string
+        persisted:
+          type: boolean
+        compatibilityMode:
+          type: string
+    SessionDeviceRegistrationEnvelope:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SessionDeviceRegistrationData'
     UserEnvelope:
       type: object
       properties:

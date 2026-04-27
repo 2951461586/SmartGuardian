@@ -1,4 +1,4 @@
-import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyReport, HarmonySpace } from '../../common/HarmonyDesign';
 
 export interface StudentGuardianViewModel {
   id: number;
@@ -22,14 +22,14 @@ export struct StudentAttendanceMetricsCard {
       ForEach(this.metrics, (metric: StudentAttendanceMetricViewModel) => {
         Column() {
           Text(metric.value)
-            .fontSize(20)
+            .fontSize($r('app.float.card_title_size'))
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
 
           Text(metric.label)
-            .fontSize(12)
+            .fontSize($r('app.float.text_tiny_size'))
             .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
+            .margin({ top: HarmonySpace.compact / 2 })
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -53,27 +53,27 @@ export struct StudentGuardianItemCard {
     Row() {
       Column() {
         Text(this.item.relationLabel)
-          .fontSize(15)
+          .fontSize($r('app.float.text_secondary_size'))
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
 
         Text(this.item.roleLabel)
-          .fontSize(12)
+          .fontSize($r('app.float.text_tiny_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
+          .margin({ top: HarmonySpace.compact / 2 })
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
       Column() {
         Text(this.item.pickupLabel)
-          .fontSize(12)
+          .fontSize($r('app.float.text_tiny_size'))
           .fontColor(this.resolvePickupLabelColor())
 
         Text(this.item.pickupCode)
-          .fontSize(12)
+          .fontSize($r('app.float.text_tiny_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
+          .margin({ top: HarmonySpace.compact / 2 })
       }
       .alignItems(HorizontalAlign.End)
     }
@@ -81,7 +81,8 @@ export struct StudentGuardianItemCard {
   }
 
   private resolvePickupLabelColor(): string {
-    return this.item.pickupLabel === '宸叉巿鏉冩帴閫?' ? HarmonyReport.positive : HarmonyColor.warning;
+    return this.item.pickupLabel.indexOf('已') >= 0 || this.item.pickupLabel.indexOf('宸') >= 0 ?
+    HarmonyReport.positive : HarmonyColor.warning;
   }
 }
 
@@ -92,7 +93,7 @@ export struct StudentAttendanceStatusChip {
 
   build() {
     Text(this.text)
-      .fontSize(12)
+      .fontSize($r('app.float.text_tiny_size'))
       .fontColor(this.color)
   }
 }

@@ -146,10 +146,10 @@ export struct ParentSessionsPageContent {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildDateSection,
-        content: this.buildSessionContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildDateSection() },
+        content: () => { this.buildSessionContent() }
       })
     }
     .width('100%')
@@ -198,7 +198,7 @@ export struct ParentSessionsPageContent {
         this.selectedDate = formatDate(new Date());
         this.loadSessions();
       },
-      content: this.buildDateContent
+      content: () => { this.buildDateContent() }
     })
   }
 
@@ -253,7 +253,7 @@ export struct ParentSessionsPageContent {
       onRetry: () => {
         this.loadSessions();
       },
-      content: this.buildSessionList
+      content: () => { this.buildSessionList() }
     })
       .layoutWeight(1)
   }

@@ -175,10 +175,10 @@ struct AdminRefundsPage {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildFilterSection,
-        content: this.buildRefundContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildFilterSection() },
+        content: () => { this.buildRefundContent() }
       })
     }
     .width('100%')
@@ -230,7 +230,7 @@ struct AdminRefundsPage {
       onEmptyAction: () => {
         this.loadData();
       },
-      content: this.buildRefundListSection
+      content: () => { this.buildRefundListSection() }
     })
       .layoutWeight(1)
   }

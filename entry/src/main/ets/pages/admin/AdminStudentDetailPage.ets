@@ -230,7 +230,7 @@ struct AdminStudentDetailPage {
     Card({
       title: '监护关系',
       subtitle: `当前已绑定 ${this.guardians.length} 位监护人`,
-      content: this.buildGuardianContent
+      content: () => { this.buildGuardianContent() }
     })
   }
 
@@ -272,7 +272,7 @@ struct AdminStudentDetailPage {
     Card({
       title: '近期考勤',
       subtitle: `近 ${this.recentAttendance.length} 条记录摘要`,
-      content: this.buildAttendanceContent
+      content: () => { this.buildAttendanceContent() }
     })
   }
 

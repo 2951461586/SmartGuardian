@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Teacher Home Page
  * Teacher dashboard refactored into shared dashboard sections.
  */
@@ -362,10 +362,10 @@ export struct TeacherHomePageContent {
         DashboardPageTemplate({
           scrollable: true,
           enableWideContent: true,
-          header: this.buildHeader,
-          hero: this.buildHero,
-          primary: this.buildWorkbenchSection,
-          secondary: this.buildSessionSection
+          header: () => { this.buildHeader() },
+          hero: () => { this.buildHero() },
+          primary: () => { this.buildWorkbenchSection() },
+          secondary: () => { this.buildSessionSection() }
         })
       }
     }

@@ -22,7 +22,7 @@ export struct ParentScheduleCard {
       title: this.title,
       actionText: this.actionText,
       onAction: this.onAction,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

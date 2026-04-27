@@ -114,7 +114,7 @@ export struct VirtualList<T extends VirtualListItem> {
         ListItem() {
           // 子组件通过 @BuilderParam 插入
           Row() {
-            Text('Item: ' + item.id)
+            Text('条目：' + item.id)
               .fontSize(14)
               .fontColor('#333333')
           }

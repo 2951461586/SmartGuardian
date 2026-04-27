@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Admin Home Page
  * Admin dashboard with the new light campus style
  */
@@ -149,10 +149,10 @@ export struct AdminHomePageContent {
         DashboardPageTemplate({
           scrollable: true,
           enableWideContent: true,
-          header: this.buildHeader,
-          hero: this.buildHeroCard,
-          primary: this.buildWorkbenchSection,
-          secondary: this.buildOperationsSection
+          header: () => { this.buildHeader() },
+          hero: () => { this.buildHeroCard() },
+          primary: () => { this.buildWorkbenchSection() },
+          secondary: () => { this.buildOperationsSection() }
         })
       }
     }

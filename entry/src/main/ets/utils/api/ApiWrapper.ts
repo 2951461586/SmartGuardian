@@ -12,19 +12,16 @@
  */
 
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { http } from '@kit.NetworkKit';
 import { router } from '@kit.ArkUI';
 import { ApiConfig } from '../../config/api.config';
 import { RouteUrls, StorageKeys } from '../../constants/app.constants';
 import { ApiResponseHelper } from '../../models/common';
 import { AgcRequestAdapter } from '../../services/agc/AgcRequestAdapter';
-import { MockService } from '../../services/mock/mockService';
 import {
   AppError,
   ErrorCode,
   ErrorCategory,
-  ErrorFactory,
-  ErrorHandler
+  ErrorFactory
 } from '../errors';
 import { ApiResult } from './ApiResult';
 
@@ -106,8 +103,8 @@ interface CacheEntry<T> {
  */
 export class ApiWrapper {
   private static readonly TOKEN_KEY = StorageKeys.TOKEN;
-  private static cache: Map<string, CacheEntry<unknown>> = new Map();
-  private static pendingRequests: Map<string, Promise<ApiResponse<unknown>>> = new Map();
+  private static cache: Map<string, CacheEntry<Object>> = new Map();
+  private static pendingRequests: Map<string, Promise<ApiResult<Object>>> = new Map();
   private static isRedirectingToLogin: boolean = false;
   
   /**
@@ -127,20 +124,26 @@ export class ApiWrapper {
   ): Promise<ApiResult<T>> {
     let fullUrl = url;
     if (params) {
-      const queryString = Object.entries(params)
-        .filter(([, value]) => value !== undefined && value !== null)
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-        .join('&');
-      if (queryString) {
-        fullUrl += (url.includes('?') ? '&' : '?') + queryString;
+      const queryStringParts: string[] = [];
+      const paramsRecord = params as Record<string, string | number | boolean | null | undefined>;
+      const paramKeys = Object.keys(paramsRecord);
+      for (let i = 0; i < paramKeys.length; i++) {
+        const key = paramKeys[i];
+        const value = paramsRecord[key];
+        if (value !== undefined && value !== null) {
+          queryStringParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+        }
+      }
+      if (queryStringParts.length > 0) {
+        fullUrl += (url.includes('?') ? '&' : '?') + queryStringParts.join('&');
       }
     }
-    
-    return this.request<T>({
+
+    const requestOptions: RequestOptions = {
       url: fullUrl,
-      method: HttpMethod.GET,
-      ...options
-    });
+      method: HttpMethod.GET
+    };
+    return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
   
   /**
@@ -158,12 +161,12 @@ export class ApiWrapper {
     data?: object,
     options?: Partial<RequestOptions>
   ): Promise<ApiResult<T>> {
-    return this.request<T>({
+    const requestOptions: RequestOptions = {
       url,
       method: HttpMethod.POST,
-      data,
-      ...options
-    });
+      data
+    };
+    return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
   
   /**
@@ -181,12 +184,12 @@ export class ApiWrapper {
     data?: object,
     options?: Partial<RequestOptions>
   ): Promise<ApiResult<T>> {
-    return this.request<T>({
+    const requestOptions: RequestOptions = {
       url,
       method: HttpMethod.PUT,
-      data,
-      ...options
-    });
+      data
+    };
+    return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
   
   /**
@@ -202,11 +205,11 @@ export class ApiWrapper {
     url: string,
     options?: Partial<RequestOptions>
   ): Promise<ApiResult<T>> {
-    return this.request<T>({
+    const requestOptions: RequestOptions = {
       url,
-      method: HttpMethod.DELETE,
-      ...options
-    });
+      method: HttpMethod.DELETE
+    };
+    return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
   
   /**
@@ -218,19 +221,17 @@ export class ApiWrapper {
    * @returns {Promise<ApiResult<T>>} API结果
    */
   static async request<T>(options: RequestOptions): Promise<ApiResult<T>> {
-    const {
-      url,
-      method,
-      data,
-      headers = {},
-      needAuth = true,
-      timeout = ApiConfig.TIMEOUT,
-      retryCount = 0,
-      retryDelay = 1000,
-      enableCache = false,
-      cacheTime = 5 * 60 * 1000,
-      source = 'ApiWrapper'
-    } = options;
+    const url = options.url;
+    const method = options.method;
+    const data = options.data;
+    const headers = options.headers ?? {};
+    const needAuth = options.needAuth ?? true;
+    const timeout = options.timeout ?? ApiConfig.TIMEOUT;
+    const retryCount = options.retryCount ?? 0;
+    const retryDelay = options.retryDelay ?? 1000;
+    const enableCache = options.enableCache ?? false;
+    const cacheTime = options.cacheTime ?? 5 * 60 * 1000;
+    const source = options.source ?? 'ApiWrapper';
     
     // 检查缓存（仅GET请求）
     if (method === HttpMethod.GET && enableCache) {
@@ -244,8 +245,10 @@ export class ApiWrapper {
     const requestKey = `${method}:${url}:${JSON.stringify(data)}`;
     if (method !== HttpMethod.GET && this.pendingRequests.has(requestKey)) {
       try {
-        const response = await this.pendingRequests.get(requestKey) as ApiResponse<T>;
-        return ApiResult.success(response.data);
+        const pendingRequest = this.pendingRequests.get(requestKey);
+        if (pendingRequest) {
+          return await pendingRequest as ApiResult<T>;
+        }
       } catch (error) {
         return ApiResult.failure(error as AppError);
       }
@@ -279,10 +282,7 @@ export class ApiWrapper {
         if (retryCount > 0 && appError.retryable) {
           hilog.warn(DOMAIN, TAG, `Retrying request: ${url}, remaining: ${retryCount}`);
           await this.delay(retryDelay);
-          return this.request<T>({
-            ...options,
-            retryCount: retryCount - 1
-          });
+          return this.request<T>(this.copyRequestOptionsWithRetry(options, retryCount - 1));
         }
         
         return ApiResult.failure(appError);
@@ -292,12 +292,7 @@ export class ApiWrapper {
     // 设置pending请求
     const requestPromise = executeRequest();
     if (method !== HttpMethod.GET) {
-      this.pendingRequests.set(requestKey, requestPromise.then(r => {
-        if (r.isSuccess) {
-          return { code: 0, message: 'success', data: r.data! };
-        }
-        throw r.error;
-      }) as Promise<ApiResponse<unknown>>);
+      this.pendingRequests.set(requestKey, requestPromise as Promise<ApiResult<Object>>);
     }
     
     try {
@@ -319,158 +314,115 @@ export class ApiWrapper {
     timeout: number;
     source: string;
   }): Promise<ApiResponse<T>> {
-    const { url, method, data, headers, needAuth, timeout, source } = options;
-    
-    // Mock模式
-    if (ApiConfig.isMockEnabled()) {
-      return MockService.handleMockRequest<T>({
-        url,
-        method: method as unknown as import('../../utils/request').HttpMethod,
-        data,
-        headers,
-        needAuth
-      });
-    }
-
-    if (ApiConfig.isAgcEnabled()) {
-      try {
-        const result = await AgcRequestAdapter.request<T>({
-          url,
-          method,
-          data,
-          headers,
-          needAuth,
-          timeout,
-          source
-        });
-
-        if (ApiResponseHelper.isAuthError(result.code)) {
-          this.handleUnauthorized();
-          throw ErrorFactory.tokenExpired({ source, operation: url });
-        }
-
-        if (!ApiResponseHelper.isSuccess(result.code)) {
-          throw new AppError(
-            result.message || 'Business request failed',
-            ErrorCode.BIZ_OPERATION_FAILED,
-            ErrorCategory.BUSINESS,
-            { context: { source, operation: url } }
-          );
-        }
-
-        return result;
-      } catch (error) {
-        if (error instanceof AppError) {
-          throw error;
-        }
-        throw ErrorFactory.fromError(error as Error, { source, operation: url });
-      }
-    }
-
-    const baseUrl = ApiConfig.getBaseUrl();
-    if (!url.startsWith('http') && baseUrl.length === 0) {
-      throw ErrorFactory.invalidParam('ApiConfig real backend address is not configured', { source });
-    }
-
-    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
-    
-    // 构建请求头
-    const requestHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...headers
-    };
-    
-    if (needAuth) {
-      const token = this.getToken();
-      if (token) {
-        requestHeaders['Authorization'] = `Bearer ${token}`;
-      }
-    }
-    
-    // 创建HTTP客户端
-    const httpClient = http.createHttp();
-    
-    // 转换HTTP方法
-    let requestMethod: http.RequestMethod = http.RequestMethod.GET;
-    switch (method) {
-      case HttpMethod.POST:
-        requestMethod = http.RequestMethod.POST;
-        break;
-      case HttpMethod.PUT:
-        requestMethod = http.RequestMethod.PUT;
-        break;
-      case HttpMethod.DELETE:
-        requestMethod = http.RequestMethod.DELETE;
-        break;
-      default:
-        requestMethod = http.RequestMethod.GET;
-    }
-    
-    const httpOptions: http.HttpRequestOptions = {
-      method: requestMethod,
-      header: requestHeaders,
-      connectTimeout: timeout,
-      readTimeout: timeout,
-      extraData: method !== HttpMethod.GET && data ? JSON.stringify(data) : undefined
-    };
-    
-    if (ApiConfig.ENABLE_LOGGING) {
-      hilog.info(DOMAIN, TAG, `[${method}] ${fullUrl}`);
-    }
+    const url = options.url;
+    const method = options.method;
+    const data = options.data;
+    const headers = options.headers;
+    const needAuth = options.needAuth;
+    const timeout = options.timeout;
+    const source = options.source;
     
     try {
-      const response = await httpClient.request(fullUrl, httpOptions);
-      
-      // 检查HTTP状态码
-      if (!response.responseCode || response.responseCode >= 400) {
-        if (response.responseCode === 401) {
-          this.handleUnauthorized();
-          throw ErrorFactory.tokenExpired({ source, operation: url });
-        }
-        if (response.responseCode === 403) {
-          throw ErrorFactory.permissionDenied({ source, operation: url });
-        }
-        throw ErrorFactory.network(`HTTP Error: ${response.responseCode}`, { source });
-      }
-      
-      // 解析响应
-      const result = JSON.parse(response.result as string) as ApiResponse<T>;
-      
-      if (ApiConfig.ENABLE_LOGGING) {
-        hilog.info(DOMAIN, TAG, `Response: ${JSON.stringify(result).substring(0, 200)}`);
-      }
-      
-      // 检查业务状态码
+      const result = await AgcRequestAdapter.request<T>({
+        url,
+        method,
+        data,
+        headers,
+        needAuth,
+        timeout,
+        source
+      });
+
       if (ApiResponseHelper.isAuthError(result.code)) {
         this.handleUnauthorized();
         throw ErrorFactory.tokenExpired({ source, operation: url });
       }
-      
+
       if (!ApiResponseHelper.isSuccess(result.code)) {
         throw new AppError(
-          result.message || '业务处理失败',
+          result.message || 'Business request failed',
           ErrorCode.BIZ_OPERATION_FAILED,
           ErrorCategory.BUSINESS,
           { context: { source, operation: url } }
         );
       }
-      
+
       return result;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
       }
       throw ErrorFactory.fromError(error as Error, { source, operation: url });
-    } finally {
-      httpClient.destroy();
     }
   }
+
   
-  /**
-   * Get token
-   */
-  private static getToken(): string | null {
-    return AppStorage.get<string>(this.TOKEN_KEY) ?? null;
+
+  private static applyPartialOptions(
+    requestOptions: RequestOptions,
+    options?: Partial<RequestOptions>
+  ): RequestOptions {
+    if (!options) {
+      return requestOptions;
+    }
+    if (options.headers !== undefined) {
+      requestOptions.headers = options.headers;
+    }
+    if (options.needAuth !== undefined) {
+      requestOptions.needAuth = options.needAuth;
+    }
+    if (options.timeout !== undefined) {
+      requestOptions.timeout = options.timeout;
+    }
+    if (options.retryCount !== undefined) {
+      requestOptions.retryCount = options.retryCount;
+    }
+    if (options.retryDelay !== undefined) {
+      requestOptions.retryDelay = options.retryDelay;
+    }
+    if (options.enableCache !== undefined) {
+      requestOptions.enableCache = options.enableCache;
+    }
+    if (options.cacheTime !== undefined) {
+      requestOptions.cacheTime = options.cacheTime;
+    }
+    if (options.source !== undefined) {
+      requestOptions.source = options.source;
+    }
+    return requestOptions;
+  }
+
+  private static copyRequestOptionsWithRetry(options: RequestOptions, retryCount: number): RequestOptions {
+    const retryOptions: RequestOptions = {
+      url: options.url,
+      method: options.method
+    };
+    if (options.data !== undefined) {
+      retryOptions.data = options.data;
+    }
+    if (options.headers !== undefined) {
+      retryOptions.headers = options.headers;
+    }
+    if (options.needAuth !== undefined) {
+      retryOptions.needAuth = options.needAuth;
+    }
+    if (options.timeout !== undefined) {
+      retryOptions.timeout = options.timeout;
+    }
+    retryOptions.retryCount = retryCount;
+    if (options.retryDelay !== undefined) {
+      retryOptions.retryDelay = options.retryDelay;
+    }
+    if (options.enableCache !== undefined) {
+      retryOptions.enableCache = options.enableCache;
+    }
+    if (options.cacheTime !== undefined) {
+      retryOptions.cacheTime = options.cacheTime;
+    }
+    if (options.source !== undefined) {
+      retryOptions.source = options.source;
+    }
+    return retryOptions;
   }
   
   /**
@@ -552,10 +504,25 @@ export class ApiWrapper {
  * Convenience functions
  */
 export const api = {
-  get: ApiWrapper.get.bind(ApiWrapper),
-  post: ApiWrapper.post.bind(ApiWrapper),
-  put: ApiWrapper.put.bind(ApiWrapper),
-  delete: ApiWrapper.delete.bind(ApiWrapper),
-  request: ApiWrapper.request.bind(ApiWrapper),
-  clearCache: ApiWrapper.clearCache.bind(ApiWrapper)
+  get: <T>(
+    url: string,
+    params?: object,
+    options?: Partial<RequestOptions>
+  ): Promise<ApiResult<T>> => ApiWrapper.get<T>(url, params, options),
+  post: <T>(
+    url: string,
+    data?: object,
+    options?: Partial<RequestOptions>
+  ): Promise<ApiResult<T>> => ApiWrapper.post<T>(url, data, options),
+  put: <T>(
+    url: string,
+    data?: object,
+    options?: Partial<RequestOptions>
+  ): Promise<ApiResult<T>> => ApiWrapper.put<T>(url, data, options),
+  delete: <T>(
+    url: string,
+    options?: Partial<RequestOptions>
+  ): Promise<ApiResult<T>> => ApiWrapper.delete<T>(url, options),
+  request: <T>(options: RequestOptions): Promise<ApiResult<T>> => ApiWrapper.request<T>(options),
+  clearCache: (url?: string): void => ApiWrapper.clearCache(url)
 };

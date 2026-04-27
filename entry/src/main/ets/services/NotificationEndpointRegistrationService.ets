@@ -1,7 +1,6 @@
 import { ApiConfig } from '../config/api.config';
-import { AppConstants } from '../constants/app.constants';
-import { AgcRuntimeService } from './agc/AgcRuntimeService';
-import { AuthService, SessionDeviceRegistrationRequest } from './api/auth';
+import { AuthService } from './api/auth';
+import { HarmonyPushEndpointService } from './HarmonyPushEndpointService';
 import { LogUtil } from '../utils/LogUtil';
 import { getToken } from '../utils/request';
 
@@ -18,21 +17,13 @@ export class NotificationEndpointRegistrationService {
       return;
     }
 
-    const deviceId = AgcRuntimeService.getAaid();
-    const notificationToken = AgcRuntimeService.getGatewayToken();
-    if (deviceId.length === 0 || notificationToken.length === 0) {
-      LogUtil.warn(TAG, 'Skip session notification registration because AGC device identity is incomplete');
+    if (!HarmonyPushEndpointService.canRegisterRemoteEndpoint()) {
+      const status = HarmonyPushEndpointService.getStatus();
+      LogUtil.warn(TAG, `Skip session endpoint registration: ${status.message}`);
       return;
     }
 
-    const request = new SessionDeviceRegistrationRequest();
-    request.deviceId = deviceId;
-    request.notificationToken = notificationToken;
-    request.notificationProvider = 'AGC_GATEWAY';
-    request.authUid = AgcRuntimeService.getAuthUserUid();
-    request.authPhone = AgcRuntimeService.getAuthUserPhone();
-    request.clientVersion = AppConstants.APP_VERSION;
-    request.clientPlatform = 'HarmonyOS';
+    const request = HarmonyPushEndpointService.buildSessionDeviceRegistrationRequest();
 
     try {
       const response = await AuthService.registerSessionDevice(request);

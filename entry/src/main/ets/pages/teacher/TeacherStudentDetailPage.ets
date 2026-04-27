@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Teacher Student Detail Page
  * Student overview for teacher flow
  */
@@ -137,13 +137,13 @@ struct TeacherStudentDetailPage {
             Card({
               title: '近期考勤',
               subtitle: '便于老师快速判断学生当前托管状态',
-              content: this.buildAttendanceContent
+              content: () => { this.buildAttendanceContent() }
             })
 
             Card({
               title: '作业跟进',
               subtitle: `当前累计 ${this.homeworkTasks.length} 条任务`,
-              content: this.buildHomeworkContent
+              content: () => { this.buildHomeworkContent() }
             })
           }
           .width('100%')

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Parent Orders Page
  * Parent can view and manage their orders
  *
@@ -234,7 +234,7 @@ export struct ParentOrdersPageContent {
       title: '订单筛选',
       subtitle: '按状态切换当前工作视图',
       customPadding: 12,
-      content: this.buildTabSectionContent
+      content: () => { this.buildTabSectionContent() }
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }

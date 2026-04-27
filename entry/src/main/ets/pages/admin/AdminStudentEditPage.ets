@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Admin Student Edit Page
  * Student create and edit page for admin flow
  */
@@ -249,7 +249,7 @@ struct AdminStudentEditPage {
       Card({
         title: '学生信息',
         subtitle: '这些字段决定档案识别与后续检索。',
-        content: this.buildBasicContent
+        content: () => { this.buildBasicContent() }
       })
     }
     .width('100%')
@@ -290,13 +290,13 @@ struct AdminStudentEditPage {
     Column() {
       SectionHeader({
         title: '归属关系',
-        subtitle: '把学校、班级和监护人 ID 维护完整，后续接口就能串起来。'
+        subtitle: '完善学校、班级和监护人信息，便于后续服务协同。'
       })
 
       Card({
         title: '组织与监护',
-        subtitle: '当前先沿用项目现有数据结构，以 ID 方式维护归属。',
-        content: this.buildSchoolContent
+        subtitle: '维护学生所在组织和家庭监护信息。',
+        content: () => { this.buildSchoolContent() }
       })
     }
     .width('100%')
@@ -335,7 +335,7 @@ struct AdminStudentEditPage {
       Card({
         title: '健康备注',
         subtitle: '可填写过敏、用药提醒、特殊照护要求等。',
-        content: this.buildExtraContent
+        content: () => { this.buildExtraContent() }
       })
     }
     .width('100%')
@@ -413,10 +413,8 @@ struct AdminStudentEditPage {
 
   private getOverviewItems(): InfoItem[] {
     return [
-      { label: '页面模式', value: this.isEditMode ? '编辑档案' : '新建档案' },
-      { label: '保存策略', value: '直接走 StudentService' },
-      { label: '缓存处理', value: '保存后清空学生列表缓存' },
-      { label: '字段范围', value: '基础档案 + 归属关系 + 健康备注' }
+      { label: '档案状态', value: this.isEditMode ? '正在编辑' : '新建档案' },
+      { label: '资料范围', value: '基础档案 + 归属关系 + 健康备注' }
     ];
   }
 }

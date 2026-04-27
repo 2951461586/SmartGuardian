@@ -3,13 +3,13 @@
  * Shared quick action grid used by parent, teacher and admin dashboards
  */
 
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
 import { WorkbenchModule } from '../../models/workbench';
 
 @Component
 export struct WorkbenchActionGrid {
   @Prop modules: WorkbenchModule[] = [];
-  @Prop titleFontSize: number = 14;
+  @Prop titleFontSize: Resource = $r('app.float.text_secondary_size');
   subtitleResolver: (code: string) => string = (_: string): string => '进入模块';
   iconResolver: (code: string) => Resource = (_: string): Resource => $r('app.media.ic_home');
   bgColorResolver: (code: string) => string = (_: string): string => HarmonyColor.surfaceSubtle;
@@ -32,7 +32,7 @@ export struct WorkbenchActionGrid {
           })
         }
         .width('100%')
-        .margin({ top: 14 })
+        .margin({ top: HarmonySpace.section })
       }
     }
     .width('100%')
@@ -43,27 +43,27 @@ export struct WorkbenchActionGrid {
     Column() {
       Column() {
         Image(this.iconResolver(module.code))
-          .width(22)
-          .height(22)
+          .width($r('app.float.icon_small_size'))
+          .height($r('app.float.icon_small_size'))
           .objectFit(ImageFit.Contain)
           .fillColor(this.iconColorResolver(module.code))
       }
-      .width(52)
-      .height(52)
+      .width($r('app.float.list_item_height'))
+      .height($r('app.float.list_item_height'))
       .justifyContent(FlexAlign.Center)
       .backgroundColor(this.bgColorResolver(module.code))
-      .borderRadius(18)
+      .borderRadius(HarmonyRadius.control)
 
       Text(module.name)
         .fontSize(this.titleFontSize)
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
-        .margin({ top: 10 })
+        .margin({ top: HarmonySpace.compact })
 
       Text(this.subtitleResolver(module.code))
-        .fontSize(12)
+        .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
-        .margin({ top: 4 })
+        .margin({ top: HarmonySpace.compact / 2 })
     }
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Center)

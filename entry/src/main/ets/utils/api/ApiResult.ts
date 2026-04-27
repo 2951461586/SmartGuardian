@@ -10,7 +10,7 @@
  * - 错误信息封装
  */
 
-import { AppError } from '../errors';
+import { AppError, ErrorHandler } from '../errors';
 
 /**
  * API Result
@@ -210,7 +210,6 @@ export class ApiResult<T> {
       const data = await promise;
       return ApiResult.success(data);
     } catch (error) {
-      const { ErrorHandler } = require('../errors/ErrorHandler');
       const appError = ErrorHandler.handle(error as Error);
       return ApiResult.failure<T>(appError);
     }

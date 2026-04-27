@@ -7,8 +7,8 @@
 1. **当前阶段：DEV_MOCK**
    - 目标：验证前端实际调用接口都能命中 Mock，不再出现 `Mock route not found`
    - 重点：响应结构可被页面消费，关键字段齐全
-2. **后续阶段：TEST_REAL**
-   - 目标：切换 `entry/src/main/ets/config/api.config.ts` 后，对真实后端做最小可用连通性验证
+2. **AGC 阶段：AGC_SERVERLESS**
+   - 目标：切换 `entry/src/main/ets/config/api.config.ts` 后，对 AGC API Gateway + Cloud Functions 做最小可用连通性验证
    - 重点：接口可达、鉴权可用、业务返回结构与前端约定一致
 
 ---
@@ -24,10 +24,10 @@
   - 不出现 `Mock route not found`
   - 列表接口返回 `data.list` / `data.total` 或前端当前消费的约定结构
 
-### 2.2 TEST_REAL
+### 2.2 AGC_SERVERLESS
 
-- `ApiConfig.CURRENT_ENV === TEST_REAL`
-- `ApiConfig.TEST_BASE_URL` 必须配置为真实后端地址
+- `ApiConfig.CURRENT_ENV === AGC_SERVERLESS`
+- AGC API Gateway 地址、函数 manifest 与 `AgcFunctionContracts.ts` 必须一致
 - 如需登录态，先完成登录并确认 token 已写入 `AppStorage`
 - 关键断言：
   - 非公开接口返回 200/业务成功码
@@ -40,7 +40,7 @@
 
 > 说明：
 > - “Mock 覆盖”表示本轮是否已在 `entry/src/main/ets/services/mock/mockService.ts` 中补齐
-> - “鉴权”表示切到真实后端时通常是否需要登录态
+> - “鉴权”表示切到 AGC Serverless 时通常是否需要登录态
 
 ### 3.1 Auth
 
@@ -225,11 +225,11 @@
 
 ---
 
-## 5. 当前结论（2026-04-21）
+## 5. 当前结论（2026-04-27）
 
 ### 5.1 本轮 Mock 验证结果
 
-- 当前 `entry/src/main/ets/config/api.config.ts` 仍默认使用 `DEV_MOCK`，`TEST_BASE_URL` 为空，当前轮次仅能完成 Mock 联通验证。
+- 当前 `entry/src/main/ets/config/api.config.ts` 保留 `DEV_MOCK` 与 `AGC_SERVERLESS` 两条主线，旧 `TEST_REAL` 直连后端口径不再作为当前联调目标。
 - `entry/src/main/ets/services/mock/mockService.ts` 已覆盖 Auth、Students、Service Products、Orders、Sessions、Attendance/Leave、Homework、Messages、Timeline、Cards、Alerts、Payments、Refunds、Reports 等主模块，主干接口已具备 `code=0` 响应能力。
 - 家长端主链路依赖的首页卡片、服务详情、下单、订单详情、支付、消息、作业、时间线等接口，均可在 Mock 层命中。
 - 教师端主链路依赖的今日班次、考勤列表、扫码签到、作业反馈、消息入口等接口，均已有 Mock 支撑。
@@ -249,13 +249,13 @@
    - `GET /api/v1/reports/attendance/daily`、`/attendance/students`、`/finance/daily`、`/finance/products`
 2. `entry/src/main/ets/services/api/attendance.ts` 目前仅暴露签到、签退、异常考勤与请假提交；Mock 已支持请假列表、取消请假、统计接口，但旧服务层未完全暴露，后续建议统一到单一 API 服务出口。
 3. `entry/src/main/ets/services/api/service.ts` 中 `getTodaySessions()` 实际仍调用 `/api/v1/sessions` + `sessionDate=today`，而常量层与 Mock 已提供 `/api/v1/sessions/today`；当前可用，但存在路径语义不统一问题。
-4. `docs/08-优化改造/功能收口清单-SmartGuardian.md` 中“核心功能 100% 完成”的表述应视为 Mock 阶段完成，不应等同于真实后端联调完成。
+4. 历史优化清单中的“核心功能 100% 完成”应理解为 Mock/页面主流程完成，不等同于生产 AGC 环境验收完成。
 
 ## 6. 建议执行顺序
 
 1. 先在 `DEV_MOCK` 下逐模块过一遍页面主流程
 2. 若出现接口错误，优先看是否仍落入 `Mock route not found`
 3. 补齐接口清单文档与当前代码实际调用之间的差异
-4. Mock 验证通过后，再配置 `TEST_REAL` 和 `TEST_BASE_URL`
+4. Mock 验证通过后，切换 `AGC_SERVERLESS` 并确认 AGC API Gateway、函数 manifest、OpenAPI 与 Cloud DB schema 一致
 5. 按本清单最少覆盖：Auth、Students、Attendance、Messages、Refunds、Reports
-6. 最后做一次 `entry` 模块构建验证
+6. 最后执行 `scripts/run-refactor-gates.ps1` 与 `hvigorw assembleHap --analyze=advanced`

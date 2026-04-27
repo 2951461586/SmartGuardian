@@ -4,13 +4,9 @@
  */
 
 import {
-  GreetingHeader,
-  HeaderTheme,
   IconActionButton,
   LoadingSize,
   LoadingState,
-  PageScaffold,
-  ParentHomeWorkspaceSection,
   ParentScheduleNode,
   WorkbenchActionGrid
 } from '../../components/common';
@@ -191,37 +187,53 @@ export struct ParentHomePageContent {
 
   build() {
     Column() {
-      PageScaffold({
-        scrollable: false,
-        enableWideContent: true,
-        header: this.buildHeader,
-        content: this.buildBody
-      })
+      this.buildDirectHeader()
+
+      if (this.isLoading) {
+        LoadingState({ loadingSize: LoadingSize.DEFAULT })
+          .layoutWeight(1)
+      } else {
+        Scroll() {
+          this.buildContent()
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
+      }
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
-  private buildHeader() {
-    GreetingHeader({
-      userName: this.userName,
-      greeting: this.workbenchManifest?.summary.description ?? '欢迎使用智慧学生管理系统 · 家长端',
-      theme: HeaderTheme.WHITE,
-      badgeText: '家长端',
-      metaText: this.workbenchManifest?.visual.slogan ?? (this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排')
-    }) {
+  private buildDirectHeader() {
+    Row() {
+      Column() {
+        Text(this.userName.length > 0 ? `${this.userName}，您好` : '家长，您好')
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+
+        Text(this.workbenchManifest?.visual.slogan ?? (this.todaySummary?.studentName ? `当前关注：${this.todaySummary.studentName}` : '实时同步学生签到、作业与托管安排'))
+          .fontSize(13)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 6 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
       this.buildHeaderActions()
     }
-  }
-
-  @Builder
-  private buildBody() {
-    if (this.isLoading) {
-      LoadingState({ loadingSize: LoadingSize.DEFAULT })
-    } else {
-      this.buildContent()
-    }
+    .width('100%')
+    .padding({ left: 18, right: 18, top: 18, bottom: 14 })
+    .backgroundColor($r('app.color.card_background'))
+    .border({
+      width: { bottom: 1 },
+      color: $r('app.color.divider'),
+      style: BorderStyle.Solid
+    })
   }
 
   @Builder
@@ -248,30 +260,155 @@ export struct ParentHomePageContent {
 
   @Builder
   private buildContent() {
-    ParentHomeWorkspaceSection({
-      studentName: this.getDisplayStudentName(),
-      studentMeta: this.getDisplayStudentMeta(),
-      studentNo: this.getDisplayStudentNo(),
-      schoolName: this.getDisplaySchoolName(),
-      sessionTitle: this.getSessionTitle(),
-      noticeSummary: this.getNoticeSummary(),
-      noticeDateText: this.getNoticeDateText(),
-      scheduleItems: this.getScheduleItems(),
-      recentHomework: this.recentHomework,
-      homeworkSubtitle: this.errorMessage ? this.errorMessage : '及时了解老师反馈和最近作业进度。',
-      homeworkFallbackText: this.getHomeworkFallbackText(),
-      quickActionsTitle: this.workbenchManifest?.summary.title ?? '常用功能',
-      quickActionsSubtitle: this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '预约、订单、消息和学生动态入口。',
-      onQuickActions: () => {
-        this.pushPage(RouteUrls.PARENT_SERVICES);
-      },
-      onTimeline: (): void => {
-        this.pushPage(RouteUrls.PARENT_TIMELINE);
-      },
-      onHomework: (): void => {
-        this.pushPage(RouteUrls.PARENT_HOMEWORK);
-      },
-      quickActionsContent: this.buildQuickActionsContent
+    Column() {
+      Column() {
+        Text(this.getDisplayStudentName())
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+
+        Text(`${this.getDisplaySchoolName()} · ${this.getDisplayStudentMeta()}`)
+          .fontSize(13)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 6 })
+
+        Text(`学号：${this.getDisplayStudentNo()}`)
+          .fontSize(12)
+          .fontColor($r('app.color.text_tertiary'))
+          .margin({ top: 6 })
+      }
+      .width('100%')
+      .padding(18)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(20)
+      .border({
+        width: 1,
+        color: $r('app.color.divider'),
+        radius: 20,
+        style: BorderStyle.Solid
+      })
+
+      this.buildScheduleCard()
+      this.buildQuickActionsCard()
+      this.buildHomeworkCard()
+    }
+    .width('100%')
+    .padding({ left: 14, right: 14, top: 14, bottom: 18 })
+  }
+
+  @Builder
+  private buildScheduleCard() {
+    Column() {
+      Text('今日托管')
+        .width('100%')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      ForEach(this.getScheduleItems(), (item: ParentScheduleNode) => {
+        Row() {
+          Text(item.time)
+            .width(92)
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+
+          Column() {
+            Text(item.title)
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+
+            Text(item.statusText)
+              .fontSize(12)
+              .fontColor(item.statusColor)
+              .margin({ top: 4 })
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+        .padding({ top: 12 })
+      }, (item: ParentScheduleNode) => `${item.time}-${item.title}`)
+    }
+    .width('100%')
+    .padding(18)
+    .margin({ top: 12 })
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(20)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 20,
+      style: BorderStyle.Solid
+    })
+  }
+
+  @Builder
+  private buildQuickActionsCard() {
+    Column() {
+      Text(this.workbenchManifest?.summary.title ?? '常用功能')
+        .width('100%')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      Text(this.workbenchManifest ? `能力清单：${this.workbenchManifest.version}` : '预约、订单、消息和学生动态入口。')
+        .width('100%')
+        .fontSize(12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 6, bottom: 14 })
+
+      this.buildQuickActionsContent()
+    }
+    .width('100%')
+    .padding(18)
+    .margin({ top: 12 })
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(20)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 20,
+      style: BorderStyle.Solid
+    })
+  }
+
+  @Builder
+  private buildHomeworkCard() {
+    Column() {
+      Text('学习反馈')
+        .width('100%')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      if (this.recentHomework.length > 0) {
+        ForEach(this.recentHomework, (task: HomeworkTask) => {
+          Text(task.title)
+            .width('100%')
+            .fontSize(14)
+            .fontColor($r('app.color.text_primary'))
+            .margin({ top: 10 })
+        }, (task: HomeworkTask) => `${task.id}`)
+      } else {
+        Text(this.getHomeworkFallbackText())
+          .width('100%')
+          .fontSize(13)
+          .lineHeight(20)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 10 })
+      }
+    }
+    .width('100%')
+    .padding(18)
+    .margin({ top: 12 })
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(20)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 20,
+      style: BorderStyle.Solid
     })
   }
 
@@ -279,7 +416,7 @@ export struct ParentHomePageContent {
   private buildQuickActionsContent() {
     WorkbenchActionGrid({
       modules: this.getActionModules(),
-      titleFontSize: 15,
+      titleFontSize: $r('app.float.text_secondary_size'),
       subtitleResolver: (code: string): string => this.getModuleSubtitle(code),
       iconResolver: (code: string): Resource => this.getModuleIcon(code),
       bgColorResolver: (code: string): string => this.getModuleBgColor(code),

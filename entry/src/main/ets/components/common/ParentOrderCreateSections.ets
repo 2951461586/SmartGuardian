@@ -13,7 +13,7 @@ export struct OrderCreateServiceSummaryCard {
     Card({
       title: '服务信息',
       subtitle: '确认当前报名服务和单价。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -54,7 +54,7 @@ export struct OrderCreateStudentSection {
         title: '学生信息',
         actionText: '选择学生',
         onAction: this.onSelect,
-        content: this.buildContent
+        content: () => { this.buildContent() }
       })
     }
     .width('100%')
@@ -85,7 +85,7 @@ export struct OrderCreateDateSection {
 
       Card({
         title: '日期选择',
-        content: this.buildContent
+        content: () => { this.buildContent() }
       })
     }
     .width('100%')
@@ -146,7 +146,7 @@ export struct OrderAmountSummarySection {
 
       Card({
         title: '结算信息',
-        content: this.buildContent
+        content: () => { this.buildContent() }
       })
     }
     .width('100%')
@@ -208,7 +208,7 @@ export struct OrderCreateNotesCard {
     Card({
       title: '温馨提示',
       subtitle: '下单前请留意优惠规则和审核时效。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

@@ -6,9 +6,29 @@
 import { RouteUrls } from '../constants/app.constants';
 import { UserStore } from '../stores/userStore';
 import { NotificationLaunchService } from './NotificationLaunchService';
+import { HarmonyAccountService, HarmonyAccountStatus } from './HarmonyAccountService';
+import { HarmonyPushEndpointService, HarmonyPushEndpointStatus } from './HarmonyPushEndpointService';
 import { NotificationUtil } from '../utils/NotificationUtil';
 
+export class HarmonyCapabilityStatus {
+  account: HarmonyAccountStatus = new HarmonyAccountStatus();
+  push: HarmonyPushEndpointStatus = new HarmonyPushEndpointStatus();
+  notificationEnabled: boolean = true;
+  attendanceReminderEnabled: boolean = true;
+  locationReady: boolean = true;
+}
+
 export class HarmonyCapabilityService {
+  static getCapabilityStatus(): HarmonyCapabilityStatus {
+    const status = new HarmonyCapabilityStatus();
+    status.account = HarmonyAccountService.getStatus();
+    status.push = HarmonyPushEndpointService.getStatus();
+    status.notificationEnabled = HarmonyCapabilityService.isNotificationEnabled();
+    status.attendanceReminderEnabled = HarmonyCapabilityService.isAttendanceReminderEnabled();
+    status.locationReady = true;
+    return status;
+  }
+
   static isNotificationEnabled(): boolean {
     return UserStore.getUserPreferences().enableNotifications !== false;
   }

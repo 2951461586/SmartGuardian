@@ -18,7 +18,7 @@ export struct FormPageTemplate {
       enableWideContent: true,
       topPadding: 28,
       bottomPadding: 28,
-      content: this.buildBody
+      content: () => { this.buildBody() }
     })
   }
 
@@ -30,7 +30,7 @@ export struct FormPageTemplate {
         subtitle: this.subtitle,
         illustration: this.illustration,
         maxWidth: this.maxWidth,
-        content: this.buildFormContent
+        content: () => { this.buildFormContent() }
       })
     }
     .width('100%')
@@ -62,8 +62,8 @@ export struct DashboardPageTemplate {
     PageScaffold({
       scrollable: this.scrollable,
       enableWideContent: this.enableWideContent,
-      header: this.buildHeaderSlot,
-      content: this.buildBody
+      header: () => { this.buildHeaderSlot() },
+      content: () => { this.buildBody() }
     })
   }
 
@@ -73,8 +73,8 @@ export struct DashboardPageTemplate {
       this.buildHeroSlot()
 
       ResponsiveSplitPanel({
-        primary: this.buildPrimarySlot,
-        secondary: this.buildSecondarySlot
+        primary: () => { this.buildPrimarySlot() },
+        secondary: () => { this.buildSecondarySlot() }
       })
 
       this.buildTailSlot()
@@ -127,8 +127,8 @@ export struct WorkbenchListPageTemplate {
     PageScaffold({
       scrollable: this.scrollable,
       enableWideContent: this.enableWideContent,
-      header: this.buildHeaderSlot,
-      content: this.buildBody
+      header: () => { this.buildHeaderSlot() },
+      content: () => { this.buildBody() }
     })
   }
 
@@ -184,7 +184,7 @@ export struct ProfileWorkspaceTemplate {
       enableWideContent: this.enableWideContent,
       topPadding: 0,
       bottomPadding: this.bottomSpacing,
-      content: this.buildBody
+      content: () => { this.buildBody() }
     })
   }
 
@@ -194,8 +194,8 @@ export struct ProfileWorkspaceTemplate {
       this.buildHeroSlot()
 
       ResponsiveSplitPanel({
-        primary: this.buildSummarySlot,
-        secondary: this.buildActionsSlot
+        primary: () => { this.buildSummarySlot() },
+        secondary: () => { this.buildActionsSlot() }
       })
         .margin({ top: this.topSpacing, bottom: 14 })
 

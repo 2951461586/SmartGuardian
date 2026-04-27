@@ -41,7 +41,7 @@ export const ATTENDANCE_STATUS = {
   ON_LEAVE: 'ON_LEAVE',
   /** 缺席 */
   ABSENT: 'ABSENT'
-} as const;
+};
 
 /**
  * Attendance statistics

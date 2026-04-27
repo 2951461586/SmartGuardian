@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Teacher Attendance Page
  * Manage student attendance with unified visual system
  */
@@ -235,7 +235,7 @@ export struct TeacherAttendancePageContent {
       title: '班次选择',
       subtitle: '切换不同托管班次，查看对应考勤记录',
       customPadding: 12,
-      content: this.buildSessionSelectorContent
+      content: () => { this.buildSessionSelectorContent() }
     })
     .margin({ left: 16, right: 16, top: 14 })
   }
@@ -261,7 +261,7 @@ export struct TeacherAttendancePageContent {
       title: '考勤状态',
       subtitle: '在全部、已签到、未签到之间快速切换',
       customPadding: 12,
-      content: this.buildTabSectionContent
+      content: () => { this.buildTabSectionContent() }
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }

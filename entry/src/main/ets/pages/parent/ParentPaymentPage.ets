@@ -111,7 +111,7 @@ struct ParentPaymentPage {
           tradeStatus: 'SUCCESS',
           thirdTradeNo: this.paymentOrder.thirdTradeNo,
           payTime: new Date().toISOString(),
-          rawPayload: 'mock-payment-success'
+          rawPayload: 'app-payment-success'
         };
         await PaymentService.callback(callbackRequest);
       }
@@ -321,7 +321,7 @@ struct ParentPaymentPage {
         .margin({ top: 8 })
 
       if (this.paymentOrder && this.countdown > 0) {
-        Text(`模拟支付处理中，剩余 ${this.countdown}s`)
+        Text(`支付处理中，剩余 ${this.countdown}s`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.primary'))
           .margin({ top: 16 })

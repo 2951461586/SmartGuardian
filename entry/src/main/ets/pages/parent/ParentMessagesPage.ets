@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Parent Messages Page
  * Enhanced message center with unified visual system
  */
@@ -252,12 +252,12 @@ export struct ParentMessagesPageContent {
   build() {
     Column() {
       PageHeader({
-        title: '\u6d88\u606f\u4e2d\u5fc3',
-        subtitle: '\u96c6\u4e2d\u5904\u7406\u7cfb\u7edf\u901a\u77e5\u3001\u8003\u52e4\u63d0\u9192\u4e0e\u4f5c\u4e1a\u53cd\u9988',
+        title: '消息中心',
+        subtitle: '集中处理系统通知、考勤提醒与作业反馈',
         theme: HeaderTheme.WHITE
       }) {
         if (this.unreadCount > 0) {
-          Button('\u5168\u90e8\u5df2\u8bfb')
+          Button('全部已读')
             .height(32)
             .fontSize(12)
             .fontColor($r('app.color.primary'))
@@ -282,7 +282,7 @@ export struct ParentMessagesPageContent {
     Row() {
       StatCard({
         value: `${this.getTotalCount()}`,
-        label: '\u5168\u90e8\u6d88\u606f',
+        label: '全部消息',
         icon: $r('app.media.ic_message'),
         iconColor: HarmonyReport.accent
       })
@@ -292,7 +292,7 @@ export struct ParentMessagesPageContent {
 
       StatCard({
         value: `${this.getUnreadStatCount()}`,
-        label: '\u672a\u8bfb\u6d88\u606f',
+        label: '未读消息',
         icon: $r('app.media.ic_notification'),
         iconColor: HarmonyReport.caution
       })
@@ -315,10 +315,10 @@ export struct ParentMessagesPageContent {
   @Builder
   buildTabSection() {
     Card({
-      title: '\u6d88\u606f\u5206\u7ec4',
-      subtitle: '\u6309\u4e1a\u52a1\u7c7b\u578b\u5feb\u901f\u805a\u7126\u5f53\u524d\u9700\u8981\u5904\u7406\u7684\u6d88\u606f',
+      title: '消息分组',
+      subtitle: '按业务类型快速聚焦当前需要处理的消息',
       customPadding: 12,
-      content: this.buildTabSectionContent
+      content: () => { this.buildTabSectionContent() }
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
@@ -338,13 +338,13 @@ export struct ParentMessagesPageContent {
       LoadingState({
         loadingSize: LoadingSize.LARGE,
         fullscreen: false,
-        message: '\u6b63\u5728\u52a0\u8f7d\u6d88\u606f...'
+        message: '正在加载消息...'
       })
     } else if (this.filteredMessages.length === 0) {
       EmptyState({
         type: EmptyType.NO_MESSAGE,
         customDescription: this.getEmptyDescription(),
-        actionText: '\u5237\u65b0',
+        actionText: '刷新',
         onAction: () => {
           this.loadMessages();
           this.loadStatistics();
@@ -359,8 +359,8 @@ export struct ParentMessagesPageContent {
   buildMessageList() {
     Column() {
       SectionHeader({
-        title: '\u6d88\u606f\u5217\u8868',
-        subtitle: '\u70b9\u5f00\u53ef\u67e5\u770b\u8be6\u60c5\uff0c\u4e5f\u53ef\u76f4\u63a5\u6807\u8bb0\u5df2\u8bfb'
+        title: '消息列表',
+        subtitle: '点开可查看详情，也可直接标记已读'
       })
       .margin({ left: 16, right: 16 })
 

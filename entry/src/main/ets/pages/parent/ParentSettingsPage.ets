@@ -10,7 +10,7 @@ import { StudentStore } from '../../stores/studentStore';
 import { UserStore } from '../../stores/userStore';
 import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 import { HarmonyCapabilityService } from '../../services/HarmonyCapabilityService';
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
 
 @Entry
 @Component
@@ -18,7 +18,7 @@ struct ParentSettingsPage {
   @State notificationEnabled: boolean = true;
   @State autoSignReminder: boolean = true;
   @State language: string = '简体中文';
-  private readonly languageOptions: string[] = ['简体中文', 'English'];
+  private readonly languageOptions: string[] = ['简体中文'];
 
   aboutToAppear() {
     this.loadPreferences();
@@ -28,7 +28,7 @@ struct ParentSettingsPage {
     const preferences = UserStore.getUserPreferences();
     this.notificationEnabled = preferences.enableNotifications !== false;
     this.autoSignReminder = preferences.enableAttendanceReminder !== false;
-    this.language = preferences.language === 'en_US' ? 'English' : '简体中文';
+    this.language = '简体中文';
   }
 
   private async updateNotificationPreference(enabled: boolean): Promise<void> {
@@ -53,7 +53,7 @@ struct ParentSettingsPage {
 
     this.language = nextLanguage;
     UserStore.updateUserPreferences({
-      language: nextLanguage === 'English' ? 'en_US' : 'zh_CN'
+      language: 'zh_CN'
     });
     ErrorHandlerUtil.showSuccessToast(`语言已切换为${nextLanguage}`);
   }
@@ -64,7 +64,7 @@ struct ParentSettingsPage {
     MessageStore.clearMessages();
     AttendanceStore.clearTodayAttendance();
     AttendanceStore.clearCurrentSession();
-    ErrorHandlerUtil.showSuccessToast('本地缓存已清除');
+    ErrorHandlerUtil.showSuccessToast('缓存已清除');
   }
 
   build() {
@@ -72,8 +72,8 @@ struct ParentSettingsPage {
       // Header
       Row() {
         Image($r('app.media.ic_arrow_left'))
-          .width(24)
-          .height(24)
+          .width($r('app.float.icon_large_size'))
+          .height($r('app.float.icon_large_size'))
           .fillColor($r('app.color.text_primary'))
           .onClick(() => this.getUIContext().getRouter().back())
 
@@ -84,7 +84,7 @@ struct ParentSettingsPage {
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
 
-        Text('').width(24)
+        Text('').width($r('app.float.icon_large_size'))
       }
       .width('100%')
       .padding($r('app.float.page_padding'))
@@ -104,7 +104,7 @@ struct ParentSettingsPage {
                 Text('接收消息推送提醒')
                   .fontSize($r('app.float.text_secondary_size'))
                   .fontColor($r('app.color.text_secondary'))
-                  .margin({ top: 4 })
+                  .margin({ top: HarmonySpace.compact / 2 })
               }
               .alignItems(HorizontalAlign.Start)
               .layoutWeight(1)
@@ -115,12 +115,12 @@ struct ParentSettingsPage {
                 })
             }
             .width('100%')
-            .padding(16)
+            .padding(HarmonySpace.page)
           }
           .width('100%')
           .backgroundColor(HarmonyColor.surface)
-          .borderRadius(12)
-          .margin({ bottom: 12 })
+          .borderRadius(HarmonyRadius.control)
+          .margin({ bottom: HarmonySpace.section })
 
           // 签到提醒
           Column() {
@@ -133,7 +133,7 @@ struct ParentSettingsPage {
                 Text('自动提醒孩子签到/签退')
                   .fontSize($r('app.float.text_secondary_size'))
                   .fontColor($r('app.color.text_secondary'))
-                  .margin({ top: 4 })
+                  .margin({ top: HarmonySpace.compact / 2 })
               }
               .alignItems(HorizontalAlign.Start)
               .layoutWeight(1)
@@ -144,12 +144,12 @@ struct ParentSettingsPage {
                 })
             }
             .width('100%')
-            .padding(16)
+            .padding(HarmonySpace.page)
           }
           .width('100%')
           .backgroundColor(HarmonyColor.surface)
-          .borderRadius(12)
-          .margin({ bottom: 12 })
+          .borderRadius(HarmonyRadius.control)
+          .margin({ bottom: HarmonySpace.section })
 
           // 语言设置
           Row() {
@@ -162,17 +162,17 @@ struct ParentSettingsPage {
             Text(this.language)
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
-              .margin({ right: 8 })
+              .margin({ right: HarmonySpace.compact })
 
             Image($r('app.media.ic_arrow_right'))
-              .width(16)
-              .height(16)
+              .width($r('app.float.icon_small_size'))
+              .height($r('app.float.icon_small_size'))
               .fillColor($r('app.color.text_tertiary'))
           }
           .width('100%')
-          .padding(16)
+          .padding(HarmonySpace.page)
           .backgroundColor(HarmonyColor.surface)
-          .borderRadius(12)
+          .borderRadius(HarmonyRadius.control)
           .onClick(() => {
             this.switchLanguage();
           })
@@ -186,18 +186,19 @@ struct ParentSettingsPage {
             Blank()
 
             Image($r('app.media.ic_arrow_right'))
-              .width(16)
-              .height(16)
+              .width($r('app.float.icon_small_size'))
+              .height($r('app.float.icon_small_size'))
               .fillColor($r('app.color.text_tertiary'))
           }
           .width('100%')
-          .padding(16)
+          .padding(HarmonySpace.page)
           .backgroundColor(HarmonyColor.surface)
-          .borderRadius(12)
-          .margin({ top: 12 })
+          .borderRadius(HarmonyRadius.control)
+          .margin({ top: HarmonySpace.section })
           .onClick(() => {
             this.clearLocalCache();
           })
+
         }
         .width('100%')
         .padding($r('app.float.page_padding'))

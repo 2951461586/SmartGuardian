@@ -26,7 +26,7 @@ export struct RefundReasonSection {
       Card({
         title: '退款原因',
         subtitle: '选择原因类型并补充详细说明。',
-        content: this.buildCardContent
+        content: () => { this.buildCardContent() }
       })
     }
     .width('100%')
@@ -152,7 +152,7 @@ export struct RefundHistorySection {
 
       Card({
         title: '历史记录',
-        content: this.buildHistoryCardContent
+        content: () => { this.buildHistoryCardContent() }
       })
     }
     .width('100%')
@@ -166,7 +166,7 @@ export struct RefundHistorySection {
       emptyType: EmptyType.DEFAULT,
       emptyTitle: '暂无退款记录',
       emptyDescription: '当前订单还没有历史退款申请。',
-      content: this.buildHistoryList
+      content: () => { this.buildHistoryList() }
     })
   }
 

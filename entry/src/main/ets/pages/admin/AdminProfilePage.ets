@@ -1,4 +1,4 @@
-﻿import {
+import {
   Card,
   ProfileActionGrid,
   ProfileActionItem,
@@ -68,10 +68,10 @@ export struct AdminProfilePageContent {
   build() {
     Column() {
       ProfileWorkspaceTemplate({
-        hero: this.buildHeroSection,
-        summary: this.buildSummarySection,
-        actions: this.buildActionSection,
-        support: this.buildSupportSection
+        hero: () => { this.buildHeroSection() },
+        summary: () => { this.buildSummarySection() },
+        actions: () => { this.buildActionSection() },
+        support: () => { this.buildSupportSection() }
       })
     }
     .width('100%')
@@ -87,7 +87,7 @@ export struct AdminProfilePageContent {
         mobile: this.mobile || '未绑定手机号',
         avatar: this.avatar,
         primaryMeta: '学生、订单、班次和经营数据统一收口',
-        secondaryMeta: '阳光托管中心 · AGC Serverless',
+        secondaryMeta: '阳光托管中心 · 云开发服务',
         metaChips: ['学生档案', '订单审核', '经营报表'],
         illustration: $r('app.media.sg_illustration_education'),
         actionContent: this.buildHeroActions
@@ -136,7 +136,7 @@ export struct AdminProfilePageContent {
       onAction: () => {
         this.openRoute(RouteUrls.ADMIN_REPORTS);
       },
-      content: this.buildSummaryContent
+      content: () => { this.buildSummaryContent() }
     })
   }
 
@@ -152,7 +152,7 @@ export struct AdminProfilePageContent {
     Card({
       title: '管理入口',
       subtitle: '学生、服务、订单和告警都进入统一治理入口。',
-      content: this.buildActionContent
+      content: () => { this.buildActionContent() }
     })
   }
 
@@ -171,7 +171,7 @@ export struct AdminProfilePageContent {
     Card({
       title: '运营支持',
       subtitle: '消息、退款和服务配置等配套能力统一放在这里。',
-      content: this.buildSupportContent
+      content: () => { this.buildSupportContent() }
     })
   }
 
@@ -201,7 +201,7 @@ export struct AdminProfilePageContent {
 
   private getOperationMetrics(): ProfileMetricItem[] {
     return [
-      { label: '今日收入', value: '¥12.6k', icon: $r('app.media.ic_money'), color: HarmonyReport.caution },
+      { label: '今日收入', value: '¥1.26万', icon: $r('app.media.ic_money'), color: HarmonyReport.caution },
       { label: '待处理订单', value: '12', icon: $r('app.media.ic_order'), color: HarmonyColor.brandBlue },
       { label: '班次负载', value: '82%', icon: $r('app.media.ic_calendar'), color: HarmonyReport.positive },
       { label: '机构消息', value: '28', icon: $r('app.media.ic_message'), color: HarmonyColor.brandBlue },

@@ -44,14 +44,14 @@ export struct ParentHomeWorkspaceSection {
           .margin({ bottom: 14 })
 
         ResponsiveSplitPanel({
-          primary: this.buildNoticePanel,
-          secondary: this.buildQuickActionsPanel
+          primary: () => { this.buildNoticePanel() },
+          secondary: () => { this.buildQuickActionsPanel() }
         })
           .margin({ bottom: 14 })
 
         ResponsiveSplitPanel({
-          primary: this.buildSchedulePanel,
-          secondary: this.buildHomeworkPanel
+          primary: () => { this.buildSchedulePanel() },
+          secondary: () => { this.buildHomeworkPanel() }
         })
       }
       .width('100%')
@@ -81,7 +81,7 @@ export struct ParentHomeWorkspaceSection {
           this.onQuickActions();
         }
       },
-      content: this.buildQuickActionsContent
+      content: () => { this.buildQuickActionsContent() }
     })
   }
 

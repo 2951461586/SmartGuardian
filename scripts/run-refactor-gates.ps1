@@ -23,4 +23,16 @@ foreach ($scriptPath in $scripts) {
 }
 
 Write-Host ''
+Write-Host 'Running assembleHap --analyze=advanced ...'
+Push-Location (Resolve-Path (Join-Path $PSScriptRoot '..'))
+try {
+  & .\hvigorw.bat assembleHap --analyze=advanced
+  if ($LASTEXITCODE -ne 0) {
+    throw 'hvigor assembleHap --analyze=advanced failed.'
+  }
+} finally {
+  Pop-Location
+}
+
+Write-Host ''
 Write-Host 'All refactor gates passed.'

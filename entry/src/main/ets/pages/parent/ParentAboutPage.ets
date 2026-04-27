@@ -3,7 +3,7 @@
  * 关于我们页面
  */
 
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonySpace } from '../../common/HarmonyDesign';
 import { HeaderTheme, PageHeader } from '../../components/common';
 
 @Entry
@@ -23,30 +23,30 @@ struct ParentAboutPage {
 
       Column() {
         Image($r('app.media.ic_logo'))
-          .width(100)
-          .height(100)
-          .margin({ top: 60 })
+          .width($r('app.float.stat_card_height'))
+          .height($r('app.float.stat_card_height'))
+          .margin({ top: $r('app.float.bottom_nav_height') })
 
         Text('智慧学生托管系统')
-          .fontSize(24)
+          .fontSize($r('app.float.page_title_size'))
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary'))
-          .margin({ top: 16 })
+          .margin({ top: HarmonySpace.page })
 
         Text(`版本 ${this.version}`)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
+          .margin({ top: HarmonySpace.compact })
 
         Column() {
           Text('智慧学生托管系统是一款专业的托管服务管理应用，致力于为家长提供便捷、高效、安心的托管服务体验。')
             .fontSize($r('app.float.text_primary_size'))
             .fontColor($r('app.color.text_primary'))
-            .lineHeight(24)
+            .lineHeight($r('app.float.icon_large_size'))
             .textAlign(TextAlign.Center)
-            .margin({ top: 32 })
+            .margin({ top: $r('app.float.action_icon_size') })
         }
-        .padding(16)
+        .padding($r('app.float.page_padding'))
 
         Column() {
           this.buildFeatureItem('实时考勤', '随时掌握孩子签到签退情况')
@@ -55,8 +55,8 @@ struct ParentAboutPage {
           this.buildFeatureItem('消息通知', '重要信息实时推送提醒')
         }
         .width('100%')
-        .padding(16)
-        .margin({ top: 24 })
+        .padding($r('app.float.page_padding'))
+        .margin({ top: HarmonySpace.roomy })
 
         Column() {
           Text('© 2026 智慧学生托管系统团队')
@@ -68,7 +68,7 @@ struct ParentAboutPage {
             .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 4 })
         }
-        .margin({ top: 40 })
+        .margin({ top: $r('app.float.layout_button_padding_horizontal_large') })
       }
       .layoutWeight(1)
     }
@@ -90,14 +90,14 @@ struct ParentAboutPage {
         Text(description)
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
+          .margin({ top: HarmonySpace.compact / 2 })
           .width('100%')
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
     }
     .width('100%')
-    .padding({ top: 12, bottom: 12 })
+    .padding({ top: HarmonySpace.section, bottom: HarmonySpace.section })
   }
 }
 

@@ -1,4 +1,4 @@
-import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonyReport, HarmonySpace } from '../../common/HarmonyDesign';
 import { Order } from '../../models/service';
 import { Card, StatCard } from './Card';
 import { SectionHeader } from './SectionHeader';
@@ -20,8 +20,8 @@ export struct AdminOrdersOverviewCard {
       Card({
         title: this.title,
         subtitle: this.subtitle,
-        customPadding: 18,
-        content: this.buildHeroContent
+        customPadding: HarmonySpace.card,
+        content: () => { this.buildHeroContent() }
       })
 
       Row() {
@@ -40,7 +40,7 @@ export struct AdminOrdersOverviewCard {
           iconColor: HarmonyReport.caution
         })
         .layoutWeight(1)
-        .margin({ left: 12 })
+        .margin({ left: HarmonySpace.section })
       }
       .width('100%')
       .alignItems(VerticalAlign.Top)
@@ -61,11 +61,11 @@ export struct AdminOrdersOverviewCard {
           iconColor: HarmonyColor.brandBlue
         })
         .layoutWeight(1)
-        .margin({ left: 12 })
+        .margin({ left: HarmonySpace.section })
       }
       .width('100%')
       .alignItems(VerticalAlign.Top)
-      .margin({ top: 12 })
+      .margin({ top: HarmonySpace.section })
     }
     .width('100%')
   }
@@ -75,23 +75,23 @@ export struct AdminOrdersOverviewCard {
     Row() {
       Column() {
         Text(this.accent)
-          .fontSize(11)
+          .fontSize($r('app.float.text_tiny_size'))
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.primary'))
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .padding({ left: HarmonySpace.section, right: HarmonySpace.section, top: HarmonySpace.compact / 2, bottom: HarmonySpace.compact / 2 })
           .backgroundColor(HarmonyReport.cautionSurface)
-          .borderRadius(999)
+          .borderRadius(HarmonyRadius.pill)
 
         Text(this.totalAmountText)
-          .fontSize(30)
+          .fontSize($r('app.float.page_title_size'))
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
-          .margin({ top: 14 })
+          .margin({ top: HarmonySpace.section })
 
         Text('当前筛选范围内的订单金额总量')
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 8 })
+          .margin({ top: HarmonySpace.compact })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
@@ -108,7 +108,7 @@ export struct AdminOrdersOverviewCard {
           valueColor: HarmonyReport.positive
         })
       }
-      .width(112)
+      .width($r('app.float.feedback_input_height'))
     }
     .width('100%')
   }
@@ -129,8 +129,8 @@ export struct AdminOrdersControlCard {
       })
 
       Card({
-        customPadding: 12,
-        content: this.buildContent
+        customPadding: HarmonySpace.section,
+        content: () => { this.buildContent() }
       })
     }
   }
@@ -147,14 +147,14 @@ export struct AdminOrdersControlCard {
         Blank().layoutWeight(1)
 
         Text('实时同步')
-          .fontSize(11)
+          .fontSize($r('app.float.text_tiny_size'))
           .fontColor(HarmonyReport.positive)
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .padding({ left: HarmonySpace.section, right: HarmonySpace.section, top: HarmonySpace.compact / 2, bottom: HarmonySpace.compact / 2 })
           .backgroundColor($r('app.color.surface_success'))
-          .borderRadius(999)
+          .borderRadius(HarmonyRadius.pill)
       }
       .width('100%')
-      .margin({ bottom: 12 })
+      .margin({ bottom: HarmonySpace.section })
 
       TabBar({
         tabs: this.tabs,
@@ -177,9 +177,9 @@ export struct AdminOrdersSummaryCard {
 
   build() {
     Card({
-      customPadding: 14,
+      customPadding: HarmonySpace.section,
       customBgColor: HarmonyColor.surfaceSubtle,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -191,13 +191,13 @@ export struct AdminOrdersSummaryCard {
         value: this.modeLabel,
         valueColor: HarmonyColor.brandBlue
       })
-      Blank().width(10)
+      Blank().width(HarmonySpace.compact)
       AdminOrdersMetricTile({
         label: '订单量',
         value: `${this.orderCount}`,
         valueColor: HarmonyColor.textPrimary
       })
-      Blank().width(10)
+      Blank().width(HarmonySpace.compact)
       AdminOrdersMetricTile({
         label: '总金额',
         value: this.totalAmountText,
@@ -222,7 +222,7 @@ export struct AdminOrderAuditSheet {
         .fontSize($r('app.float.card_title_size'))
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
-        .margin({ top: 8, bottom: 16 })
+        .margin({ top: HarmonySpace.compact, bottom: HarmonySpace.page })
 
       if (this.selectedOrder) {
         Column() {
@@ -235,7 +235,7 @@ export struct AdminOrderAuditSheet {
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor($r('app.color.text_secondary'))
             .width('100%')
-            .margin({ top: 8 })
+            .margin({ top: HarmonySpace.compact })
         }
         .width('100%')
       }
@@ -245,11 +245,11 @@ export struct AdminOrderAuditSheet {
         text: this.auditRemark
       })
         .width('100%')
-        .height(120)
+        .height($r('app.float.feedback_input_height'))
         .fontSize($r('app.float.text_primary_size'))
         .backgroundColor(HarmonyColor.surfaceSubtle)
         .borderRadius($r('app.float.button_radius'))
-        .margin({ top: 16 })
+        .margin({ top: HarmonySpace.page })
         .onChange((value: string) => {
           if (this.onRemarkChange) {
             this.onRemarkChange(value);
@@ -259,11 +259,11 @@ export struct AdminOrderAuditSheet {
       Row() {
         Button('取消')
           .layoutWeight(1)
-          .height(44)
+          .height($r('app.float.input_height'))
           .fontSize($r('app.float.text_primary_size'))
           .fontColor($r('app.color.text_primary'))
           .backgroundColor(HarmonyColor.surfaceMuted)
-          .borderRadius(22)
+          .borderRadius(HarmonyRadius.pill)
           .onClick(() => {
             if (this.onCancel) {
               this.onCancel();
@@ -272,12 +272,12 @@ export struct AdminOrderAuditSheet {
 
         Button('确认拒绝')
           .layoutWeight(1)
-          .height(44)
+          .height($r('app.float.input_height'))
           .fontSize($r('app.float.text_primary_size'))
           .fontColor(HarmonyColor.textInverse)
           .backgroundColor(HarmonyReport.danger)
-          .borderRadius(22)
-          .margin({ left: 12 })
+          .borderRadius(HarmonyRadius.pill)
+          .margin({ left: HarmonySpace.section })
           .enabled(this.auditRemark.trim().length > 0)
           .onClick(() => {
             if (this.onConfirmReject) {
@@ -286,10 +286,10 @@ export struct AdminOrderAuditSheet {
           })
       }
       .width('100%')
-      .margin({ top: 20 })
+      .margin({ top: HarmonySpace.card })
     }
     .width('100%')
-    .padding(20)
+    .padding(HarmonySpace.card)
   }
 }
 
@@ -302,22 +302,22 @@ struct AdminOrdersMetricTile {
   build() {
     Column() {
       Text(this.label)
-        .fontSize(11)
+        .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
 
       Text(this.value)
-        .fontSize(15)
+        .fontSize($r('app.float.text_secondary_size'))
         .fontWeight(FontWeight.Bold)
         .fontColor(this.valueColor)
-        .margin({ top: 6 })
+        .margin({ top: HarmonySpace.compact })
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .layoutWeight(1)
-    .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+    .padding(HarmonySpace.section)
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(16)
+    .borderRadius(HarmonyRadius.control)
     .alignItems(HorizontalAlign.Start)
-    .margin({ bottom: 10 })
+    .margin({ bottom: HarmonySpace.compact })
   }
 }

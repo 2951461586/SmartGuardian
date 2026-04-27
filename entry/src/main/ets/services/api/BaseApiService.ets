@@ -22,7 +22,7 @@ export interface MockControl {
   /** 是否启用Mock */
   enabled: boolean;
   /** Mock数据获取函数 */
-  getData?: (params?: unknown) => unknown;
+  getData?: (params?: object) => object;
 }
 
 /**
@@ -50,7 +50,7 @@ export abstract class BaseApiService {
    * @param params 查询参数
    * @returns 响应数据
    */
-  protected async doGet<T>(url: string, params?: Record<string, unknown>): Promise<ApiResponse<T>> {
+  protected async doGet<T>(url: string, params?: object): Promise<ApiResponse<T>> {
     if (this.isMockEnabled() && this.mockControl.getData) {
       LogUtil.info(this.serviceName, `[MOCK] GET ${url}`);
       return {
@@ -70,7 +70,7 @@ export abstract class BaseApiService {
    * @param data 请求体
    * @returns 响应数据
    */
-  protected async doPost<T>(url: string, data?: unknown): Promise<ApiResponse<T>> {
+  protected async doPost<T>(url: string, data?: object): Promise<ApiResponse<T>> {
     if (this.isMockEnabled() && this.mockControl.getData) {
       LogUtil.info(this.serviceName, `[MOCK] POST ${url}`);
       return {
@@ -90,7 +90,7 @@ export abstract class BaseApiService {
    * @param data 请求体
    * @returns 响应数据
    */
-  protected async doPut<T>(url: string, data?: unknown): Promise<ApiResponse<T>> {
+  protected async doPut<T>(url: string, data?: object): Promise<ApiResponse<T>> {
     if (this.isMockEnabled() && this.mockControl.getData) {
       LogUtil.info(this.serviceName, `[MOCK] PUT ${url}`);
       return {
@@ -134,7 +134,7 @@ export abstract class BaseApiService {
     params?: PageQueryParams
   ): Promise<ApiResponse<PageResponse<T>>> {
     const queryParams = params ? QueryParamsHelper.withDefaultPagination(params) : undefined;
-    return this.doGet<PageResponse<T>>(url, queryParams as Record<string, unknown>);
+    return this.doGet<PageResponse<T>>(url, queryParams as object);
   }
 
   /**
@@ -219,21 +219,21 @@ export class MockServiceSwitch {
 /**
  * Service Names Constants
  */
-export const ServiceNames = {
-  AUTH: 'AuthService',
-  USER: 'UserService',
-  STUDENT: 'StudentService',
-  ORDER: 'OrderService',
-  SESSION: 'SessionService',
-  ATTENDANCE: 'AttendanceService',
-  HOMEWORK: 'HomeworkService',
-  MESSAGE: 'MessageService',
-  ALERT: 'AlertService',
-  REPORT: 'ReportService',
-  REFUND: 'RefundService',
-  PAYMENT: 'PaymentService',
-  CARD: 'CardService',
-  WORKBENCH: 'WorkbenchService'
-} as const;
+export class ServiceNames {
+  static readonly AUTH: string = 'AuthService';
+  static readonly USER: string = 'UserService';
+  static readonly STUDENT: string = 'StudentService';
+  static readonly ORDER: string = 'OrderService';
+  static readonly SESSION: string = 'SessionService';
+  static readonly ATTENDANCE: string = 'AttendanceService';
+  static readonly HOMEWORK: string = 'HomeworkService';
+  static readonly MESSAGE: string = 'MessageService';
+  static readonly ALERT: string = 'AlertService';
+  static readonly REPORT: string = 'ReportService';
+  static readonly REFUND: string = 'RefundService';
+  static readonly PAYMENT: string = 'PaymentService';
+  static readonly CARD: string = 'CardService';
+  static readonly WORKBENCH: string = 'WorkbenchService';
+}
 
-export type ServiceName = typeof ServiceNames[keyof typeof ServiceNames];
+export type ServiceName = string;

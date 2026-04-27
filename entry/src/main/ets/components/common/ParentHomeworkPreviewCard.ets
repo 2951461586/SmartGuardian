@@ -16,7 +16,7 @@ export struct ParentHomeworkPreviewCard {
       subtitle: this.subtitle,
       actionText: this.actionText,
       onAction: this.onAction,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

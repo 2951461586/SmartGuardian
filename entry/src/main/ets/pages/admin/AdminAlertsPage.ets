@@ -215,10 +215,10 @@ struct AdminAlertsPage {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildFilterSection,
-        content: this.buildAlertContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildFilterSection() },
+        content: () => { this.buildAlertContent() }
       })
     }
     .width('100%')
@@ -270,7 +270,7 @@ struct AdminAlertsPage {
       onEmptyAction: () => {
         this.loadData();
       },
-      content: this.buildAlertListSection
+      content: () => { this.buildAlertListSection() }
     })
       .layoutWeight(1)
   }

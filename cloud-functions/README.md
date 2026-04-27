@@ -67,7 +67,8 @@ Current migration state:
 These artifacts must stay aligned:
 
 - `entry/src/main/ets/services/agc/AgcFunctionContracts.ts`
-- `entry/src/main/ets/services/api/AgcServiceContracts.ts`
+- `cloud-functions/function-manifest.json`
+- `<domain>/contract.json`
 - `docs/03-接口文档/openapi-full.yaml`
 
 ## References

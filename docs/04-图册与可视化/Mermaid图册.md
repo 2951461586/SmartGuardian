@@ -2,8 +2,8 @@
 
 > 项目名称：基于鸿蒙系统的学生智慧托管系统  
 > 文档类型：图册与可视化  
-> 版本：V1.3  
-> 日期：2026-04-17
+> 版本：V1.4  
+> 日期：2026-04-27
 
 ---
 
@@ -71,24 +71,19 @@ USER ||--o{ REFUND_RECORD : reviews
 
 ```mermaid
 flowchart TB
-A[HarmonyOS 家长端/教师端/管理端] --> B[API网关]
-B --> C[认证与权限服务]
-B --> D[订单与托管服务]
-B --> E[考勤服务]
-B --> F[作业与反馈服务]
-B --> G[消息通知服务]
-B --> H[报表统计服务]
-B --> L[告警服务]
-B --> M[退款服务]
-D --> I[(MySQL)]
+A[HarmonyOS 家长端/教师端/管理端] --> B[AGC API Gateway]
+B --> C[Cloud Functions: auth]
+B --> D[Cloud Functions: order/service]
+B --> E[Cloud Functions: attendance]
+B --> F[Cloud Functions: homework/message]
+B --> G[Cloud Functions: report/alert/refund]
+C --> I[(AGC Cloud DB)]
+D --> I
 E --> I
 F --> I
 G --> I
-H --> I
-L --> I
-M --> I
-B --> J[(Redis)]
-B --> K[(MQ)]
+B --> J[AGConnect Auth]
+B --> K[NotificationKit / Location / Push Endpoint]
 ```
 
 ## 五、告警处理时序图

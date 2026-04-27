@@ -55,7 +55,7 @@ export struct TimelineEventListCard {
     Card({
       title: '成长时间线',
       subtitle: '按时间顺序查看考勤、作业、通知和订单动态。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

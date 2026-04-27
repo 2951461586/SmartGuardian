@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Teacher Homework Page
  * Teacher can manage homework tasks and feedback
  */
@@ -223,7 +223,7 @@ export struct TeacherHomeworkPageContent {
       title: '任务状态',
       subtitle: '在待完成、已完成和已确认之间切换查看。',
       customPadding: 12,
-      content: this.buildTabSectionContent
+      content: () => { this.buildTabSectionContent() }
     })
   }
 

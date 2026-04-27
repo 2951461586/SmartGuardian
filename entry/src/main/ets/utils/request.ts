@@ -8,7 +8,6 @@ import { ApiConfig } from '../config/api.config';
 import { RouteUrls, StorageKeys } from '../constants/app.constants';
 import { ApiResponseHelper } from '../models/common';
 import { AgcRequestAdapter } from '../services/agc/AgcRequestAdapter';
-import { MockService } from '../services/mock/mockService';
 
 const TAG = 'SmartGuardian/Request';
 const DOMAIN = 0x0001;
@@ -45,6 +44,25 @@ interface RequestUIContext {
 
 let isRedirectingToLogin: boolean = false;
 let requestUIContext: RequestUIContext | null = null;
+
+function applyPartialRequestOptions(
+  requestOptions: RequestOptions,
+  options?: Partial<RequestOptions>
+): RequestOptions {
+  if (!options) {
+    return requestOptions;
+  }
+  if (options.data !== undefined) {
+    requestOptions.data = options.data;
+  }
+  if (options.headers !== undefined) {
+    requestOptions.headers = options.headers;
+  }
+  if (options.needAuth !== undefined) {
+    requestOptions.needAuth = options.needAuth;
+  }
+  return requestOptions;
+}
 
 export function setRequestUIContext(uiContext: RequestUIContext): void {
   requestUIContext = uiContext;
@@ -99,42 +117,33 @@ function handleUnauthorized(): void {
 export async function httpRequest<T = object>(
   options: RequestOptions
 ): Promise<HttpResponse<T>> {
-  if (ApiConfig.isMockEnabled()) {
-    return MockService.handleMockRequest<T>(options);
-  }
+  try {
+    const result = await AgcRequestAdapter.request<T>({
+      url: options.url,
+      method: options.method,
+      data: options.data,
+      headers: options.headers,
+      needAuth: options.needAuth,
+      timeout: ApiConfig.TIMEOUT,
+      source: TAG
+    });
 
-  if (ApiConfig.isAgcEnabled()) {
-    try {
-      const result = await AgcRequestAdapter.request<T>({
-        url: options.url,
-        method: options.method,
-        data: options.data,
-        headers: options.headers,
-        needAuth: options.needAuth,
-        timeout: ApiConfig.TIMEOUT,
-        source: TAG
-      });
-
-      if (ApiResponseHelper.isAuthError(result.code)) {
-        hilog.error(DOMAIN, TAG, `AGC auth error: ${result.code} - ${result.message}`);
-        handleUnauthorized();
-        throw new Error(result.message || 'Session expired');
-      }
-
-      if (!ApiResponseHelper.isSuccess(result.code)) {
-        hilog.error(DOMAIN, TAG, `AGC business error: ${result.code} - ${result.message}`);
-        throw new Error(result.message || 'Business request failed');
-      }
-
-      return result;
-    } catch (error) {
-      hilog.error(DOMAIN, TAG, `AGC request failed: ${error}`);
-      throw error;
+    if (ApiResponseHelper.isAuthError(result.code)) {
+      hilog.error(DOMAIN, TAG, `AGC auth error: ${result.code} - ${result.message}`);
+      handleUnauthorized();
+      throw new Error(result.message || 'Session expired');
     }
-  }
 
-  hilog.error(DOMAIN, TAG, `Unsupported API environment: ${ApiConfig.getCurrentEnv()}`);
-  throw new Error('Unsupported API environment. Use DEV_MOCK or AGC_SERVERLESS.');
+    if (!ApiResponseHelper.isSuccess(result.code)) {
+      hilog.error(DOMAIN, TAG, `AGC business error: ${result.code} - ${result.message}`);
+      throw new Error(result.message || 'Business request failed');
+    }
+
+    return result;
+  } catch (error) {
+    hilog.error(DOMAIN, TAG, `AGC request failed: ${error}`);
+    throw error;
+  }
 }
 
 export async function get<T = object>(
@@ -144,16 +153,25 @@ export async function get<T = object>(
 ): Promise<HttpResponse<T>> {
   let fullUrl = url;
   if (params) {
-    const queryString = Object.entries(params)
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-      .join('&');
-    fullUrl += (url.includes('?') ? '&' : '?') + queryString;
+    const queryStringParts: string[] = [];
+    const paramsRecord = params as Record<string, string | number | boolean | null | undefined>;
+    const paramKeys = Object.keys(paramsRecord);
+    for (let i = 0; i < paramKeys.length; i++) {
+      const key = paramKeys[i];
+      const value = paramsRecord[key];
+      if (value !== undefined && value !== null) {
+        queryStringParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+      }
+    }
+    if (queryStringParts.length > 0) {
+      fullUrl += (url.includes('?') ? '&' : '?') + queryStringParts.join('&');
+    }
   }
-  return httpRequest<T>({
+  const requestOptions: RequestOptions = {
     url: fullUrl,
-    method: HttpMethod.GET,
-    ...options
-  });
+    method: HttpMethod.GET
+  };
+  return httpRequest<T>(applyPartialRequestOptions(requestOptions, options));
 }
 
 export async function post<T = object>(
@@ -161,12 +179,12 @@ export async function post<T = object>(
   data?: object,
   options?: Partial<RequestOptions>
 ): Promise<HttpResponse<T>> {
-  return httpRequest<T>({
+  const requestOptions: RequestOptions = {
     url,
     method: HttpMethod.POST,
-    data,
-    ...options
-  });
+    data
+  };
+  return httpRequest<T>(applyPartialRequestOptions(requestOptions, options));
 }
 
 export async function put<T = object>(
@@ -174,21 +192,21 @@ export async function put<T = object>(
   data?: object,
   options?: Partial<RequestOptions>
 ): Promise<HttpResponse<T>> {
-  return httpRequest<T>({
+  const requestOptions: RequestOptions = {
     url,
     method: HttpMethod.PUT,
-    data,
-    ...options
-  });
+    data
+  };
+  return httpRequest<T>(applyPartialRequestOptions(requestOptions, options));
 }
 
 export async function del<T = object>(
   url: string,
   options?: Partial<RequestOptions>
 ): Promise<HttpResponse<T>> {
-  return httpRequest<T>({
+  const requestOptions: RequestOptions = {
     url,
-    method: HttpMethod.DELETE,
-    ...options
-  });
+    method: HttpMethod.DELETE
+  };
+  return httpRequest<T>(applyPartialRequestOptions(requestOptions, options));
 }

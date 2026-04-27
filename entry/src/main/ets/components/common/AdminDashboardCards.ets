@@ -20,7 +20,7 @@ export struct AdminOperationsOverviewCard {
     Card({
       title: '运营概览',
       subtitle: this.subtitle,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -86,7 +86,7 @@ export struct ActivityFeedCard {
       subtitle: '聚焦今天需要关注的重点事项。',
       actionText: this.actionText,
       onAction: this.onAction,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -131,7 +131,7 @@ export struct ActivityFeedCard {
       EmptyState({
         type: EmptyType.DEFAULT,
         customTitle: '暂无实时动态',
-        customDescription: '完成真实环境联调后，这里会展示更多运营信号。'
+        customDescription: '暂时没有新的运营动态。'
       })
     }
   }

@@ -107,10 +107,41 @@ function isServerApiClientConfig(json) {
     && typeof json.project_id === 'string';
 }
 
+function resolveAgcConnectPrivateKeyCredential() {
+  const candidates = [
+    process.env.AGC_CONNECT_PRIVATE_KEY_FILE || '',
+    process.env.AGC_CONNECT_PRIVATE_KEY || ''
+  ];
+
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    if (!candidate || candidate.length === 0) {
+      continue;
+    }
+
+    const resolved = path.resolve(candidate);
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+  }
+
+  return '';
+}
+
+function isConnectApiPrivateKeyConfig(json) {
+  return !!json
+    && typeof json.key_id === 'string'
+    && typeof json.private_key === 'string'
+    && typeof json.sub_account === 'string'
+    && typeof json.token_uri === 'string';
+}
+
 module.exports = {
   loadCloudEnv,
   resolveAgcServerCredential,
+  resolveAgcConnectPrivateKeyCredential,
   inspectJsonFile,
   isClientAgconnectConfig,
-  isServerApiClientConfig
+  isServerApiClientConfig,
+  isConnectApiPrivateKeyConfig
 };

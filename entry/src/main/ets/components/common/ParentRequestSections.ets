@@ -18,7 +18,7 @@ export struct LeaveStudentSelectorCard {
     Card({
       title: '选择学生',
       subtitle: '先确定本次请假对应的学生，再继续填写申请内容。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -56,7 +56,7 @@ export struct LeaveDateSummaryCard {
     Card({
       title: '请假日期',
       subtitle: '支持从今天开始选择请假日期。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -95,7 +95,7 @@ export struct LeaveTypeSelectorCard {
     Card({
       title: '请假类型',
       subtitle: '按场景选择本次请假的主要原因。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -148,7 +148,7 @@ export struct RefundAmountSummaryCard {
     Card({
       title: '金额说明',
       subtitle: '系统会根据当前规则自动计算可退金额。',
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

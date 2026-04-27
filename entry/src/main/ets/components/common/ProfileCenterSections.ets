@@ -49,7 +49,7 @@ export struct ProfileHeroCard {
 
         Column() {
           Row() {
-            Text(this.userName.length > 0 ? this.userName : 'SmartGuardian 用户')
+          Text(this.userName.length > 0 ? this.userName : '智慧托管用户')
               .fontSize(24)
               .fontWeight(FontWeight.Bold)
               .fontColor(HarmonyColor.textPrimary)

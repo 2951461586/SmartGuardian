@@ -1,4 +1,4 @@
-import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonyReport, HarmonySpace } from '../../common/HarmonyDesign';
 import { Card } from './Card';
 import { TabBar } from './TabBar';
 
@@ -15,8 +15,8 @@ export struct ReportControlDeck {
     Card({
       title: '报告控制台',
       subtitle: '统一控制统计周期和分析维度，再进入数据明细',
-      customPadding: 12,
-      content: this.buildContent
+      customPadding: HarmonySpace.section,
+      content: () => { this.buildContent() }
     })
   }
 
@@ -26,13 +26,13 @@ export struct ReportControlDeck {
       Row() {
         ForEach(this.rangeOptions, (range: string, index: number) => {
           Text(range)
-            .fontSize(13)
+            .fontSize($r('app.float.text_tiny_size'))
             .fontWeight(this.selectedRange === range ? FontWeight.Medium : FontWeight.Normal)
             .fontColor(this.selectedRange === range ? $r('app.color.primary') : $r('app.color.text_secondary'))
-            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+            .padding({ left: HarmonySpace.section, right: HarmonySpace.section, top: HarmonySpace.compact, bottom: HarmonySpace.compact })
             .backgroundColor(this.selectedRange === range ? HarmonyReport.cautionSurface : HarmonyColor.surfaceSubtle)
-            .borderRadius(16)
-            .margin({ right: index === this.rangeOptions.length - 1 ? 0 : 10 })
+            .borderRadius(HarmonyRadius.control)
+            .margin({ right: index === this.rangeOptions.length - 1 ? 0 : HarmonySpace.compact })
             .onClick(() => {
               if (this.onRangeChange) {
                 this.onRangeChange(range);
@@ -51,7 +51,7 @@ export struct ReportControlDeck {
           }
         }
       })
-      .margin({ top: 14 })
+      .margin({ top: HarmonySpace.section })
     }
   }
 }

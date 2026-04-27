@@ -1,4 +1,4 @@
-﻿import {
+import {
   Card,
   ProfileActionGrid,
   ProfileActionItem,
@@ -68,10 +68,10 @@ export struct TeacherProfilePageContent {
   build() {
     Column() {
       ProfileWorkspaceTemplate({
-        hero: this.buildHeroSection,
-        summary: this.buildSummarySection,
-        actions: this.buildActionSection,
-        support: this.buildSupportSection
+        hero: () => { this.buildHeroSection() },
+        summary: () => { this.buildSummarySection() },
+        actions: () => { this.buildActionSection() },
+        support: () => { this.buildSupportSection() }
       })
     }
     .width('100%')
@@ -136,7 +136,7 @@ export struct TeacherProfilePageContent {
       onAction: () => {
         this.openRoute(RouteUrls.TEACHER_SCHEDULE);
       },
-      content: this.buildSummaryContent
+      content: () => { this.buildSummaryContent() }
     })
   }
 
@@ -152,7 +152,7 @@ export struct TeacherProfilePageContent {
     Card({
       title: '教学入口',
       subtitle: '常用课堂、考勤和沟通能力集中在这一组入口。',
-      content: this.buildActionContent
+      content: () => { this.buildActionContent() }
     })
   }
 
@@ -171,7 +171,7 @@ export struct TeacherProfilePageContent {
     Card({
       title: '工作支持',
       subtitle: '消息、排班和考勤操作统一归档，减少页面跳转成本。',
-      content: this.buildSupportContent
+      content: () => { this.buildSupportContent() }
     })
   }
 

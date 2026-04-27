@@ -1,328 +1,85 @@
 {
   "string": [
-    {
-      "name": "module_desc",
-      "value": "智慧托管系统"
-    },
-    {
-      "name": "EntryAbility_desc",
-      "value": "智慧托管系统入口"
-    },
-    {
-      "name": "EntryAbility_label",
-      "value": "智慧托管"
-    },
-    {
-      "name": "nav_home",
-      "value": "首页"
-    },
-    {
-      "name": "nav_orders",
-      "value": "订单"
-    },
-    {
-      "name": "nav_messages",
-      "value": "消息"
-    },
-    {
-      "name": "nav_services",
-      "value": "服务"
-    },
-    {
-      "name": "nav_timeline",
-      "value": "成长"
-    },
-    {
-      "name": "nav_profile",
-      "value": "我的"
-    },
-    {
-      "name": "nav_attendance",
-      "value": "考勤"
-    },
-    {
-      "name": "nav_homework",
-      "value": "作业"
-    },
-    {
-      "name": "nav_reports",
-      "value": "统计"
-    },
-    {
-      "name": "nav_students",
-      "value": "学生"
-    },
-    {
-      "name": "form_today_guardian_display_name",
-      "value": "今日托管卡片"
-    },
-    {
-      "name": "form_today_guardian_description",
-      "value": "实时查看学生托管状态和进度"
-    },
-    {
-      "name": "form_abnormal_alert_display_name",
-      "value": "异常提醒卡片"
-    },
-    {
-      "name": "form_abnormal_alert_description",
-      "value": "接收学生异常情况及时提醒"
-    },
-    {
-      "name": "camera_reason",
-      "value": "需要使用相机扫描二维码来完成签到签退操作"
-    },
-    {
-      "name": "read_media_reason",
-      "value": "需要读取相册中的二维码图片"
-    },
-    {
-      "name": "write_media_reason",
-      "value": "需要保存二维码图片到相册"
-    },
-    {
-      "name": "location_reason",
-      "value": "用于考勤签到签退场景的定位授权与后续位置核验能力"
-    },
-    {
-      "name": "scan_sign_in_title",
-      "value": "扫码签到"
-    },
-    {
-      "name": "scan_sign_out_title",
-      "value": "扫码签退"
-    },
-    {
-      "name": "scan_permission_required",
-      "value": "需要相机权限"
-    },
-    {
-      "name": "scan_permission_denied",
-      "value": "未获得相机权限，无法进行扫码"
-    },
-    {
-      "name": "scan_permission_grant_hint",
-      "value": "请先授予相机权限"
-    },
-    {
-      "name": "scan_permission_button",
-      "value": "授权使用相机"
-    },
-    {
-      "name": "scan_permission_desc",
-      "value": "为了扫描二维码进行签到签退，请授权使用相机"
-    },
-    {
-      "name": "scan_cancelled",
-      "value": "已取消扫码"
-    },
-    {
-      "name": "scan_cancelled_retry",
-      "value": "已取消扫码，可重新开始"
-    },
-    {
-      "name": "scan_failed_retry",
-      "value": "扫码失败，请稍后重试"
-    },
-    {
-      "name": "scan_start_failed_retry",
-      "value": "启动扫码失败，请稍后重试"
-    },
-    {
-      "name": "scan_no_content",
-      "value": "未识别到二维码内容"
-    },
-    {
-      "name": "scan_parse_failed",
-      "value": "二维码解析失败"
-    },
-    {
-      "name": "scan_format_error",
-      "value": "二维码格式错误"
-    },
-    {
-      "name": "scan_unknown_type",
-      "value": "无法识别当前二维码类型"
-    },
-    {
-      "name": "scan_page_intro",
-      "value": "使用 HarmonyOS 官方扫码界面"
-    },
-    {
-      "name": "scan_page_desc",
-      "value": "支持二维码识别，可从相册中选择图片进行扫码"
-    },
-    {
-      "name": "scan_teacher_sign_in_intro",
-      "value": "打开官方扫码界面完成签到"
-    },
-    {
-      "name": "scan_teacher_sign_out_intro",
-      "value": "打开官方扫码界面完成签退"
-    },
-    {
-      "name": "scan_album_supported",
-      "value": "支持二维码识别，可从相册选择图片扫码"
-    },
-    {
-      "name": "scan_start_button",
-      "value": "开始扫码"
-    },
-    {
-      "name": "scan_starting_button",
-      "value": "扫码中..."
-    },
-    {
-      "name": "scan_instruction_open_official",
-      "value": "点击“开始扫码”后将打开 HarmonyOS 官方扫码界面"
-    },
-    {
-      "name": "scan_instruction_student_only",
-      "value": "仅支持学生签到/签退二维码"
-    },
-    {
-      "name": "scan_continue",
-      "value": "继续扫描"
-    },
-    {
-      "name": "common_back",
-      "value": "返回"
-    },
-    {
-      "name": "attendance_sign_in_success",
-      "value": "签到成功"
-    },
-    {
-      "name": "attendance_sign_out_success",
-      "value": "签退成功"
-    },
-    {
-      "name": "attendance_sign_in_failed",
-      "value": "签到失败"
-    },
-    {
-      "name": "attendance_sign_out_failed",
-      "value": "签退失败"
-    },
-    {
-      "name": "attendance_process_failed",
-      "value": "考勤处理失败"
-    },
-    {
-      "name": "teacher_scan_camera_required",
-      "value": "需要相机权限才能扫描二维码"
-    },
-    {
-      "name": "teacher_scan_open_settings",
-      "value": "请在设置中开启相机权限"
-    },
-    {
-      "name": "teacher_scan_type_mismatch_sign_in",
-      "value": "二维码类型不匹配，请扫描签到码"
-    },
-    {
-      "name": "teacher_scan_type_mismatch_sign_out",
-      "value": "二维码类型不匹配，请扫描签退码"
-    },
-    {
-      "name": "teacher_scan_sign_in_success_suffix",
-      "value": " 签到成功！"
-    },
-    {
-      "name": "teacher_scan_sign_out_success_suffix",
-      "value": " 签退成功！"
-    },
-    {
-      "name": "teacher_scan_sign_in_request_failed",
-      "value": "签到请求失败"
-    },
-    {
-      "name": "teacher_scan_sign_out_request_failed",
-      "value": "签退请求失败"
-    },
-    {
-      "name": "homework_title",
-      "value": "作业管理"
-    },
-    {
-      "name": "homework_empty",
-      "value": "暂无作业"
-    },
-    {
-      "name": "homework_submit_feedback",
-      "value": "提交反馈"
-    },
-    {
-      "name": "homework_feedback_submit_success",
-      "value": "反馈提交成功"
-    },
-    {
-      "name": "homework_feedback_submitting",
-      "value": "提交中..."
-    },
-    {
-      "name": "homework_feedback_dialog_title",
-      "value": "作业反馈"
-    },
-    {
-      "name": "homework_feedback_dialog_hint",
-      "value": "请输入本次辅导反馈内容"
-    },
-    {
-      "name": "homework_feedback_student",
-      "value": "学生"
-    },
-    {
-      "name": "homework_feedback_task_content",
-      "value": "作业内容"
-    },
-    {
-      "name": "common_cancel",
-      "value": "取消"
-    },
-    {
-      "name": "common_confirm",
-      "value": "确认"
-    },
-    {
-      "name": "homework_loading_failed",
-      "value": "加载作业失败"
-    },
-    {
-      "name": "homework_data_loading_failed",
-      "value": "加载数据失败"
-    },
-    {
-      "name": "homework_feedback_submit_failed",
-      "value": "提交反馈失败"
-    },
-    {
-      "name": "homework_tab_pending",
-      "value": "待辅导"
-    },
-    {
-      "name": "homework_tab_completed",
-      "value": "已完成"
-    },
-    {
-      "name": "homework_tab_confirmed",
-      "value": "待确认"
-    },
-    {
-      "name": "homework_status_pending",
-      "value": "待辅导"
-    },
-    {
-      "name": "homework_status_in_progress",
-      "value": "辅导中"
-    },
-    {
-      "name": "homework_status_completed",
-      "value": "已完成"
-    },
-    {
-      "name": "homework_status_confirmed",
-      "value": "已确认"
-    }
+    { "name": "module_desc", "value": "智慧学生托管系统" },
+    { "name": "EntryAbility_desc", "value": "智慧学生托管系统入口" },
+    { "name": "EntryAbility_label", "value": "智慧托管" },
+    { "name": "nav_home", "value": "首页" },
+    { "name": "nav_orders", "value": "订单" },
+    { "name": "nav_messages", "value": "消息" },
+    { "name": "nav_services", "value": "服务" },
+    { "name": "nav_timeline", "value": "成长" },
+    { "name": "nav_profile", "value": "我的" },
+    { "name": "nav_attendance", "value": "考勤" },
+    { "name": "nav_homework", "value": "作业" },
+    { "name": "nav_reports", "value": "统计" },
+    { "name": "nav_students", "value": "学生" },
+    { "name": "form_today_guardian_display_name", "value": "今日托管卡片" },
+    { "name": "form_today_guardian_description", "value": "实时查看学生托管状态和进度" },
+    { "name": "form_abnormal_alert_display_name", "value": "异常提醒卡片" },
+    { "name": "form_abnormal_alert_description", "value": "接收学生异常情况及时提醒" },
+    { "name": "camera_reason", "value": "需要使用相机扫描二维码完成签到签退" },
+    { "name": "read_media_reason", "value": "需要读取相册中的二维码图片" },
+    { "name": "write_media_reason", "value": "需要保存二维码图片到相册" },
+    { "name": "location_reason", "value": "用于考勤签到签退场景的定位授权与位置校验" },
+    { "name": "scan_sign_in_title", "value": "扫码签到" },
+    { "name": "scan_sign_out_title", "value": "扫码签退" },
+    { "name": "scan_permission_required", "value": "需要相机权限" },
+    { "name": "scan_permission_denied", "value": "未获得相机权限，无法扫码" },
+    { "name": "scan_permission_grant_hint", "value": "请先授予相机权限" },
+    { "name": "scan_permission_button", "value": "授权使用相机" },
+    { "name": "scan_permission_desc", "value": "为了扫描二维码进行签到签退，请授权使用相机" },
+    { "name": "scan_cancelled", "value": "已取消扫码" },
+    { "name": "scan_cancelled_retry", "value": "已取消扫码，可重新开始" },
+    { "name": "scan_failed_retry", "value": "扫码失败，请稍后重试" },
+    { "name": "scan_start_failed_retry", "value": "启动扫码失败，请稍后重试" },
+    { "name": "scan_no_content", "value": "未识别到二维码内容" },
+    { "name": "scan_parse_failed", "value": "二维码解析失败" },
+    { "name": "scan_format_error", "value": "二维码格式错误" },
+    { "name": "scan_unknown_type", "value": "无法识别当前二维码类型" },
+{ "name": "scan_page_intro", "value": "使用系统官方扫码界面" },
+    { "name": "scan_page_desc", "value": "支持二维码识别，可从相册选择图片扫码" },
+    { "name": "scan_teacher_sign_in_intro", "value": "打开官方扫码界面完成签到" },
+    { "name": "scan_teacher_sign_out_intro", "value": "打开官方扫码界面完成签退" },
+    { "name": "scan_album_supported", "value": "支持二维码识别，可从相册选择图片扫码" },
+    { "name": "scan_start_button", "value": "开始扫码" },
+    { "name": "scan_starting_button", "value": "扫码中..." },
+{ "name": "scan_instruction_open_official", "value": "点击“开始扫码”后将打开系统官方扫码界面" },
+    { "name": "scan_instruction_student_only", "value": "仅支持学生签到/签退二维码" },
+    { "name": "scan_continue", "value": "继续扫描" },
+    { "name": "common_back", "value": "返回" },
+    { "name": "attendance_sign_in_success", "value": "签到成功" },
+    { "name": "attendance_sign_out_success", "value": "签退成功" },
+    { "name": "attendance_sign_in_failed", "value": "签到失败" },
+    { "name": "attendance_sign_out_failed", "value": "签退失败" },
+    { "name": "attendance_process_failed", "value": "考勤处理失败" },
+    { "name": "teacher_scan_camera_required", "value": "需要相机权限才能扫描二维码" },
+    { "name": "teacher_scan_open_settings", "value": "请在设置中开启相机权限" },
+    { "name": "teacher_scan_type_mismatch_sign_in", "value": "二维码类型不匹配，请扫描签到码" },
+    { "name": "teacher_scan_type_mismatch_sign_out", "value": "二维码类型不匹配，请扫描签退码" },
+    { "name": "teacher_scan_sign_in_success_suffix", "value": " 签到成功" },
+    { "name": "teacher_scan_sign_out_success_suffix", "value": " 签退成功" },
+    { "name": "teacher_scan_sign_in_request_failed", "value": "签到请求失败" },
+    { "name": "teacher_scan_sign_out_request_failed", "value": "签退请求失败" },
+    { "name": "homework_title", "value": "作业管理" },
+    { "name": "homework_empty", "value": "暂无作业" },
+    { "name": "homework_submit_feedback", "value": "提交反馈" },
+    { "name": "homework_feedback_submit_success", "value": "反馈提交成功" },
+    { "name": "homework_feedback_submitting", "value": "提交中..." },
+    { "name": "homework_feedback_dialog_title", "value": "作业反馈" },
+    { "name": "homework_feedback_dialog_hint", "value": "请输入本次辅导反馈内容" },
+    { "name": "homework_feedback_student", "value": "学生" },
+    { "name": "homework_feedback_task_content", "value": "作业内容" },
+    { "name": "common_cancel", "value": "取消" },
+    { "name": "common_confirm", "value": "确认" },
+    { "name": "homework_loading_failed", "value": "加载作业失败" },
+    { "name": "homework_data_loading_failed", "value": "加载数据失败" },
+    { "name": "homework_feedback_submit_failed", "value": "提交反馈失败" },
+    { "name": "homework_tab_pending", "value": "待辅导" },
+    { "name": "homework_tab_completed", "value": "已完成" },
+    { "name": "homework_tab_confirmed", "value": "待确认" },
+    { "name": "homework_status_pending", "value": "待辅导" },
+    { "name": "homework_status_in_progress", "value": "辅导中" },
+    { "name": "homework_status_completed", "value": "已完成" },
+    { "name": "homework_status_confirmed", "value": "已确认" }
   ]
 }

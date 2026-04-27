@@ -21,7 +21,7 @@ export struct AdminStudentsExecutiveCard {
       title: '学生档案驾驶舱',
       subtitle: '先定位年级和关键词，再进入档案列表查看和编辑学生资料。',
       customPadding: 18,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -123,7 +123,7 @@ export struct AdminStudentsControlCard {
       title: '搜索控制台',
       subtitle: '统一控制关键词检索和年级切换，再进入学生档案列表。',
       customPadding: 14,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -202,7 +202,7 @@ export struct AdminStudentsSummaryCard {
     Card({
       customPadding: 14,
       customBgColor: HarmonyColor.surfaceSubtle,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -339,7 +339,7 @@ export struct AdminStudentsPaginationCard {
       title: '分页导航',
       subtitle: '按页浏览更多学生档案。',
       customPadding: 16,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

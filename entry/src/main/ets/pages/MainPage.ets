@@ -172,7 +172,7 @@ struct MainPage {
         .fontColor($r('app.color.text_primary'))
         .margin({ top: 22 })
 
-      Text(`当前模式：${ApiConfig.getEnvironmentLabel()}`)
+      Text(`当前环境：${ApiConfig.getEnvironmentLabel()}`)
         .fontSize(13)
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
@@ -197,7 +197,7 @@ struct MainPage {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
-        Text('请重新登录后继续使用 SmartGuardian 工作台。')
+        Text('请重新登录后继续使用智慧托管工作台。')
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
           .lineHeight(21)

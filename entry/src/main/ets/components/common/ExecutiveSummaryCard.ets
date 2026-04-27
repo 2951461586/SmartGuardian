@@ -19,7 +19,7 @@ export struct ExecutiveSummaryCard {
       title: this.title,
       subtitle: this.subtitle,
       customPadding: 18,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

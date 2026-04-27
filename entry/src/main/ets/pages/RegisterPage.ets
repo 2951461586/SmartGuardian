@@ -1,5 +1,4 @@
 import {
-  FormPageTemplate,
   FormActionBar,
   FormSecureField,
   FormSegmentSelector,
@@ -29,7 +28,7 @@ struct RegisterPage {
       },
       onDisagree: () => {
         this.isPrivacyChecked = false;
-        this.errorMessage = 'Please agree to the privacy policy before continuing.';
+        this.errorMessage = '请先阅读并同意隐私政策。';
       }
     }),
     autoCancel: false,
@@ -76,30 +75,30 @@ struct RegisterPage {
 
   private requestVerifyCode(): void {
     if (!this.mobile.trim()) {
-      this.errorMessage = 'Please enter a mobile number first.';
+      this.errorMessage = '请先输入手机号。';
       return;
     }
-    this.showTempMessage('Verification code delivery is not connected yet. Please ask the administrator to activate the account.');
+    this.showTempMessage('验证码发送暂未接入，请联系管理员开通账号。');
   }
 
   private handleRegister(): void {
     if (!this.mobile.trim() || !this.verifyCode.trim() || !this.realName.trim() || !this.password.trim() || !this.confirmPassword.trim()) {
-      this.errorMessage = 'Please complete the registration form.';
+      this.errorMessage = '请完整填写注册信息。';
       return;
     }
 
     if (!/^\d{11}$/.test(this.mobile.trim())) {
-      this.errorMessage = 'Please enter a valid 11-digit mobile number.';
+      this.errorMessage = '请输入有效的 11 位手机号。';
       return;
     }
 
     if (this.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+      this.errorMessage = '密码长度不能少于 6 位。';
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'The passwords do not match.';
+      this.errorMessage = '两次输入的密码不一致。';
       return;
     }
 
@@ -108,21 +107,57 @@ struct RegisterPage {
       return;
     }
 
-    this.showTempMessage('Self-service registration is not connected in the current version. Please contact the administrator.');
+    this.showTempMessage('当前版本暂未开放自助注册，请联系管理员开通账号。');
   }
 
   build() {
     Column() {
-      FormPageTemplate({
-        title: 'Create Account',
-        subtitle: 'Complete the registration profile for the portal you need to use.',
-        illustration: $r('app.media.sg_illustration_auth_hall'),
-        maxWidth: 640,
-        content: this.buildFormContent
-      })
+      Scroll() {
+        Column() {
+          Image($r('app.media.sg_illustration_auth_hall'))
+            .width('100%')
+            .height(150)
+            .objectFit(ImageFit.Cover)
+            .borderRadius(20)
+
+          Text('创建账号')
+            .width('100%')
+            .fontSize(28)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
+            .margin({ top: 18 })
+
+          Text('请选择入口并完善注册资料。')
+            .width('100%')
+            .fontSize(14)
+            .lineHeight(22)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 8, bottom: 18 })
+
+          this.buildFormContent()
+        }
+        .width('100%')
+        .constraintSize({ maxWidth: 640 })
+        .padding(24)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(24)
+        .border({
+          width: 1,
+          color: $r('app.color.divider'),
+          radius: 24,
+          style: BorderStyle.Solid
+        })
+        .alignSelf(ItemAlign.Center)
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
+    .padding({ left: 16, right: 16, top: 24, bottom: 24 })
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
@@ -130,7 +165,7 @@ struct RegisterPage {
     Column() {
       FormSegmentSelector({
         options: ['PARENT', 'TEACHER', 'ADMIN'],
-        labels: ['Parent', 'Teacher', 'Admin'],
+        labels: ['家长', '教师', '机构'],
         selectedValue: this.selectedPortal,
         onSelect: (value: string) => {
           this.selectedPortal = value;
@@ -139,8 +174,8 @@ struct RegisterPage {
 
       FormTextField({
         icon: $r('app.media.ic_user'),
-        label: 'Mobile',
-        placeholder: '11-digit mobile number',
+        label: '手机号',
+        placeholder: '请输入 11 位手机号',
         text: this.mobile,
         onChange: (value: string) => {
           this.mobile = value;
@@ -150,8 +185,8 @@ struct RegisterPage {
 
       FormTextField({
         icon: $r('app.media.ic_message'),
-        label: 'Verification Code',
-        placeholder: 'Enter verification code',
+        label: '验证码',
+        placeholder: '请输入验证码',
         text: this.verifyCode,
         onChange: (value: string) => {
           this.verifyCode = value;
@@ -159,7 +194,7 @@ struct RegisterPage {
       })
         .margin({ top: 14 })
 
-      Button('Get Code')
+      Button('获取验证码')
         .width('100%')
         .height(44)
         .fontSize(13)
@@ -174,8 +209,8 @@ struct RegisterPage {
 
       FormTextField({
         icon: $r('app.media.ic_user'),
-        label: 'Real Name',
-        placeholder: 'Enter your real name',
+        label: '真实姓名',
+        placeholder: '请输入真实姓名',
         text: this.realName,
         onChange: (value: string) => {
           this.realName = value;
@@ -185,8 +220,8 @@ struct RegisterPage {
 
       FormSecureField({
         icon: $r('app.media.ic_lock'),
-        label: 'Password',
-        placeholder: 'Set a login password',
+        label: '密码',
+        placeholder: '请设置登录密码',
         text: this.password,
         onChange: (value: string) => {
           this.password = value;
@@ -196,8 +231,8 @@ struct RegisterPage {
 
       FormSecureField({
         icon: $r('app.media.ic_lock'),
-        label: 'Confirm Password',
-        placeholder: 'Enter the password again',
+        label: '确认密码',
+        placeholder: '请再次输入密码',
         text: this.confirmPassword,
         onChange: (value: string) => {
           this.confirmPassword = value;
@@ -218,7 +253,7 @@ struct RegisterPage {
             }
           })
 
-        Text('I have read and agree to the privacy policy')
+        Text('我已阅读并同意隐私政策')
           .layoutWeight(1)
           .fontSize(12)
           .lineHeight(18)
@@ -232,9 +267,9 @@ struct RegisterPage {
       .margin({ top: 18 })
 
       FormActionBar({
-        primaryText: 'Register',
-        secondaryText: 'Back to Login',
-        helperText: 'The current build still uses administrator-assisted account activation.',
+        primaryText: '注册',
+        secondaryText: '返回登录',
+        helperText: '当前版本仍由管理员辅助开通账号。',
         errorText: this.errorMessage,
         onPrimary: () => {
           this.handleRegister();

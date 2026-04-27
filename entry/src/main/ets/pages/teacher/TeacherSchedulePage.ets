@@ -1,4 +1,4 @@
-import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonyReport, HarmonySpace } from '../../common/HarmonyDesign';
 import {
   BadgeSize,
   Card,
@@ -179,10 +179,10 @@ export struct TeacherSchedulePageContent {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildWeekSelectorSection,
-        content: this.buildScheduleContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildWeekSelectorSection() },
+        content: () => { this.buildScheduleContent() }
       })
     }
     .width('100%')
@@ -234,7 +234,7 @@ export struct TeacherSchedulePageContent {
     Card({
       title: '周视图',
       subtitle: this.formatWeekRange(),
-      content: this.buildWeekSelectorContent
+      content: () => { this.buildWeekSelectorContent() }
     })
   }
 
@@ -254,7 +254,7 @@ export struct TeacherSchedulePageContent {
         }, (date: Date) => this.formatDate(date))
       }
       .width('100%')
-      .margin({ top: 12 })
+      .margin({ top: HarmonySpace.section })
     }
     .width('100%')
   }
@@ -262,11 +262,16 @@ export struct TeacherSchedulePageContent {
   @Builder
   private buildWeekSwitchButton(label: string, offset: number) {
     Text(label)
-      .fontSize(13)
+      .fontSize($r('app.float.text_tiny_size'))
       .fontColor(HarmonyColor.textSecondary)
-      .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+      .padding({
+        left: HarmonySpace.section,
+        right: HarmonySpace.section,
+        top: HarmonySpace.compact,
+        bottom: HarmonySpace.compact
+      })
       .backgroundColor(HarmonyColor.surfaceSubtle)
-      .borderRadius(16)
+      .borderRadius(HarmonyRadius.control)
       .onClick((): void => {
         this.shiftWeek(offset);
       })
@@ -276,19 +281,19 @@ export struct TeacherSchedulePageContent {
   private buildDateChip(date: Date) {
     Column() {
       Text(this.getWeekDayText(date))
-        .fontSize(11)
+        .fontSize($r('app.float.text_tiny_size'))
         .fontColor(this.isSelectedDate(date) ? HarmonyColor.info : HarmonyColor.textSecondary)
 
       Text(`${date.getDate()}`)
-        .fontSize(18)
+        .fontSize($r('app.float.card_title_size'))
         .fontWeight(FontWeight.Bold)
         .fontColor(this.isSelectedDate(date) ? HarmonyColor.info : HarmonyColor.textPrimary)
-        .margin({ top: 4 })
+        .margin({ top: HarmonySpace.compact / 2 })
     }
     .layoutWeight(1)
-    .padding({ top: 10, bottom: 10 })
+    .padding({ top: HarmonySpace.compact, bottom: HarmonySpace.compact })
     .backgroundColor(this.isSelectedDate(date) ? $r('app.color.primary_light') : HarmonyColor.clear)
-    .borderRadius(16)
+    .borderRadius(HarmonyRadius.control)
     .onClick((): void => {
       this.selectDate(date);
     })
@@ -306,7 +311,7 @@ export struct TeacherSchedulePageContent {
       onEmptyAction: () => {
         this.loadSchedule();
       },
-      content: this.buildScheduleList
+      content: () => { this.buildScheduleList() }
     })
       .layoutWeight(1)
   }
@@ -341,25 +346,25 @@ export struct TeacherSchedulePageContent {
         Column() {
           Row() {
             Image($r('app.media.ic_clock'))
-              .width(14)
-              .height(14)
+              .width($r('app.float.text_secondary_size'))
+              .height($r('app.float.text_secondary_size'))
               .fillColor($r('app.color.primary'))
 
             Text(item.startTime)
               .fontSize($r('app.float.card_title_size'))
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.text_primary'))
-              .margin({ left: 4 })
+              .margin({ left: HarmonySpace.compact / 2 })
           }
 
           Text(item.endTime)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
+            .margin({ top: HarmonySpace.compact / 2 })
         }
-        .width(80)
+        .width($r('app.float.scan_permission_icon_size'))
         .alignItems(HorizontalAlign.Start)
-        .margin({ right: 12 })
+        .margin({ right: HarmonySpace.section })
 
         Column() {
           Text(item.sessionName)
@@ -370,25 +375,25 @@ export struct TeacherSchedulePageContent {
           Text(item.className)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
+            .margin({ top: HarmonySpace.compact / 2 })
 
           Row() {
             Image($r('app.media.ic_location'))
-              .width(14)
-              .height(14)
+              .width($r('app.float.text_secondary_size'))
+              .height($r('app.float.text_secondary_size'))
               .fillColor($r('app.color.text_tertiary'))
 
             Text(item.location)
               .fontSize($r('app.float.text_secondary_size'))
               .fontColor($r('app.color.text_secondary'))
-              .margin({ left: 4 })
+              .margin({ left: HarmonySpace.compact / 2 })
           }
-          .margin({ top: 6 })
+          .margin({ top: HarmonySpace.compact })
 
           Text(`${item.studentCount}人`)
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor($r('app.color.text_tertiary'))
-            .margin({ top: 6 })
+            .margin({ top: HarmonySpace.compact })
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -401,15 +406,15 @@ export struct TeacherSchedulePageContent {
       .width('100%')
     }
     .width('100%')
-    .padding(16)
+    .padding($r('app.float.page_padding'))
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(20)
+    .borderRadius(HarmonyRadius.card)
     .border({
       width: 1,
       color: $r('app.color.divider'),
-      radius: 20,
+      radius: HarmonyRadius.card,
       style: BorderStyle.Solid
     })
-    .margin({ bottom: 12 })
+    .margin({ bottom: HarmonySpace.section })
   }
 }

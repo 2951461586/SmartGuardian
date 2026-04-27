@@ -29,7 +29,7 @@ export struct ParentAlertResponseCard {
           this.onRefresh();
         }
       },
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 
@@ -205,7 +205,7 @@ export struct ParentAlertDetailSheetCard {
       Card({
         title: this.alert.title,
         subtitle: `${this.alert.studentName} · ${this.resolveTypeText(this.alert.alertType)}`,
-        content: this.buildContent
+        content: () => { this.buildContent() }
       })
 
       Row() {

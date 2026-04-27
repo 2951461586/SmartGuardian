@@ -1,6 +1,6 @@
 ﻿/**
  * SmartGuardian - API Configuration
- * API and Mock data configuration
+ * API configuration
  */
 
 import { StorageKeys } from '../constants/app.constants';
@@ -9,7 +9,6 @@ import { StorageKeys } from '../constants/app.constants';
  * API environment identifiers
  */
 export class ApiEnvironment {
-  static readonly DEV_MOCK: string = 'DEV_MOCK';
   static readonly AGC_SERVERLESS: string = 'AGC_SERVERLESS';
 }
 
@@ -20,13 +19,13 @@ export class ApiConfig {
   static readonly API_ENV_STORAGE_KEY: string = StorageKeys.API_ENV;
   static readonly API_BASE_URL_STORAGE_KEY: string = StorageKeys.API_BASE_URL;
   static readonly API_CONFIG_VERSION_STORAGE_KEY: string = StorageKeys.API_CONFIG_VERSION;
-  private static readonly API_CONFIG_VERSION: number = 6;
+  private static readonly API_CONFIG_VERSION: number = 7;
 
   /**
    * Default environment for fresh installs.
-   * Keep mock as the baseline and let runtime config switch to real services.
+   * Production traffic is routed through AGC.
    */
-  static readonly CURRENT_ENV: string = ApiEnvironment.DEV_MOCK;
+  static readonly CURRENT_ENV: string = ApiEnvironment.AGC_SERVERLESS;
 
   static getCurrentEnv(): string {
     ApiConfig.ensureRuntimeConfigReady();
@@ -70,40 +69,23 @@ export class ApiConfig {
   }
 
   static getEnvironmentLabel(): string {
-    const env = ApiConfig.getCurrentEnv();
-    if (env === ApiEnvironment.AGC_SERVERLESS) {
-      return 'AGC Serverless';
-    }
-    return 'Mock Demo';
-  }
-  /**
-   * Enable mock data mode
-   */
-  static isMockEnabled(): boolean {
-    return ApiConfig.getCurrentEnv() === ApiEnvironment.DEV_MOCK;
+    return '云服务';
   }
 
   static isAgcEnabled(): boolean {
-    return ApiConfig.getCurrentEnv() === ApiEnvironment.AGC_SERVERLESS;
+    return true;
   }
 
   /**
    * API base URL
    */
   static getBaseUrl(): string {
-    const env = ApiConfig.getCurrentEnv();
-    if (env === ApiEnvironment.AGC_SERVERLESS) {
-      return ApiConfig.getConfiguredBaseUrl();
-    }
-    return '';
+    return ApiConfig.getConfiguredBaseUrl();
   }
 
   static describeRuntimeConfig(): string {
-    const env = ApiConfig.getCurrentEnv();
-    const baseUrl = env === ApiEnvironment.DEV_MOCK
-      ? '(mock mode)'
-      : (ApiConfig.getConfiguredBaseUrl() || '(unset)');
-    return `env=${env}, label=${ApiConfig.getEnvironmentLabel()}, mock=${ApiConfig.isMockEnabled()}, baseUrl=${baseUrl}`;
+    const baseUrl = ApiConfig.getConfiguredBaseUrl() || '(未配置)';
+    return `env=${ApiEnvironment.AGC_SERVERLESS}, label=${ApiConfig.getEnvironmentLabel()}, baseUrl=${baseUrl}`;
   }
 
   static ensureRuntimeConfigReady(): void {
@@ -114,13 +96,7 @@ export class ApiConfig {
     let nextEnv = ApiConfig.normalizeEnv(storedEnv);
     let nextBaseUrl = storedBaseUrl ? ApiConfig.normalizeBaseUrl(storedBaseUrl) : '';
 
-    if (nextEnv === ApiEnvironment.AGC_SERVERLESS) {
-      if (!nextBaseUrl) {
-        nextBaseUrl = '';
-      }
-    } else {
-      nextBaseUrl = '';
-    }
+    nextEnv = ApiEnvironment.AGC_SERVERLESS;
 
     if (storedVersion < ApiConfig.API_CONFIG_VERSION) {
       AppStorage.setOrCreate(ApiConfig.API_ENV_STORAGE_KEY, nextEnv);
@@ -142,8 +118,7 @@ export class ApiConfig {
   }
 
   private static normalizeEnv(env?: string | null): string {
-    if (env === ApiEnvironment.DEV_MOCK ||
-      env === ApiEnvironment.AGC_SERVERLESS) {
+    if (env === ApiEnvironment.AGC_SERVERLESS) {
       return env;
     }
     return ApiConfig.CURRENT_ENV;
@@ -153,11 +128,6 @@ export class ApiConfig {
    * Request timeout in milliseconds
    */
   static readonly TIMEOUT: number = 30000;
-
-  /**
-   * Mock data delay in milliseconds (simulate network latency)
-   */
-  static readonly MOCK_DELAY: number = 300;
 
   /**
    * API version

@@ -171,10 +171,10 @@ export struct ParentQRCodePageContent {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildStudentSelectorSection,
-        content: this.buildQRCodeContent
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildStudentSelectorSection() },
+        content: () => { this.buildQRCodeContent() }
       })
     }
     .width('100%')
@@ -218,7 +218,7 @@ export struct ParentQRCodePageContent {
     Card({
       title: '切换学生',
       subtitle: this.students.length > 1 ? '为不同学生切换独立接送码。' : '当前已选中唯一绑定学生。',
-      content: this.buildStudentSelectorContent
+      content: () => { this.buildStudentSelectorContent() }
     })
   }
 
@@ -276,7 +276,7 @@ export struct ParentQRCodePageContent {
       onRetry: () => {
         this.loadStudents();
       },
-      content: this.buildQRCodeWorkspace
+      content: () => { this.buildQRCodeWorkspace() }
     })
       .layoutWeight(1)
   }
@@ -306,7 +306,7 @@ export struct ParentQRCodePageContent {
       onAction: () => {
         this.generateQRCode();
       },
-      content: this.buildQRCodeCardContent
+      content: () => { this.buildQRCodeCardContent() }
     })
   }
 
@@ -354,7 +354,7 @@ export struct ParentQRCodePageContent {
     Card({
       title: '当前学生',
       subtitle: '确认接送码对应的学生档案，避免错用二维码。',
-      content: this.buildStudentSummaryContent
+      content: () => { this.buildStudentSummaryContent() }
     })
   }
 
@@ -376,7 +376,7 @@ export struct ParentQRCodePageContent {
     Card({
       title: '使用须知',
       subtitle: '家长和被授权接送人都应遵循以下核验规则。',
-      content: this.buildGuideContent
+      content: () => { this.buildGuideContent() }
     })
   }
 

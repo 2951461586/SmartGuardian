@@ -229,7 +229,7 @@ struct ParentLeavePage {
     Card({
       title: '请假原因',
       subtitle: '请尽量说明清楚请假的背景与时间安排。',
-      content: this.buildReasonInputContent
+      content: () => { this.buildReasonInputContent() }
     })
   }
 
@@ -255,7 +255,7 @@ struct ParentLeavePage {
     Card({
       title: '上传附件（可选）',
       subtitle: '可补充请假证明、病假单等材料，最多 3 个。',
-      content: this.buildAttachmentContent
+      content: () => { this.buildAttachmentContent() }
     })
   }
 

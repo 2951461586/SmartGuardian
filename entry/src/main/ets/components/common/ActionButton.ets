@@ -3,7 +3,7 @@
  * Reusable quick-action tile in the tri-portal style
  */
 
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
 import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 @Component
@@ -19,45 +19,45 @@ export struct ActionButton {
       Row() {
         Column() {
           Image(this.icon)
-            .width(22)
-            .height(22)
+            .width($r('app.float.icon_small_size'))
+            .height($r('app.float.icon_small_size'))
             .objectFit(ImageFit.Contain)
             .fillColor(this.iconColor || getCurrentRolePalette().primary)
         }
-        .width(48)
-        .height(48)
+        .width($r('app.float.avatar_medium_size'))
+        .height($r('app.float.avatar_medium_size'))
         .justifyContent(FlexAlign.Center)
         .backgroundColor(this.bgColor || getCurrentRolePalette().light)
-        .borderRadius(18)
+        .borderRadius(HarmonyRadius.control)
 
         Blank()
       }
       .width('100%')
 
       Text(this.label)
-        .fontSize(13)
+        .fontSize($r('app.float.text_tiny_size'))
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
         .maxLines(2)
         .textAlign(TextAlign.Start)
-        .margin({ top: 12 })
+        .margin({ top: HarmonySpace.section })
     }
     .layoutWeight(1)
-    .height(112)
-    .padding({ left: 14, right: 14, top: 14, bottom: 14 })
+    .height($r('app.float.stat_card_height'))
+    .padding(HarmonySpace.section)
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(22)
+    .borderRadius(HarmonyRadius.card)
     .border({
       width: 1,
       color: HarmonyColor.line,
-      radius: 22,
+      radius: HarmonyRadius.card,
       style: BorderStyle.Solid
     })
     .shadow({
-      radius: 12,
+      radius: HarmonySpace.section,
       color: getCurrentRolePalette().shadow,
       offsetX: 0,
-      offsetY: 6
+      offsetY: HarmonySpace.compact
     })
     .alignItems(HorizontalAlign.Start)
     .onClick(() => {

@@ -4,10 +4,11 @@
  */
 
 import { ServiceProductService } from '../../services/api/service';
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
 import { RouteUrls } from '../../constants/app.constants';
 import { ServiceProduct } from '../../models/service';
 import { ServiceProductCard } from '../../components/common';
+import { LazyArrayDataSource } from '../../utils/LazyArrayDataSource';
 
 @Entry
 @Component
@@ -24,11 +25,13 @@ struct ParentServicesPage {
 @Component
 export struct ParentServicesPageContent {
   @State serviceList: ServiceProduct[] = [];
+  @State filteredServiceList: ServiceProduct[] = [];
   @State isLoading: boolean = false;
   @State selectedCategory: string = 'ALL';
   @State searchKeyword: string = '';
 
   private categories: string[] = ['ALL', 'AFTER_SCHOOL', 'HOLIDAY', 'FULL_DAY', 'WEEKEND'];
+  private serviceDataSource: LazyArrayDataSource<ServiceProduct> = new LazyArrayDataSource<ServiceProduct>();
 
   aboutToAppear() {
     this.loadServiceList();
@@ -48,17 +51,19 @@ export struct ParentServicesPageContent {
       } else {
         this.serviceList = [];
       }
+      this.updateFilteredServiceList();
     } catch (error) {
       console.error('Load service products failed:', String(error));
       this.serviceList = [];
+      this.updateFilteredServiceList();
     } finally {
       this.isLoading = false;
     }
   }
 
-  private getFilteredServiceList(): ServiceProduct[] {
+  private updateFilteredServiceList(): void {
     const keyword = this.searchKeyword.trim().toLowerCase();
-    return this.serviceList.filter((service: ServiceProduct) => {
+    this.filteredServiceList = this.serviceList.filter((service: ServiceProduct) => {
       if (this.selectedCategory !== 'ALL' && service.serviceType !== this.selectedCategory) {
         return false;
       }
@@ -72,6 +77,7 @@ export struct ParentServicesPageContent {
       const serviceType = (service.serviceType || '').toLowerCase();
       return name.indexOf(keyword) >= 0 || description.indexOf(keyword) >= 0 || serviceType.indexOf(keyword) >= 0;
     });
+    this.serviceDataSource.setItems(this.filteredServiceList);
   }
 
   private getCategoryName(category: string): string {
@@ -122,9 +128,11 @@ export struct ParentServicesPageContent {
         .margin({ left: 8, right: 8 })
         .onChange((value: string) => {
           this.searchKeyword = value;
+          this.updateFilteredServiceList();
         })
         .onSubmit(() => {
           this.searchKeyword = this.searchKeyword.trim();
+          this.updateFilteredServiceList();
         })
 
       if (this.searchKeyword) {
@@ -134,12 +142,12 @@ export struct ParentServicesPageContent {
           .fillColor($r('app.color.text_tertiary'))
           .onClick(() => {
             this.searchKeyword = '';
-            this.loadServiceList();
+            this.updateFilteredServiceList();
           })
       }
     }
     .width('100%')
-    .padding(12)
+    .padding(HarmonySpace.section)
     .backgroundColor(HarmonyColor.surface)
   }
 
@@ -151,9 +159,9 @@ export struct ParentServicesPageContent {
           Text(this.getCategoryName(category))
             .fontSize($r('app.float.text_secondary_size'))
             .fontColor(this.selectedCategory === category ? $r('app.color.primary') : $r('app.color.text_secondary'))
-            .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+            .padding({ left: HarmonySpace.page, right: HarmonySpace.page, top: HarmonySpace.compact, bottom: HarmonySpace.compact })
             .backgroundColor(this.selectedCategory === category ? $r('app.color.primary_light') : HarmonyColor.clear)
-            .borderRadius(16)
+            .borderRadius(HarmonyRadius.control)
             .onClick(() => {
               this.selectedCategory = category;
               this.loadServiceList();
@@ -177,7 +185,7 @@ export struct ParentServicesPageContent {
       .width('100%')
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
-    } else if (this.getFilteredServiceList().length === 0) {
+    } else if (this.filteredServiceList.length === 0) {
       Column() {
         Image($r('app.media.ic_empty'))
           .width(120)
@@ -194,8 +202,8 @@ export struct ParentServicesPageContent {
       .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
     } else {
-      List({ space: 12 }) {
-        ForEach(this.getFilteredServiceList(), (service: ServiceProduct) => {
+      List({ space: HarmonySpace.section }) {
+        LazyForEach(this.serviceDataSource, (service: ServiceProduct) => {
           ListItem() {
             ServiceProductCard({
               service: service,
@@ -220,7 +228,12 @@ export struct ParentServicesPageContent {
       }
       .width('100%')
       .layoutWeight(1)
-      .padding({ left: 12, right: 12, top: 12, bottom: 16 })
+      .padding({
+        left: HarmonySpace.section,
+        right: HarmonySpace.section,
+        top: HarmonySpace.section,
+        bottom: HarmonySpace.page
+      })
       .divider({ strokeWidth: 0 })
       .scrollBar(BarState.Off)
       .cachedCount(6)

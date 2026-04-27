@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Teacher Messages Page
  * Unified teacher message center
  */
@@ -162,8 +162,8 @@ export struct TeacherMessagesPageContent {
   build() {
     Column() {
       PageHeader({
-        title: '\u6d88\u606f\u901a\u77e5',
-        subtitle: '\u7edf\u4e00\u5904\u7406\u8bf7\u5047\u3001\u8003\u52e4\u4e0e\u7cfb\u7edf\u901a\u77e5',
+        title: '消息通知',
+        subtitle: '统一处理请假、考勤与系统通知',
         theme: HeaderTheme.WHITE,
         showBack: true,
         onBackClick: (): void => this.getUIContext().getRouter().back(),
@@ -197,7 +197,7 @@ export struct TeacherMessagesPageContent {
     Row() {
       StatCard({
         value: `${this.messages.length}`,
-        label: '\u5168\u90e8\u6d88\u606f',
+        label: '全部消息',
         icon: $r('app.media.ic_message'),
         iconColor: HarmonyColor.brandBlue
       })
@@ -207,7 +207,7 @@ export struct TeacherMessagesPageContent {
 
       StatCard({
         value: `${this.getUnreadCount()}`,
-        label: '\u672a\u8bfb\u6d88\u606f',
+        label: '未读消息',
         icon: $r('app.media.ic_notification'),
         iconColor: HarmonyReport.caution
       })
@@ -220,10 +220,10 @@ export struct TeacherMessagesPageContent {
   @Builder
   buildTabSection() {
     Card({
-      title: '\u6d88\u606f\u5206\u7ec4',
-      subtitle: '\u6309\u7c7b\u578b\u6307\u5bfc\u5f53\u524d\u9700\u8981\u5904\u7406\u7684\u4fe1\u606f',
+      title: '消息分组',
+      subtitle: '按类型指导当前需要处理的信息',
       customPadding: 12,
-      content: this.buildTabContent
+      content: () => { this.buildTabContent() }
     })
     .margin({ left: 16, right: 16, top: 14, bottom: 12 })
   }
@@ -243,13 +243,13 @@ export struct TeacherMessagesPageContent {
       LoadingState({
         loadingSize: LoadingSize.LARGE,
         fullscreen: false,
-        message: '\u6b63\u5728\u52a0\u8f7d\u6d88\u606f...'
+        message: '正在加载消息...'
       })
     } else if (this.filteredMessages.length === 0) {
       EmptyState({
         type: EmptyType.NO_MESSAGE,
-        customDescription: this.selectedTab === 'ALL' ? '\u6682\u65e0\u65b0\u6d88\u606f' : '\u5f53\u524d\u5206\u7c7b\u6682\u65e0\u5185\u5bb9',
-        actionText: '\u5237\u65b0',
+        customDescription: this.selectedTab === 'ALL' ? '暂无新消息' : '当前分类暂无内容',
+        actionText: '刷新',
         onAction: (): void => {
           this.loadMessages();
         }
@@ -258,8 +258,8 @@ export struct TeacherMessagesPageContent {
       List({ space: 12 }) {
         ListItem() {
           SectionHeader({
-            title: '\u6d88\u606f\u5217\u8868',
-            subtitle: '\u70b9\u5f00\u67e5\u770b\u8be6\u60c5\uff0c\u5df2\u8bfb\u72b6\u6001\u4f1a\u540c\u6b65\u66f4\u65b0'
+            title: '消息列表',
+            subtitle: '点开查看详情，已读状态会同步更新'
           })
         }
 

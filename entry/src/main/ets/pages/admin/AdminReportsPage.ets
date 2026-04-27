@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SmartGuardian - Admin Reports Page
  * Admin can view detailed statistics and reports
  */
@@ -247,10 +247,10 @@ export struct AdminReportsPageContent {
       WorkbenchListPageTemplate({
         scrollable: false,
         enableWideContent: true,
-        header: this.buildHeader,
-        overview: this.buildOverviewSection,
-        controls: this.buildControlDeck,
-        content: this.buildStatefulReportBody
+        header: () => { this.buildHeader() },
+        overview: () => { this.buildOverviewSection() },
+        controls: () => { this.buildControlDeck() },
+        content: () => { this.buildStatefulReportBody() }
       })
     }
     .width('100%')
@@ -307,7 +307,7 @@ export struct AdminReportsPageContent {
       onEmptyAction: () => {
         this.loadReportData();
       },
-      content: this.buildReportContent
+      content: () => { this.buildReportContent() }
     })
       .layoutWeight(1)
       .margin({ top: 12 })

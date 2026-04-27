@@ -24,7 +24,8 @@ export const AGC_FUNCTION_CONTRACTS: AgcFunctionContract[] = [
       ApiEndpoints.AUTH,
       ApiEndpoints.AUTH_LOGIN,
       ApiEndpoints.AUTH_LOGOUT,
-      ApiEndpoints.AUTH_REFRESH
+      ApiEndpoints.AUTH_REFRESH,
+      ApiEndpoints.AUTH_SESSION_DEVICE
     ]
   },
   {

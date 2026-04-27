@@ -59,7 +59,7 @@ export struct AdminStatusFilterCard {
     Card({
       title: this.title,
       subtitle: this.subtitle,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

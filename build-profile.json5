@@ -1,6 +1,19 @@
 {
   "app": {
     "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\29514\\.ohos\\config\\default_SmartGuardian_XL5CZ3zXkn1U6bUMia9spDF5dIjVxdxR9DqDH-adJPY=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B13A2D6C1486B10806F348E1866EB520EEB0119CB65CFF705EF22B2228A3B9F35AF011F9C7E51DB",
+          "profile": "C:\\Users\\29514\\.ohos\\config\\default_SmartGuardian_XL5CZ3zXkn1U6bUMia9spDF5dIjVxdxR9DqDH-adJPY=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\29514\\.ohos\\config\\default_SmartGuardian_XL5CZ3zXkn1U6bUMia9spDF5dIjVxdxR9DqDH-adJPY=.p12",
+          "storePassword": "0000001BA67775446A5B9EEA9BE167725A5643C9FF4EDD80D0FC8E52CC4BE81929D6BCDDFA4062BA16F144"
+        }
+      }
     ],
     "products": [
       {
@@ -22,6 +35,29 @@
       },
       {
         "name": "release"
+      }
+    ],
+    "capabilities": [
+      {
+        "bundleName": "com.liziai.smartguardian",
+        "config": [
+          {
+            "name": "Push Kit",
+            "capability": "com.huawei.service.push.base_service"
+          },
+          {
+            "name": "Device status detection",
+            "capability": "com.huawei.service.device_security.device_verify"
+          },
+          {
+            "name": "Map Kit",
+            "capability": "com.huawei.service.mapkit"
+          },
+          {
+            "name": "Safety Detect",
+            "capability": "com.huawei.service.device_security.safety_detect"
+          }
+        ]
       }
     ]
   },

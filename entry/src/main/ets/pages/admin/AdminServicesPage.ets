@@ -241,7 +241,7 @@ struct AdminServicesPage {
     Card({
       title: '状态筛选',
       subtitle: '按服务状态切换当前产品池，快速定位启用、停用和满员服务。',
-      content: this.buildFilterContent
+      content: () => { this.buildFilterContent() }
     })
     .margin({ left: 16, right: 16, top: 14 })
   }

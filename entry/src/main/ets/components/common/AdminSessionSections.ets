@@ -63,7 +63,7 @@ export struct AdminSessionsFilterCard {
       subtitle: '可按今日、满载和已结束状态快速查看排期压力。',
       actionText: '自动排班',
       onAction: this.onAutoSchedule,
-      content: this.buildContent
+      content: () => { this.buildContent() }
     })
   }
 

@@ -206,7 +206,6 @@ export {
 } from './ProfileCenterSections';
 export {
   PortalSelectorCard,
-  EnvironmentSelectorCard,
   PortalOption
 } from './AuthPortalSections';
 export {

@@ -524,7 +524,7 @@
         "integration": {
           "apiBase": "/api/v1",
           "auth": "AGC_SESSION",
-          "mockDefault": false,
+          "agcDefault": true,
           "acceptance": ["workbench-manifest", "parent-dashboard"]
         }
       },
@@ -565,7 +565,7 @@
         "integration": {
           "apiBase": "/api/v1",
           "auth": "AGC_SESSION",
-          "mockDefault": false,
+          "agcDefault": true,
           "acceptance": ["teacher-home", "attendance-flow"]
         }
       },
@@ -606,7 +606,7 @@
         "integration": {
           "apiBase": "/api/v1",
           "auth": "AGC_SESSION",
-          "mockDefault": false,
+          "agcDefault": true,
           "acceptance": ["admin-home", "reporting"]
         }
       },

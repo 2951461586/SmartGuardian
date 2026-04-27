@@ -1,9 +1,9 @@
-﻿/**
+/**
  * SmartGuardian - Parent Profile Edit Page
  * Parent profile edit page with unified card layout
  */
 
-import { HarmonyColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
 import { Card, HeaderTheme, InfoCard, InfoItem, PageHeader, SectionHeader } from '../../components/common';
 import { UserStore } from '../../stores/userStore';
 
@@ -26,8 +26,7 @@ struct ParentProfileEditPage {
 
   async selectAvatar() {
     try {
-      this.avatar = 'mock_avatar_path';
-      console.log('Avatar selected');
+      this.avatar = this.avatar || '';
     } catch (error) {
       console.error('Select avatar failed:', String(error));
     }
@@ -68,7 +67,12 @@ struct ParentProfileEditPage {
           this.buildAccountInfo()
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+        .padding({
+          left: HarmonySpace.page,
+          right: HarmonySpace.page,
+          top: HarmonySpace.page,
+          bottom: HarmonySpace.roomy
+        })
       }
       .width('100%')
       .layoutWeight(1)
@@ -82,7 +86,7 @@ struct ParentProfileEditPage {
   @Builder
   private buildSaveAction() {
     Text(this.isSaving ? '保存中' : '保存')
-      .fontSize(14)
+      .fontSize($r('app.float.text_secondary_size'))
       .fontWeight(FontWeight.Medium)
       .fontColor(HarmonyColor.textInverse)
       .opacity(this.isSaving ? 0.7 : 1)
@@ -102,7 +106,7 @@ struct ParentProfileEditPage {
       onAction: (): void => {
         this.selectAvatar();
       },
-      content: this.buildAvatarPanelContent
+      content: () => { this.buildAvatarPanelContent() }
     })
   }
 
@@ -111,31 +115,31 @@ struct ParentProfileEditPage {
     Row() {
       if (this.avatar) {
         Image(this.avatar)
-          .width(88)
-          .height(88)
-          .borderRadius(44)
+          .width($r('app.float.scan_qrcode_icon_size'))
+          .height($r('app.float.scan_qrcode_icon_size'))
+          .borderRadius(HarmonyRadius.pill)
           .objectFit(ImageFit.Cover)
       } else {
         Image($r('app.media.ic_default_avatar'))
-          .width(88)
-          .height(88)
-          .borderRadius(44)
+          .width($r('app.float.scan_qrcode_icon_size'))
+          .height($r('app.float.scan_qrcode_icon_size'))
+          .borderRadius(HarmonyRadius.pill)
       }
 
       Column() {
         Text(this.userName || '家长用户')
-          .fontSize(20)
+          .fontSize($r('app.float.page_title_size'))
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
         Text(this.mobile || '未绑定手机号')
           .fontSize($r('app.float.text_secondary_size'))
           .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 6 })
+          .margin({ top: HarmonySpace.compact })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .margin({ left: 14 })
+      .margin({ left: HarmonySpace.section })
     }
     .width('100%')
     .alignItems(VerticalAlign.Center)
@@ -151,7 +155,7 @@ struct ParentProfileEditPage {
 
       Card({
         title: '基础信息',
-        content: this.buildProfileFormContent
+        content: () => { this.buildProfileFormContent() }
       })
     }
     .width('100%')
@@ -162,7 +166,7 @@ struct ParentProfileEditPage {
     Column() {
       Text('姓名')
         .width('100%')
-        .fontSize(13)
+        .fontSize($r('app.float.text_tiny_size'))
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_secondary'))
 
@@ -171,12 +175,12 @@ struct ParentProfileEditPage {
         placeholder: '请输入姓名'
       })
         .width('100%')
-        .height(52)
-        .fontSize(15)
+        .height($r('app.float.list_item_height'))
+        .fontSize($r('app.float.text_primary_size'))
         .backgroundColor(HarmonyColor.surfaceSubtle)
-        .borderRadius(16)
-        .margin({ top: 8 })
-        .padding({ left: 14, right: 14 })
+        .borderRadius(HarmonyRadius.control)
+        .margin({ top: HarmonySpace.compact })
+        .padding({ left: HarmonySpace.section, right: HarmonySpace.section })
         .onChange((value: string) => {
           this.userName = value;
         })
