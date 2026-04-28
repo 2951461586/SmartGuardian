@@ -1,4 +1,4 @@
-import { HarmonyColor, HarmonyRadius, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyReport, harmonyShadowColor } from '../../common/HarmonyDesign';
 import { getCurrentRolePalette } from '../../common/RoleTheme';
 
 @Component
@@ -19,7 +19,7 @@ export struct FormSurface {
           .width('100%')
           .height(160)
           .objectFit(ImageFit.Cover)
-          .borderRadius(24)
+          .borderRadius(28)
       }
 
       if (this.title) {
@@ -48,11 +48,11 @@ export struct FormSurface {
     .constraintSize({ maxWidth: this.maxWidth })
     .padding(24)
     .backgroundColor($r('app.color.card_background'))
-    .borderRadius(32)
+    .borderRadius(34)
     .border({
       width: 1,
       color: $r('app.color.divider'),
-      radius: 32,
+      radius: 34,
       style: BorderStyle.Solid
     })
     .shadow({
@@ -106,11 +106,11 @@ export struct FormTextField {
       .width('100%')
       .padding({ left: 14, right: 14 })
       .backgroundColor($r('app.color.card_background'))
-      .borderRadius(20)
+      .borderRadius(22)
       .border({
         width: 1,
         color: $r('app.color.divider'),
-        radius: 20,
+        radius: 22,
         style: BorderStyle.Solid
       })
     }
@@ -184,11 +184,11 @@ export struct FormSecureField {
       .width('100%')
       .padding({ left: 14, right: 10 })
       .backgroundColor($r('app.color.card_background'))
-      .borderRadius(20)
+      .borderRadius(22)
       .border({
         width: 1,
         color: $r('app.color.divider'),
-        radius: 20,
+        radius: 22,
         style: BorderStyle.Solid
       })
     }
@@ -236,7 +236,7 @@ export struct FormNoticeStrip {
       .width('100%')
       .padding({ left: 12, right: 12, top: 10, bottom: 10 })
       .backgroundColor(this.backgroundColorValue)
-      .borderRadius(16)
+      .borderRadius(18)
     }
   }
 }
@@ -258,11 +258,11 @@ export struct FormSegmentSelector {
           .fontWeight(this.selectedValue === option ? FontWeight.Medium : FontWeight.Normal)
           .fontColor(this.selectedValue === option ? HarmonyColor.textInverse : $r('app.color.text_secondary'))
           .backgroundColor(this.selectedValue === option ? getCurrentRolePalette().primary : HarmonyColor.surfaceSubtle)
-          .borderRadius(16)
+          .borderRadius(18)
           .border({
             width: 1,
             color: this.selectedValue === option ? getCurrentRolePalette().primary : $r('app.color.divider'),
-            radius: 16,
+            radius: 18,
             style: BorderStyle.Solid
           })
           .margin({ left: index === 0 ? 0 : 8 })
@@ -330,7 +330,7 @@ export struct FormActionBar {
       .height(54)
       .enabled(this.primaryEnabled && !this.loading)
       .backgroundColor(getCurrentRolePalette().primary)
-      .borderRadius(20)
+      .borderRadius(24)
       .onClick(() => {
         if (this.onPrimary) {
           this.onPrimary();

@@ -19,7 +19,9 @@ export class ApiConfig {
   static readonly API_ENV_STORAGE_KEY: string = StorageKeys.API_ENV;
   static readonly API_BASE_URL_STORAGE_KEY: string = StorageKeys.API_BASE_URL;
   static readonly API_CONFIG_VERSION_STORAGE_KEY: string = StorageKeys.API_CONFIG_VERSION;
-  private static readonly API_CONFIG_VERSION: number = 7;
+  private static readonly API_CONFIG_VERSION: number = 9;
+  private static readonly AGC_GATEWAY_BASE_URL: string = '';
+  private static readonly AGC_AUTH_FUNCTION_TRIGGER_URL: string = 'smartguardian-auth-$latestc';
 
   /**
    * Default environment for fresh installs.
@@ -51,6 +53,26 @@ export class ApiConfig {
 
   static setConfiguredBaseUrl(url: string): void {
     AppStorage.setOrCreate(ApiConfig.API_BASE_URL_STORAGE_KEY, ApiConfig.normalizeBaseUrl(url));
+  }
+
+  static getFunctionTriggerUrl(functionName: string): string {
+    ApiConfig.ensureRuntimeConfigReady();
+    const storageKey = ApiConfig.getFunctionTriggerUrlStorageKey(functionName);
+    const runtimeUrl = AppStorage.get<string>(storageKey);
+    if (runtimeUrl !== undefined && runtimeUrl !== null && runtimeUrl.length > 0) {
+      return ApiConfig.normalizeBaseUrl(runtimeUrl);
+    }
+    if (functionName === 'smartguardian-auth') {
+      return ApiConfig.normalizeBaseUrl(ApiConfig.AGC_AUTH_FUNCTION_TRIGGER_URL);
+    }
+    if (functionName.indexOf('smartguardian-') === 0) {
+      return ApiConfig.normalizeBaseUrl(`${functionName}-$latestc`);
+    }
+    return '';
+  }
+
+  static setFunctionTriggerUrl(functionName: string, url: string): void {
+    AppStorage.setOrCreate(ApiConfig.getFunctionTriggerUrlStorageKey(functionName), ApiConfig.normalizeBaseUrl(url));
   }
 
   static applyRuntimeConfig(env: string, baseUrl?: string): void {
@@ -94,7 +116,7 @@ export class ApiConfig {
     const storedBaseUrl = AppStorage.get<string>(ApiConfig.API_BASE_URL_STORAGE_KEY);
 
     let nextEnv = ApiConfig.normalizeEnv(storedEnv);
-    let nextBaseUrl = storedBaseUrl ? ApiConfig.normalizeBaseUrl(storedBaseUrl) : '';
+    let nextBaseUrl = storedBaseUrl ? ApiConfig.normalizeBaseUrl(storedBaseUrl) : ApiConfig.getDefaultAgcGatewayBaseUrl();
 
     nextEnv = ApiEnvironment.AGC_SERVERLESS;
 
@@ -115,6 +137,14 @@ export class ApiConfig {
 
   private static normalizeBaseUrl(url: string): string {
     return url.trim().replace(/\/+$/, '');
+  }
+
+  private static getDefaultAgcGatewayBaseUrl(): string {
+    return ApiConfig.normalizeBaseUrl(ApiConfig.AGC_GATEWAY_BASE_URL);
+  }
+
+  private static getFunctionTriggerUrlStorageKey(functionName: string): string {
+    return `${StorageKeys.AGC_FUNCTION_TRIGGER_URL_PREFIX}${functionName}`;
   }
 
   private static normalizeEnv(env?: string | null): string {

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 function stripQuotes(value) {
@@ -35,6 +36,39 @@ function resolveProjectRoot() {
   return path.resolve(__dirname, '..');
 }
 
+function writeCredentialContent(content, fileName) {
+  if (!content || content.length === 0) {
+    return '';
+  }
+
+  try {
+    JSON.parse(content);
+  } catch (error) {
+    return '';
+  }
+
+  const credentialDir = path.join(os.tmpdir(), 'smartguardian-agc');
+  if (!fs.existsSync(credentialDir)) {
+    fs.mkdirSync(credentialDir, { recursive: true });
+  }
+
+  const credentialPath = path.join(credentialDir, fileName);
+  fs.writeFileSync(credentialPath, content, { encoding: 'utf8', mode: 0o600 });
+  return credentialPath;
+}
+
+function decodeBase64Credential(value) {
+  if (!value || value.length === 0) {
+    return '';
+  }
+
+  try {
+    return Buffer.from(value, 'base64').toString('utf8');
+  } catch (error) {
+    return '';
+  }
+}
+
 function loadCloudEnv() {
   const projectRoot = resolveProjectRoot();
   const envFiles = [
@@ -63,7 +97,21 @@ function loadCloudEnv() {
 }
 
 function resolveAgcServerCredential() {
+  const credentialJsonBase64 = process.env.SMARTGUARDIAN_PROJECT_CREDENTIAL_JSON_BASE64 || '';
+  const credentialJson = process.env.SMARTGUARDIAN_PROJECT_CREDENTIAL_JSON || '';
+  const decodedCredentialJson = decodeBase64Credential(credentialJsonBase64);
+  const materializedCredential = writeCredentialContent(
+    decodedCredentialJson || credentialJson,
+    'project-credential.json'
+  );
+
+  if (materializedCredential.length > 0) {
+    return materializedCredential;
+  }
+
   const candidates = [
+    process.env.SMARTGUARDIAN_PROJECT_CREDENTIAL || '',
+    process.env.SMARTGUARDIAN_CREDENTIAL_PATH || '',
     process.env.PROJECT_CREDENTIAL || '',
     process.env.AGC_CONFIG || ''
   ];

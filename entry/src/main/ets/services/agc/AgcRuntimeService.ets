@@ -32,6 +32,7 @@ export class AgcRuntimeService {
 
     try {
       AppStorage.setOrCreate(StorageKeys.AGC_RUNTIME_ERROR, '');
+      AgcRuntimeService.verifyClientConfigFile(context);
       if (!AgcRuntimeService.hasInitializedSdk) {
         agconnect.instance().init(context.getApplicationContext());
         AgcRuntimeService.hasInitializedSdk = true;
@@ -86,7 +87,7 @@ export class AgcRuntimeService {
       AppStorage.setOrCreate(StorageKeys.AGC_RUNTIME_ERROR, '');
       LogUtil.info(TAG, `AGC runtime initialized. configReady=${status.configReady}, tokenReady=${status.gatewayTokenReady}`);
     } catch (error) {
-      status.errorMessage = String(error);
+      status.errorMessage = AgcRuntimeService.formatError(error as Object);
       AppStorage.setOrCreate(StorageKeys.AGC_RUNTIME_READY, false);
       AppStorage.setOrCreate(StorageKeys.AGC_RUNTIME_ERROR, status.errorMessage);
       LogUtil.error(TAG, `AGC runtime initialization failed: ${status.errorMessage}`);
@@ -138,5 +139,27 @@ export class AgcRuntimeService {
       return false;
     }
     return value.indexOf('YOUR_') < 0;
+  }
+
+  private static verifyClientConfigFile(context: common.UIAbilityContext): void {
+    try {
+      context.resourceManager.getRawFileContentSync('agconnect-services.json');
+    } catch (error) {
+      const detail = AgcRuntimeService.formatError(error as Object);
+      throw new Error(`Missing AGC client config rawfile: entry/src/main/resources/rawfile/agconnect-services.json. ${detail}`);
+    }
+  }
+
+  private static formatError(error: Object): string {
+    let detail = String(error);
+    try {
+      const serialized = JSON.stringify(error);
+      if (serialized.length > 0 && serialized !== '{}') {
+        detail = serialized;
+      }
+    } catch (serializeError) {
+      detail = String(error);
+    }
+    return detail;
   }
 }

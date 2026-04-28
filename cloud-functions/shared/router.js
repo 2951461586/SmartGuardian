@@ -26,6 +26,39 @@ function fail(code, message) {
   };
 }
 
+function resolveHttpStatus(result) {
+  if (!result || typeof result.code !== 'number' || result.code === 0) {
+    return '200';
+  }
+  if (result.code === 401 || result.code === 403 || result.code === 404) {
+    return String(result.code);
+  }
+  if (result.code >= 400 && result.code < 600) {
+    return String(result.code);
+  }
+  return '500';
+}
+
+function emitAgcResult(context, callback, result) {
+  if (context && typeof context.HTTPResponse === 'function' && typeof context.callback === 'function') {
+    const response = new context.HTTPResponse(context.env, {
+      'faas-content-type': 'json'
+    }, 'application/json', resolveHttpStatus(result));
+    response.body = result;
+    context.callback(response);
+    return;
+  }
+
+  if (context && typeof context.callback === 'function') {
+    context.callback(result);
+    return;
+  }
+
+  if (typeof callback === 'function') {
+    callback(result);
+  }
+}
+
 function page(list, total, pageNum, pageSize) {
   return ok({
     list,
@@ -164,8 +197,9 @@ function validateFieldRules(container, rules, containerName) {
 }
 
 function createDomainHandler(contract, routes) {
-  return async function handler(event) {
+  return async function handler(event, context, callback) {
     const request = normalizeEvent(event);
+    let response = null;
 
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
@@ -202,15 +236,23 @@ function createDomainHandler(contract, routes) {
         });
 
         if (result && typeof result.code === 'number' && Object.prototype.hasOwnProperty.call(result, 'message')) {
-          return result;
+          response = result;
+          emitAgcResult(context, callback, response);
+          return response;
         }
-        return ok(result);
+        response = ok(result);
+        emitAgcResult(context, callback, response);
+        return response;
       } catch (error) {
-        return fail(error.code || 500, error.message || 'Internal error');
+        response = fail(error.code || 500, error.message || 'Internal error');
+        emitAgcResult(context, callback, response);
+        return response;
       }
     }
 
-    return fail(404, `${contract.domain} route not found`);
+    response = fail(404, `${contract.domain} route not found`);
+    emitAgcResult(context, callback, response);
+    return response;
   };
 }
 

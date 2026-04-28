@@ -1,5 +1,4 @@
 import { HomeworkTask } from '../../models/homework';
-import { WorkbenchModule } from '../../models/workbench';
 import { Card } from './Card';
 import { ParentHomeworkPreviewCard } from './ParentHomeworkPreviewCard';
 import { ParentNoticeCard } from './ParentNoticeCard';

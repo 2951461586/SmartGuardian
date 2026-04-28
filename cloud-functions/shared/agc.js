@@ -1,27 +1,29 @@
 const path = require('path');
-const { cloud, Region, CloudDBZoneGenericObject } = require('@hw-agconnect/cloud-server');
 const { getCollectionSchema } = require('./schema');
 const {
   loadCloudEnv,
   resolveAgcServerCredential,
   inspectJsonFile,
-  isClientAgconnectConfig
+  isClientAgconnectConfig,
+  isConnectApiPrivateKeyConfig
 } = require('../../scripts/cloud-env-loader');
-
-const REGION_MAP = {
-  CN: Region.REGION_CN,
-  RU: Region.REGION_RU,
-  SG: Region.REGION_SG,
-  DE: Region.REGION_DE
-};
 
 let cachedCloudInstance = null;
 let cachedDatabase = null;
+let cachedCloudServer = null;
 loadCloudEnv();
+
+function getCloudServer() {
+  if (cachedCloudServer) {
+    return cachedCloudServer;
+  }
+  cachedCloudServer = require('@hw-agconnect/cloud-server');
+  return cachedCloudServer;
+}
 
 function isAgcCloudDbEnabled() {
   return process.env.SMARTGUARDIAN_CLOUD_DB_PROVIDER === 'agc'
-    && !!process.env.AGC_CLOUD_DB_ZONE
+    && !!resolveCloudDbZone()
     && resolveCredentialPath().length > 0;
 }
 
@@ -30,8 +32,22 @@ function resolveCredentialPath() {
 }
 
 function resolveRegion() {
-  const regionKey = (process.env.AGC_REGION || 'CN').toUpperCase();
-  return REGION_MAP[regionKey] || Region.REGION_CN;
+  const regionKey = (process.env.SMARTGUARDIAN_REGION || process.env.AGC_REGION || 'CN').toUpperCase();
+  const Region = getCloudServer().Region;
+  if (regionKey === 'RU') {
+    return Region.REGION_RU;
+  }
+  if (regionKey === 'SG') {
+    return Region.REGION_SG;
+  }
+  if (regionKey === 'DE') {
+    return Region.REGION_DE;
+  }
+  return Region.REGION_CN;
+}
+
+function resolveCloudDbZone() {
+  return process.env.SMARTGUARDIAN_CLOUD_DB_ZONE || process.env.AGC_CLOUD_DB_ZONE || '';
 }
 
 function getCloudInstance() {
@@ -47,8 +63,12 @@ function getCloudInstance() {
   if (isClientAgconnectConfig(credentialJson)) {
     throw new Error('AGC credential must be a Server SDK credential JSON (agc-apiclient), not agconnect-services.json');
   }
+  if (isConnectApiPrivateKeyConfig(credentialJson)) {
+    throw new Error('AGC Cloud Server SDK 1.0.5 does not support Service Account private-key JSON for Cloud DB. Use the Server SDK credential JSON (agc-apiclient) for now.');
+  }
 
   const instanceName = 'smartguardian-cloud-functions';
+  const cloud = getCloudServer().cloud;
   cachedCloudInstance = cloud.createInstance(path.resolve(credentialPath), instanceName, resolveRegion());
   return cachedCloudInstance;
 }
@@ -59,8 +79,8 @@ function getDatabase() {
   }
 
   cachedDatabase = getCloudInstance().database({
-    zoneName: process.env.AGC_CLOUD_DB_ZONE,
-    traceId: process.env.AGC_TRACE_ID || ''
+    zoneName: resolveCloudDbZone(),
+    traceId: process.env.SMARTGUARDIAN_TRACE_ID || process.env.AGC_TRACE_ID || ''
   });
   return cachedDatabase;
 }
@@ -93,6 +113,7 @@ function normalizeRecords(records) {
 function toGenericObject(collectionName, record) {
   const schema = getCollectionSchema(collectionName);
   const primaryKey = schema.primaryKey || 'id';
+  const CloudDBZoneGenericObject = getCloudServer().CloudDBZoneGenericObject;
   const genericObject = CloudDBZoneGenericObject.build(collectionName);
   const keys = Object.keys(record);
   for (let i = 0; i < keys.length; i++) {

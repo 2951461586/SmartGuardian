@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Workbench Action Grid
- * Shared quick action grid used by parent, teacher and admin dashboards
+ * Shared quick action grid used by parent, teacher and admin dashboards.
  */
 
 import { HarmonyColor, HarmonyRadius, HarmonySpace } from '../../common/HarmonyDesign';
@@ -53,17 +53,27 @@ export struct WorkbenchActionGrid {
       .justifyContent(FlexAlign.Center)
       .backgroundColor(this.bgColorResolver(module.code))
       .borderRadius(HarmonyRadius.control)
+      .border({
+        width: 1,
+        color: HarmonyColor.line,
+        radius: HarmonyRadius.control,
+        style: BorderStyle.Solid
+      })
 
       Text(module.name)
         .fontSize(this.titleFontSize)
         .fontWeight(FontWeight.Medium)
         .fontColor($r('app.color.text_primary'))
         .margin({ top: HarmonySpace.compact })
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
 
       Text(this.subtitleResolver(module.code))
         .fontSize($r('app.float.text_tiny_size'))
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: HarmonySpace.compact / 2 })
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Center)

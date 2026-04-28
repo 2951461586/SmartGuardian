@@ -1,6 +1,6 @@
 /**
- * SmartGuardian - 今日托管卡片UI
- * 支持 2x2, 2x4, 4x4 三种尺寸
+ * SmartGuardian - Today Guardian Form Card UI
+ * Supports 2x2, 2x4 and 4x4 card sizes.
  */
 
 let todayGuardianCardStorage = new LocalStorage();
@@ -9,11 +9,11 @@ let todayGuardianCardStorage = new LocalStorage();
 @Component
 struct TodayGuardianCard {
   @LocalStorageProp('studentName') studentName: string = '张小明';
-  @LocalStorageProp('className') className: string = '三年级1班';
+  @LocalStorageProp('className') className: string = '三年级 1 班';
   @LocalStorageProp('sessionTime') sessionTime: string = '15:30-18:00';
   @LocalStorageProp('status') status: string = '已签到';
-  @LocalStorageProp('statusColor') statusColor: string = '#4CAF50';
-  @LocalStorageProp('statusIcon') statusIcon: string = '✅';
+  @LocalStorageProp('statusColor') statusColor: string = '#2DBE7E';
+  @LocalStorageProp('statusIcon') statusIcon: string = '已签';
   @LocalStorageProp('signInTime') signInTime: string = '15:32';
   @LocalStorageProp('homeworkProgress') homeworkProgress: string = '2/3';
   @LocalStorageProp('teacherFeedback') teacherFeedback: string = '作业完成良好';
@@ -40,20 +40,19 @@ struct TodayGuardianCard {
       Text(this.studentName)
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#333333')
+        .fontColor('#101828')
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
       Blank().height(8)
 
       Row() {
-        Text(this.statusIcon)
-          .fontSize(20)
+        this.StatusChip()
 
         Text(this.status)
           .fontSize(12)
           .fontColor(this.statusColor)
-          .margin({ left: 4 })
+          .margin({ left: 6 })
       }
       .width('100%')
       .justifyContent(FlexAlign.Center)
@@ -62,7 +61,7 @@ struct TodayGuardianCard {
 
       Text(`更新 ${this.updateTime}`)
         .fontSize(10)
-        .fontColor('#999999')
+        .fontColor('#98A2B3')
     }
     .width('100%')
     .height('100%')
@@ -78,18 +77,18 @@ struct TodayGuardianCard {
         Text('今日托管')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#333333')
+          .fontColor('#101828')
 
         Blank()
 
         Text(this.updateTime)
           .fontSize(10)
-          .fontColor('#999999')
+          .fontColor('#98A2B3')
       }
       .width('100%')
       .padding({ bottom: 8 })
 
-      Divider().color('#F0F0F0')
+      Divider().color('#E7EEF7')
 
       Blank().height(8)
 
@@ -98,11 +97,11 @@ struct TodayGuardianCard {
           Text(this.studentName)
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor('#101828')
 
           Text(this.className)
             .fontSize(11)
-            .fontColor('#999999')
+            .fontColor('#98A2B3')
             .margin({ top: 2 })
         }
         .alignItems(HorizontalAlign.Start)
@@ -110,13 +109,12 @@ struct TodayGuardianCard {
         Blank()
 
         Column() {
-          Text(this.statusIcon)
-            .fontSize(24)
+          this.StatusChip()
 
           Text(this.status)
             .fontSize(11)
             .fontColor(this.statusColor)
-            .margin({ top: 2 })
+            .margin({ top: 4 })
         }
       }
       .width('100%')
@@ -145,18 +143,18 @@ struct TodayGuardianCard {
         Text('今日托管详情')
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#333333')
+          .fontColor('#101828')
 
         Blank()
 
         Text('刷新')
           .fontSize(12)
-          .fontColor('#2196F3')
+          .fontColor('#2F7DF6')
       }
       .width('100%')
       .padding({ bottom: 12 })
 
-      Divider().color('#F0F0F0')
+      Divider().color('#E7EEF7')
 
       Blank().height(12)
 
@@ -165,11 +163,11 @@ struct TodayGuardianCard {
           Text(this.studentName)
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor('#101828')
 
           Text(this.className)
             .fontSize(12)
-            .fontColor('#999999')
+            .fontColor('#98A2B3')
             .margin({ top: 4 })
         }
         .alignItems(HorizontalAlign.Start)
@@ -177,8 +175,7 @@ struct TodayGuardianCard {
         Blank()
 
         Column() {
-          Text(this.statusIcon)
-            .fontSize(32)
+          this.StatusChip()
 
           Text(this.status)
             .fontSize(14)
@@ -193,8 +190,8 @@ struct TodayGuardianCard {
 
       Column() {
         Row() {
-          this.DetailInfoItem('📅 托管时段', this.sessionTime)
-          this.DetailInfoItem('⏰ 签到时间', this.signInTime)
+          this.DetailInfoItem('托管时段', this.sessionTime)
+          this.DetailInfoItem('签到时间', this.signInTime)
         }
         .width('100%')
         .justifyContent(FlexAlign.SpaceBetween)
@@ -202,15 +199,15 @@ struct TodayGuardianCard {
         Blank().height(8)
 
         Row() {
-          this.DetailInfoItem('📝 作业进度', this.homeworkProgress)
-          this.DetailInfoItem('💬 教师反馈', this.teacherFeedback)
+          this.DetailInfoItem('作业进度', this.homeworkProgress)
+          this.DetailInfoItem('教师反馈', this.teacherFeedback)
         }
         .width('100%')
         .justifyContent(FlexAlign.SpaceBetween)
       }
       .width('100%')
       .padding(12)
-      .backgroundColor('#F8F9FA')
+      .backgroundColor('#F6FAFF')
       .borderRadius(12)
     }
     .width('100%')
@@ -221,15 +218,25 @@ struct TodayGuardianCard {
   }
 
   @Builder
+  StatusChip() {
+    Text(this.statusIcon)
+      .fontSize(10)
+      .fontColor('#FFFFFF')
+      .padding({ left: 6, right: 6, top: 3, bottom: 3 })
+      .backgroundColor(this.statusColor)
+      .borderRadius(999)
+  }
+
+  @Builder
   InfoItem(label: string, value: string) {
     Column() {
       Text(label)
         .fontSize(10)
-        .fontColor('#999999')
+        .fontColor('#98A2B3')
 
       Text(value)
         .fontSize(12)
-        .fontColor('#333333')
+        .fontColor('#101828')
         .fontWeight(FontWeight.Medium)
         .margin({ top: 2 })
     }
@@ -240,11 +247,11 @@ struct TodayGuardianCard {
     Column() {
       Text(label)
         .fontSize(11)
-        .fontColor('#666666')
+        .fontColor('#667085')
 
       Text(value)
         .fontSize(13)
-        .fontColor('#333333')
+        .fontColor('#101828')
         .fontWeight(FontWeight.Medium)
         .margin({ top: 4 })
     }

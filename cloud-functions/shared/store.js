@@ -1,4 +1,5 @@
-const seedData = require('../cloud-db/seed-data.json');
+const fs = require('fs');
+const path = require('path');
 const { getCollectionSchema } = require('./schema');
 const { badRequest, conflict, notFound } = require('./errors');
 const {
@@ -9,7 +10,16 @@ const {
   toGenericObject
 } = require('./agc');
 
-const state = JSON.parse(JSON.stringify(seedData));
+function loadSeedData() {
+  const seedPath = path.join(__dirname, '..', 'cloud-db', 'seed-data.json');
+  try {
+    return JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+  } catch (error) {
+    return {};
+  }
+}
+
+const state = JSON.parse(JSON.stringify(loadSeedData()));
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));

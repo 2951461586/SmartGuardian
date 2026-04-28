@@ -17,7 +17,6 @@ import {
   TeacherSessionHeroCard,
   TeacherSessionListItemData,
   TeacherSessionSummaryData,
-  WorkbenchActionGrid,
   StatRowItem
 } from '../../components/common';
 import { RouteUrls, StorageKeys } from '../../constants/app.constants';
@@ -193,7 +192,7 @@ export struct TeacherHomePageContent {
   private getHeroTimeText(): string {
     const session = this.getDisplaySession();
     if (!session) {
-      return '可以前往课程安排查看后续排班';
+      return '可前往课程安排查看后续排班';
     }
     return `${formatTime(session.startTime)} - ${formatTime(session.endTime)}`;
   }
@@ -221,7 +220,7 @@ export struct TeacherHomePageContent {
       return {
         id: session.id,
         title: session.serviceProductName ?? '托管班次',
-        subtitle: `${formatTime(session.startTime)} - ${formatTime(session.endTime)} · ${todayText}`,
+        subtitle: `${formatTime(session.startTime)} - ${formatTime(session.endTime)} | ${todayText}`,
         statusText: this.getSessionStatusText(session.status),
         statusColor: this.getSessionStatusColor(session.status),
         statusBgColor: this.getSessionStatusBgColor(session.status)
@@ -258,7 +257,7 @@ export struct TeacherHomePageContent {
         value: `${this.unreadCount}`,
         label: '未读消息',
         icon: $r('app.media.ic_message'),
-        iconColor: getRolePalette(UserRole.ORG_ADMIN).primary
+        iconColor: getRolePalette(UserRole.TEACHER).primary
       }
     ];
   }
@@ -306,13 +305,13 @@ export struct TeacherHomePageContent {
 
   private getModuleBgColor(code: string): string {
     if (code === 'homework') return HarmonyReport.cautionSurface;
-    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).light;
+    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.TEACHER).light;
     return HarmonyReport.positiveSurface;
   }
 
   private getModuleIconColor(code: string): string {
     if (code === 'homework') return HarmonyReport.caution;
-    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.ORG_ADMIN).primary;
+    if (code === 'schedule' || code === 'messages') return getRolePalette(UserRole.TEACHER).primary;
     return HarmonyReport.positive;
   }
 
@@ -431,7 +430,7 @@ export struct TeacherHomePageContent {
     TeacherHomeSessionSection({
       hasSession: this.hasDisplaySession(),
       statsSubtitle: this.currentSession ? '聚焦当前进行中的班次和签到进度。' : '当前没有进行中的班次，展示今日最近安排。',
-      statsEmptyDescription: this.errorMessage || '稍后再刷新，或前往课程安排查看最新计划。',
+      statsEmptyDescription: this.errorMessage || '稍后刷新，或前往课程安排查看最新计划。',
       sessionSummary: this.getSessionSummaryData(),
       sessionItems: this.getSessionListItems(),
       sessionEmptyDescription: this.errorMessage || '当前没有可展示的班次数据。',

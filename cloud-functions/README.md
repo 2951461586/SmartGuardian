@@ -44,16 +44,17 @@ This directory is the AGC Serverless backend workspace for SmartGuardian.
 
 ```text
 SMARTGUARDIAN_CLOUD_DB_PROVIDER=agc
-PROJECT_CREDENTIAL=<path-to-agc-apiclient.json>
-AGC_CLOUD_DB_ZONE=<cloud-db-zone-name>
-AGC_REGION=CN
+SMARTGUARDIAN_PROJECT_CREDENTIAL_JSON_BASE64=<base64-encoded-server-sdk-agc-apiclient-json>
+SMARTGUARDIAN_CLOUD_DB_ZONE=<cloud-db-zone-name>
+SMARTGUARDIAN_REGION=CN
 ```
 
 Notes:
 
-- `AGC_CLOUD_DB_ZONE` must match the actual Cloud DB Zone name created in AppGallery Connect. `clouddbzone1` is only a sample value.
+- `SMARTGUARDIAN_CLOUD_DB_ZONE` must match the actual Cloud DB Zone name created in AppGallery Connect. `clouddbzone1` is only a sample value.
 - Server-side scripts must use the Server SDK credential JSON downloaded from `Project settings > Server SDK`, usually named `agc-apiclient-*.json`.
 - `agconnect-services.json` is a client config for HarmonyOS app runtime and must not be used as the Cloud DB server credential.
+- If the AGC console does not show a mounted credential path, encode the Server SDK JSON as base64 and configure `SMARTGUARDIAN_PROJECT_CREDENTIAL_JSON_BASE64`.
 
 Current migration state:
 

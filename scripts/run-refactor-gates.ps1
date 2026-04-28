@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $scripts = @(
+  (Join-Path $PSScriptRoot 'check-legacy-artifacts.ps1'),
   (Join-Path $PSScriptRoot 'check-page-registry.ps1'),
   (Join-Path $PSScriptRoot 'check-agc-consistency.ps1'),
   (Join-Path $PSScriptRoot 'check-page-budget.ps1'),

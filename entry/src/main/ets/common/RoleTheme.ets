@@ -33,39 +33,39 @@ export function getRolePalette(role?: UserRole | null): RolePalette {
   const normalizedRole = normalizeRole(role);
   if (normalizedRole === UserRole.TEACHER) {
     return {
-      primary: '#1A8C5F',
-      primaryDark: '#116A49',
-      light: '#EAF8F1',
-      soft: '#F5FBF8',
-      border: '#CDEBDD',
-      gradientStart: '#EAF8F1',
-      gradientEnd: '#F8FFFB',
-      shadow: '#1A8C5F18'
+      primary: '#2D765E',
+      primaryDark: '#205844',
+      light: '#EDF6F1',
+      soft: '#F7FBF8',
+      border: '#D5E8DD',
+      gradientStart: '#EDF6F1',
+      gradientEnd: '#F9FCFA',
+      shadow: '#2D765E14'
     };
   }
 
   if (normalizedRole === UserRole.ORG_ADMIN) {
     return {
-      primary: '#6D5DD3',
-      primaryDark: '#4F46A8',
-      light: '#F0EEFF',
-      soft: '#FAF9FF',
-      border: '#DDD8FF',
-      gradientStart: '#F0EEFF',
-      gradientEnd: '#FCFBFF',
-      shadow: '#6D5DD318'
+      primary: '#526A83',
+      primaryDark: '#34495E',
+      light: '#EEF3F7',
+      soft: '#F8FAFC',
+      border: '#D8E2EA',
+      gradientStart: '#EEF3F7',
+      gradientEnd: '#FBFCFD',
+      shadow: '#526A8314'
     };
   }
 
   return {
-    primary: '#0A59F7',
-    primaryDark: '#0646C8',
-    light: '#EAF2FF',
-    soft: '#F7FAFF',
-    border: '#D8E6FF',
-    gradientStart: '#EAF2FF',
+    primary: '#2F7DF6',
+    primaryDark: '#1F66D8',
+    light: '#EAF4FF',
+    soft: '#F6FAFF',
+    border: '#D8E5F4',
+    gradientStart: '#EAF4FF',
     gradientEnd: '#F8FBFF',
-    shadow: '#0A59F718'
+    shadow: '#2F7DF614'
   };
 }
 

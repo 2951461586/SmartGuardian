@@ -1,41 +1,30 @@
 /**
- * SmartGuardian - 今日托管服务卡片 FormProvider
- * 用于桌面服务卡片展示当日学生托管摘要信息
+ * SmartGuardian - Today Guardian FormProvider
  */
 
-import { formBindingData, formProvider } from '@kit.FormKit';
+import { formBindingData } from '@kit.FormKit';
 import { wantAgent } from '@kit.AbilityKit';
-import { rpc } from '@kit.IPCKit';
 
-/**
- * 今日托管卡片数据
- */
 export interface TodayGuardianCardData {
-  studentName: string;          // 学生姓名
-  className: string;            // 班次名称
-  sessionTime: string;          // 托管时段
+  studentName: string;
+  className: string;
+  sessionTime: string;
   status: 'PENDING' | 'SIGNED_IN' | 'IN_PROGRESS' | 'WAITING_PICKUP' | 'SIGNED_OUT';
-  statusText: string;           // 状态文字
-  signInTime?: string;          // 签到时间
-  homeworkProgress?: string;    // 作业进度
-  teacherFeedback?: string;     // 教师反馈摘要
+  statusText: string;
+  signInTime?: string;
+  homeworkProgress?: string;
+  teacherFeedback?: string;
 }
 
-/**
- * 服务卡片数据提供者
- */
 export class TodayGuardianCardProvider {
   private static readonly FORM_NAME = 'TodayGuardianCard';
   private static readonly DIMENSION_2X2 = 1;
   private static readonly DIMENSION_2X4 = 2;
   private static readonly DIMENSION_4X4 = 3;
 
-  /**
-   * 构建卡片数据
-   */
   static buildCardData(info: TodayGuardianCardData): Record<string, Object> {
-    const statusColor = this.getStatusColor(info.status);
-    const statusIcon = this.getStatusIcon(info.status);
+    const statusColor = TodayGuardianCardProvider.getStatusColor(info.status);
+    const statusIcon = TodayGuardianCardProvider.getStatusIcon(info.status);
 
     return {
       studentName: info.studentName,
@@ -51,26 +40,17 @@ export class TodayGuardianCardProvider {
     };
   }
 
-  /**
-   * 更新卡片数据
-   */
   static updateCard(formId: string, data: TodayGuardianCardData): void {
     try {
       const formData = formBindingData.createFormBindingData(
-        this.buildCardData(data)
+        TodayGuardianCardProvider.buildCardData(data)
       );
-
-      // 调用FormAbility更新卡片
-      // 注意：实际开发需要通过wantAgent启动FormAbility
-      console.info(`Update card ${formId} with data: ${JSON.stringify(data)}`);
+      console.info(`Update card ${formId} with data: ${JSON.stringify(formData)}`);
     } catch (error) {
       console.error(`Failed to update card: ${JSON.stringify(error)}`);
     }
   }
 
-  /**
-   * 触发卡片点击事件
-   */
   static onCardClick(formId: string, action: string): void {
     try {
       const wantAgentInfo: wantAgent.WantAgentInfo = {
@@ -89,45 +69,35 @@ export class TodayGuardianCardProvider {
         wantAgentFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
       };
 
-      // 实际项目中通过wantAgent拉起主应用
-      console.info(`Card click action: ${action}, formId: ${formId}`);
+      console.info(`Card click action: ${action}, formId: ${formId}, agent: ${JSON.stringify(wantAgentInfo)}`);
     } catch (error) {
       console.error(`Card click failed: ${JSON.stringify(error)}`);
     }
   }
 
-  /**
-   * 获取状态对应的颜色
-   */
   private static getStatusColor(status: string): string {
     const colorMap: Record<string, string> = {
-      'PENDING': '#FF9800',        // 待签到 - 橙色
-      'SIGNED_IN': '#4CAF50',      // 已签到 - 绿色
-      'IN_PROGRESS': '#2196F3',    // 辅导中 - 蓝色
-      'WAITING_PICKUP': '#9C27B0', // 待接回 - 紫色
-      'SIGNED_OUT': '#607D8B'      // 已签退 - 灰色
+      'PENDING': '#F59E42',
+      'SIGNED_IN': '#2DBE7E',
+      'IN_PROGRESS': '#2F7DF6',
+      'WAITING_PICKUP': '#526A83',
+      'SIGNED_OUT': '#667085'
     };
-    return colorMap[status] || '#999999';
+    return colorMap[status] || '#98A2B3';
   }
 
-  /**
-   * 获取状态对应的图标(emoji)
-   */
   private static getStatusIcon(status: string): string {
     const iconMap: Record<string, string> = {
-      'PENDING': '⏰',
-      'SIGNED_IN': '✅',
-      'IN_PROGRESS': '📚',
-      'WAITING_PICKUP': '👋',
-      'SIGNED_OUT': '🏠'
+      'PENDING': '待签',
+      'SIGNED_IN': '已签',
+      'IN_PROGRESS': '辅导',
+      'WAITING_PICKUP': '待接',
+      'SIGNED_OUT': '离托'
     };
-    return iconMap[status] || '❓';
+    return iconMap[status] || '状态';
   }
 }
 
-/**
- * 异常提醒卡片数据
- */
 export interface AbnormalAlertCardData {
   abnormalType: 'NOT_SIGNED_IN' | 'LATE' | 'WRONG_CLASS' | 'UNAUTHORIZED_PICKUP' | 'HOMEWORK_NOT_CONFIRMED';
   triggerTime: string;
@@ -137,17 +107,11 @@ export interface AbnormalAlertCardData {
   studentName: string;
 }
 
-/**
- * 异常提醒卡片提供者
- */
 export class AbnormalAlertCardProvider {
-  /**
-   * 构建异常提醒卡片数据
-   */
   static buildAlertCardData(info: AbnormalAlertCardData): Record<string, Object> {
-    const typeText = this.getAbnormalTypeText(info.abnormalType);
-    const riskColor = this.getRiskLevelColor(info.riskLevel);
-    const riskText = this.getRiskLevelText(info.riskLevel);
+    const typeText = AbnormalAlertCardProvider.getAbnormalTypeText(info.abnormalType);
+    const riskColor = AbnormalAlertCardProvider.getRiskLevelColor(info.riskLevel);
+    const riskText = AbnormalAlertCardProvider.getRiskLevelText(info.riskLevel);
 
     return {
       abnormalType: typeText,
@@ -174,11 +138,11 @@ export class AbnormalAlertCardProvider {
 
   private static getRiskLevelColor(level: string): string {
     const colorMap: Record<string, string> = {
-      'LOW': '#FF9800',
+      'LOW': '#F59E42',
       'MEDIUM': '#FF5722',
-      'HIGH': '#F44336'
+      'HIGH': '#D92D20'
     };
-    return colorMap[level] || '#999999';
+    return colorMap[level] || '#98A2B3';
   }
 
   private static getRiskLevelText(level: string): string {

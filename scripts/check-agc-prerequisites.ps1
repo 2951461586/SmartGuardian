@@ -82,10 +82,22 @@ if (-not (Test-Path $clientConfigPath)) {
 }
 
 $provider = Get-EnvValue 'SMARTGUARDIAN_CLOUD_DB_PROVIDER'
-$zone = Get-EnvValue 'AGC_CLOUD_DB_ZONE'
-$configPath = Get-EnvValue 'AGC_CONFIG'
-$projectCredential = Get-EnvValue 'PROJECT_CREDENTIAL'
-$region = Get-EnvValue 'AGC_REGION'
+$zone = Get-EnvValue 'SMARTGUARDIAN_CLOUD_DB_ZONE'
+if ([string]::IsNullOrWhiteSpace($zone)) {
+  $zone = Get-EnvValue 'AGC_CLOUD_DB_ZONE'
+}
+$configPath = Get-EnvValue 'SMARTGUARDIAN_CREDENTIAL_PATH'
+if ([string]::IsNullOrWhiteSpace($configPath)) {
+  $configPath = Get-EnvValue 'AGC_CONFIG'
+}
+$projectCredential = Get-EnvValue 'SMARTGUARDIAN_PROJECT_CREDENTIAL'
+if ([string]::IsNullOrWhiteSpace($projectCredential)) {
+  $projectCredential = Get-EnvValue 'PROJECT_CREDENTIAL'
+}
+$region = Get-EnvValue 'SMARTGUARDIAN_REGION'
+if ([string]::IsNullOrWhiteSpace($region)) {
+  $region = Get-EnvValue 'AGC_REGION'
+}
 $connectPrivateKeyFile = Get-EnvValue 'AGC_CONNECT_PRIVATE_KEY_FILE'
 
 Write-CheckResult 'SMARTGUARDIAN_CLOUD_DB_PROVIDER' ($provider -eq 'agc') ("current='{0}'" -f $provider)
@@ -93,7 +105,7 @@ if ($provider -ne 'agc') {
   $hasFailure = $true
 }
 
-Write-CheckResult 'AGC_CLOUD_DB_ZONE' (-not [string]::IsNullOrWhiteSpace($zone)) ("current='{0}'" -f $zone)
+Write-CheckResult 'SMARTGUARDIAN_CLOUD_DB_ZONE' (-not [string]::IsNullOrWhiteSpace($zone)) ("current='{0}'" -f $zone)
 if ([string]::IsNullOrWhiteSpace($zone)) {
   $hasFailure = $true
 }
@@ -136,9 +148,9 @@ if ([string]::IsNullOrWhiteSpace($resolvedCredential)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($region)) {
-  Write-CheckResult 'AGC_REGION' $true "unset, runtime will default to 'CN'"
+  Write-CheckResult 'SMARTGUARDIAN_REGION' $true "unset, runtime will default to 'CN'"
 } else {
-  Write-CheckResult 'AGC_REGION' $true ("current='{0}'" -f $region)
+  Write-CheckResult 'SMARTGUARDIAN_REGION' $true ("current='{0}'" -f $region)
 }
 
 if ([string]::IsNullOrWhiteSpace($connectPrivateKeyFile)) {

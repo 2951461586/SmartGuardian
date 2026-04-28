@@ -29,18 +29,18 @@ interface CardPaddingConfig {
 const CARD_SIZE_CONFIG: Record<CardSize, CardPaddingConfig> = {
   [CardSize.SMALL]: {
     padding: 14,
-    borderRadius: 20,
+    borderRadius: 22,
     marginBottom: 8
   },
   [CardSize.DEFAULT]: {
-    padding: 18,
-    borderRadius: 24,
-    marginBottom: 12
+    padding: 20,
+    borderRadius: 28,
+    marginBottom: 14
   },
   [CardSize.LARGE]: {
-    padding: 22,
-    borderRadius: 28,
-    marginBottom: 16
+    padding: 24,
+    borderRadius: 32,
+    marginBottom: 18
   }
 };
 
@@ -129,13 +129,13 @@ export struct Card {
           Text(this.actionText)
             .fontSize($r('app.float.text_secondary_size'))
             .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.primary'))
+            .fontColor($r('app.color.text_tertiary'))
 
           Image($r('app.media.ic_arrow_right'))
             .width(14)
             .height(14)
             .objectFit(ImageFit.Contain)
-            .fillColor($r('app.color.primary'))
+            .fillColor($r('app.color.text_tertiary'))
             .margin({ left: 4 })
         }
         .padding({ left: 2, right: 2, top: 4, bottom: 4 })
@@ -186,7 +186,7 @@ export struct Card {
 
   private getBorderColor(): ResourceColor {
     if (this.cardVariant === CardVariant.OUTLINED) {
-      return HarmonyColor.line;
+      return HarmonyColor.lineStrong;
     }
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return Color.Transparent;
@@ -198,7 +198,7 @@ export struct Card {
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return 0;
     }
-    return this.cardVariant === CardVariant.ELEVATED ? 18 : 12;
+    return this.cardVariant === CardVariant.ELEVATED ? 22 : 16;
   }
 
   private getShadowColor(): ResourceColor {
@@ -212,7 +212,7 @@ export struct Card {
     if (this.cardVariant === CardVariant.TRANSPARENT) {
       return 0;
     }
-    return this.cardVariant === CardVariant.ELEVATED ? 12 : 6;
+    return this.cardVariant === CardVariant.ELEVATED ? 12 : 7;
   }
 }
 
@@ -280,7 +280,7 @@ export struct StatCard {
           .height(42)
           .justifyContent(FlexAlign.Center)
           .backgroundColor(this.getIconBgColor())
-          .borderRadius(16)
+      .borderRadius(18)
         }
 
         Blank()
@@ -302,7 +302,7 @@ export struct StatCard {
         .fontSize(26)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
-        .margin({ top: 16 })
+      .margin({ top: 14 })
 
       Text(this.label)
         .fontSize($r('app.float.text_secondary_size'))
@@ -312,11 +312,11 @@ export struct StatCard {
     .width('100%')
     .padding(18)
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(24)
+    .borderRadius(28)
     .border({
       width: 1,
       color: HarmonyColor.line,
-      radius: 24,
+      radius: 28,
       style: BorderStyle.Solid
     })
     .shadow({
@@ -398,11 +398,11 @@ export struct InfoCard {
     .width('100%')
     .padding(18)
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(24)
+    .borderRadius(28)
     .border({
       width: 1,
       color: HarmonyColor.line,
-      radius: 24,
+      radius: 28,
       style: BorderStyle.Solid
     })
   }
@@ -458,7 +458,7 @@ export struct ActionCard {
         .height(48)
         .justifyContent(FlexAlign.Center)
         .backgroundColor(this.iconBgColor)
-        .borderRadius(HarmonyRadius.control)
+        .borderRadius(20)
         .margin({ right: 12 })
 
         Column() {
@@ -500,11 +500,11 @@ export struct ActionCard {
     .width('100%')
     .padding(18)
     .backgroundColor(HarmonyColor.surface)
-    .borderRadius(24)
+    .borderRadius(28)
     .border({
       width: 1,
       color: HarmonyColor.line,
-      radius: 24,
+      radius: 28,
       style: BorderStyle.Solid
     })
     .shadow({

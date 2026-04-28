@@ -111,67 +111,114 @@ struct RegisterPage {
   }
 
   build() {
-    Column() {
+    Stack() {
       Scroll() {
         Column() {
-          Image($r('app.media.sg_illustration_auth_hall'))
-            .width('100%')
-            .height(150)
-            .objectFit(ImageFit.Cover)
-            .borderRadius(20)
-
-          Text('创建账号')
-            .width('100%')
-            .fontSize(28)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-            .margin({ top: 18 })
-
-          Text('请选择入口并完善注册资料。')
-            .width('100%')
-            .fontSize(14)
-            .lineHeight(22)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 8, bottom: 18 })
-
-          this.buildFormContent()
+          this.buildTopVisual()
+          this.buildRegisterCard()
         }
         .width('100%')
         .constraintSize({ maxWidth: 640 })
-        .padding(24)
-        .backgroundColor($r('app.color.card_background'))
-        .borderRadius(24)
-        .border({
-          width: 1,
-          color: $r('app.color.divider'),
-          radius: 24,
-          style: BorderStyle.Solid
-        })
         .alignSelf(ItemAlign.Center)
+        .padding({ left: 16, right: 16, top: 24, bottom: 28 })
       }
       .width('100%')
-      .layoutWeight(1)
+      .height('100%')
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)
+
+      this.buildBackButton()
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 16, right: 16, top: 24, bottom: 24 })
     .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
-  private buildFormContent() {
+  private buildBackButton() {
+    Column() {
+      Image($r('app.media.ic_arrow_left'))
+        .width(24)
+        .height(24)
+        .objectFit(ImageFit.Contain)
+        .fillColor($r('app.color.text_secondary'))
+    }
+    .width(44)
+    .height(44)
+    .justifyContent(FlexAlign.Center)
+    .position({ x: 20, y: 28 })
+    .onClick(() => {
+      this.goBack();
+    })
+  }
+
+  @Builder
+  private buildTopVisual() {
+    Column() {
+      Image($r('app.media.ic_logo'))
+        .width(86)
+        .height(86)
+        .objectFit(ImageFit.Contain)
+        .margin({ top: 4 })
+
+      Text('智慧学生托管')
+        .fontSize(32)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 16 })
+
+      Text('科技守护成长 · 托管更安心')
+        .fontSize(15)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: 8 })
+
+      Image($r('app.media.sg_illustration_auth_hall_v2'))
+        .width('100%')
+        .height(196)
+        .objectFit(ImageFit.Cover)
+        .borderRadius(30)
+        .margin({ top: 18 })
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  private buildRegisterCard() {
     Column() {
       FormSegmentSelector({
         options: ['PARENT', 'TEACHER', 'ADMIN'],
-        labels: ['家长', '教师', '机构'],
+        labels: ['家长注册', '教师注册', '机构注册'],
         selectedValue: this.selectedPortal,
         onSelect: (value: string) => {
           this.selectedPortal = value;
         }
       })
 
+      this.buildFormContent()
+    }
+    .width('100%')
+    .padding(24)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(34)
+    .border({
+      width: 1,
+      color: $r('app.color.divider'),
+      radius: 34,
+      style: BorderStyle.Solid
+    })
+    .shadow({
+      radius: 22,
+      color: this.getSelectedPalette().shadow,
+      offsetX: 0,
+      offsetY: 10
+    })
+    .margin({ top: -18 })
+  }
+
+  @Builder
+  private buildFormContent() {
+    Column() {
       FormTextField({
         icon: $r('app.media.ic_user'),
         label: '手机号',
@@ -181,7 +228,7 @@ struct RegisterPage {
           this.mobile = value;
         }
       })
-        .margin({ top: 14 })
+        .margin({ top: 18 })
 
       FormTextField({
         icon: $r('app.media.ic_message'),
@@ -201,7 +248,7 @@ struct RegisterPage {
         .fontWeight(FontWeight.Medium)
         .fontColor(this.getSelectedPalette().primary)
         .backgroundColor(this.getSelectedPalette().light)
-        .borderRadius(16)
+        .borderRadius(20)
         .margin({ top: 10 })
         .onClick(() => {
           this.requestVerifyCode();
@@ -253,7 +300,7 @@ struct RegisterPage {
             }
           })
 
-        Text('我已阅读并同意隐私政策')
+        Text('我已阅读并同意《用户协议》和《隐私政策》')
           .layoutWeight(1)
           .fontSize(12)
           .lineHeight(18)
@@ -268,8 +315,8 @@ struct RegisterPage {
 
       FormActionBar({
         primaryText: '注册',
-        secondaryText: '返回登录',
-        helperText: '当前版本仍由管理员辅助开通账号。',
+        secondaryText: '已有账号？去登录',
+        helperText: '当前版本由管理员辅助开通账号。',
         errorText: this.errorMessage,
         onPrimary: () => {
           this.handleRegister();

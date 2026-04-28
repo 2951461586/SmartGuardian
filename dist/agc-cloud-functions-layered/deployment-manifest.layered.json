@@ -1,0 +1,120 @@
+{
+  "project": "SmartGuardian",
+  "version": "2026.04.25",
+  "runtime": "nodejs",
+  "gatewayPrefix": "/api/v1",
+  "functions": [
+    {
+      "domain": "auth",
+      "functionName": "smartguardian-auth",
+      "entry": "auth/index.js",
+      "routePrefixes": ["/api/v1/auth"],
+      "collections": ["users", "user_sessions", "user_roles"]
+    },
+    {
+      "domain": "user",
+      "functionName": "smartguardian-user",
+      "entry": "user/index.js",
+      "routePrefixes": ["/api/v1/users", "/api/v1/auth/me"],
+      "collections": ["users", "user_profiles", "user_roles"]
+    },
+    {
+      "domain": "student",
+      "functionName": "smartguardian-student",
+      "entry": "student/index.js",
+      "routePrefixes": ["/api/v1/students"],
+      "collections": ["students", "guardians", "student_guardians"]
+    },
+    {
+      "domain": "service",
+      "functionName": "smartguardian-service",
+      "entry": "service/index.js",
+      "routePrefixes": ["/api/v1/service-products"],
+      "collections": ["service_products"]
+    },
+    {
+      "domain": "order",
+      "functionName": "smartguardian-order",
+      "entry": "order/index.js",
+      "routePrefixes": ["/api/v1/orders"],
+      "collections": ["orders", "order_items", "order_audits"]
+    },
+    {
+      "domain": "session",
+      "functionName": "smartguardian-session",
+      "entry": "session/index.js",
+      "routePrefixes": ["/api/v1/sessions"],
+      "collections": ["sessions", "session_students", "session_teachers"]
+    },
+    {
+      "domain": "attendance",
+      "functionName": "smartguardian-attendance",
+      "entry": "attendance/index.js",
+      "routePrefixes": ["/api/v1/attendance"],
+      "collections": ["attendance_records", "leave_requests"]
+    },
+    {
+      "domain": "homework",
+      "functionName": "smartguardian-homework",
+      "entry": "homework/index.js",
+      "routePrefixes": ["/api/v1/homework/tasks", "/api/v1/homework/feedback"],
+      "collections": ["homework_tasks", "homework_feedback"]
+    },
+    {
+      "domain": "message",
+      "functionName": "smartguardian-message",
+      "entry": "message/index.js",
+      "routePrefixes": ["/api/v1/messages"],
+      "collections": ["messages", "message_receipts"]
+    },
+    {
+      "domain": "alert",
+      "functionName": "smartguardian-alert",
+      "entry": "alert/index.js",
+      "routePrefixes": ["/api/v1/alerts"],
+      "collections": ["alerts", "alert_actions"]
+    },
+    {
+      "domain": "report",
+      "functionName": "smartguardian-report",
+      "entry": "report/index.js",
+      "routePrefixes": ["/api/v1/reports"],
+      "collections": ["daily_reports", "report_snapshots"]
+    },
+    {
+      "domain": "refund",
+      "functionName": "smartguardian-refund",
+      "entry": "refund/index.js",
+      "routePrefixes": ["/api/v1/refunds"],
+      "collections": ["refunds", "refund_audits"]
+    },
+    {
+      "domain": "timeline",
+      "functionName": "smartguardian-timeline",
+      "entry": "timeline/index.js",
+      "routePrefixes": ["/api/v1/timeline"],
+      "collections": ["student_timelines"]
+    },
+    {
+      "domain": "card",
+      "functionName": "smartguardian-card",
+      "entry": "card/index.js",
+      "routePrefixes": ["/api/v1/cards"],
+      "collections": ["form_cards", "student_timelines", "alerts"]
+    },
+    {
+      "domain": "payment",
+      "functionName": "smartguardian-payment",
+      "entry": "payment/index.js",
+      "routePrefixes": ["/api/v1/payments"],
+      "collections": ["payments", "payment_callbacks", "orders"]
+    },
+    {
+      "domain": "workbench",
+      "functionName": "smartguardian-workbench",
+      "entry": "workbench/index.js",
+      "routePrefixes": ["/api/v1/workbench"],
+      "collections": ["workbench_manifests", "user_roles"]
+    }
+  ]
+}

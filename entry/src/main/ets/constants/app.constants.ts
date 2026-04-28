@@ -44,6 +44,7 @@ export class StorageKeys {
   static readonly API_ENV = 'smart_guardian_api_env';
   static readonly API_BASE_URL = 'smart_guardian_api_base_url';
   static readonly API_CONFIG_VERSION = 'smart_guardian_api_config_version';
+  static readonly AGC_FUNCTION_TRIGGER_URL_PREFIX = 'smart_guardian_agc_function_trigger_url_';
   static readonly AGC_RUNTIME_READY = 'smart_guardian_agc_runtime_ready';
   static readonly AGC_CONFIG_READY = 'smart_guardian_agc_config_ready';
   static readonly AGC_AAID = 'smart_guardian_agc_aaid';

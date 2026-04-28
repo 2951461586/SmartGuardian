@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Main Entry Page
- * Main shell with bottom navigation for different roles
+ * Main shell with bottom navigation for different roles.
  */
 
 import { ApiConfig } from '../config/api.config';
@@ -105,14 +105,6 @@ struct MainPage {
     return getRolePalette(this.currentRole).primary;
   }
 
-  private getRoleLight(): string {
-    return getRolePalette(this.currentRole).light;
-  }
-
-  private getRoleBorder(): string {
-    return getRolePalette(this.currentRole).border;
-  }
-
   private getRoleShadow(): string {
     return getRolePalette(this.currentRole).shadow;
   }
@@ -210,20 +202,20 @@ struct MainPage {
           .fontWeight(FontWeight.Medium)
           .fontColor(HarmonyColor.textInverse)
           .backgroundColor(this.getRolePrimary())
-          .borderRadius(18)
+          .borderRadius(22)
           .margin({ top: 22 })
           .onClick(() => {
             this.navigateToLogin();
           })
       }
       .width('100%')
-      .padding(24)
+      .padding(26)
       .backgroundColor($r('app.color.card_background'))
-      .borderRadius(28)
+      .borderRadius(30)
       .border({
         width: 1,
         color: HarmonyColor.line,
-        radius: 28,
+        radius: 30,
         style: BorderStyle.Solid
       })
       .shadow({
@@ -262,12 +254,14 @@ struct MainPage {
         })
       }
       .width('100%')
-      .padding({ left: 10, right: 10, top: 8, bottom: 12 })
+      .height(68)
+      .padding({ left: 12, right: 12, top: 6, bottom: 8 })
+      .backgroundColor($r('app.color.bottom_nav_background'))
     }
     .width('100%')
     .backgroundColor($r('app.color.bottom_nav_background'))
     .shadow({
-      radius: 16,
+      radius: 14,
       color: harmonyShadowColor(),
       offsetX: 0,
       offsetY: -2
@@ -278,8 +272,8 @@ struct MainPage {
   private buildNavItem(index: number, label: ResourceStr, icon: Resource) {
     Column() {
       Image(icon)
-        .width(22)
-        .height(22)
+        .width(24)
+        .height(24)
         .objectFit(ImageFit.Contain)
         .fillColor(this.currentIndex === index ? this.getRolePrimary() : $r('app.color.nav_icon_inactive'))
 
@@ -287,22 +281,15 @@ struct MainPage {
         .fontSize(11)
         .fontWeight(this.currentIndex === index ? FontWeight.Medium : FontWeight.Normal)
         .fontColor(this.currentIndex === index ? this.getRolePrimary() : $r('app.color.nav_icon_inactive'))
-        .margin({ top: 6 })
+        .margin({ top: 5 })
     }
     .layoutWeight(1)
-    .height(58)
-    .padding({ top: 6, bottom: 6 })
+    .height(56)
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(this.currentIndex === index ? this.getRoleLight() : $r('app.color.bottom_nav_background'))
+    .backgroundColor(Color.Transparent)
     .borderRadius(18)
-    .border({
-      width: this.currentIndex === index ? 1 : 0,
-      color: this.currentIndex === index ? this.getRoleBorder() : $r('app.color.bottom_nav_background'),
-      radius: 18,
-      style: BorderStyle.Solid
-    })
-    .opacity(this.currentIndex === index ? 1 : 0.96)
+    .opacity(this.currentIndex === index ? 1 : 0.92)
     .onClick(() => {
       this.currentIndex = index;
     })

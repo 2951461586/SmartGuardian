@@ -1,14 +1,9 @@
 /**
  * SmartGuardian - Teacher Homework Page
- * Teacher can manage homework tasks and feedback
+ * Teacher can manage homework tasks and feedback.
  */
 
-import { HomeworkService } from '../../services/api/homework';
-import { HomeworkTask, HomeworkFeedbackCreateRequest, HomeworkTaskStatus, PerformanceLevel } from '../../models/homework';
-import { SessionService } from '../../services/api/service';
-import { SessionSchedule } from '../../models/service';
-import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
-// Common Components
+import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
 import {
   Card,
   EmptyState,
@@ -23,7 +18,11 @@ import {
   StatCard,
   TabBar
 } from '../../components/common';
-import { HarmonyColor, HarmonyReport } from '../../common/HarmonyDesign';
+import { HomeworkFeedbackCreateRequest, HomeworkTask, HomeworkTaskStatus, PerformanceLevel } from '../../models/homework';
+import { SessionSchedule } from '../../models/service';
+import { HomeworkService } from '../../services/api/homework';
+import { SessionService } from '../../services/api/service';
+import { ErrorHandlerUtil } from '../../utils/ErrorHandlerUtil';
 
 @Entry
 @Component
@@ -49,11 +48,7 @@ export struct TeacherHomeworkPageContent {
   @State errorMessage: string = '';
   @State isSubmittingFeedback: boolean = false;
 
-  private tabs: string[] = [
-    $r('app.string.homework_tab_pending').toString(),
-    $r('app.string.homework_tab_completed').toString(),
-    $r('app.string.homework_tab_confirmed').toString()
-  ];
+  private tabs: string[] = ['待辅导', '已完成', '待确认'];
 
   aboutToAppear() {
     this.loadData();
@@ -74,7 +69,7 @@ export struct TeacherHomeworkPageContent {
 
       await this.loadHomeworkByTab();
     } catch (error) {
-      this.errorMessage = $r('app.string.homework_data_loading_failed').toString();
+      this.errorMessage = '加载数据失败';
     } finally {
       this.isLoading = false;
     }
@@ -94,14 +89,14 @@ export struct TeacherHomeworkPageContent {
       const resp = await HomeworkService.getTasks({
         pageNum: 1,
         pageSize: 20,
-        status: status
+        status
       });
 
       if (resp.code === 0) {
         this.homeworkList = resp.data ? resp.data.list : [];
       }
     } catch (error) {
-      this.errorMessage = $r('app.string.homework_loading_failed').toString();
+      this.errorMessage = '加载作业失败';
     }
   }
 
@@ -125,7 +120,7 @@ export struct TeacherHomeworkPageContent {
     }
 
     if (this.feedbackContent.trim().length === 0) {
-      ErrorHandlerUtil.showErrorToast($r('app.string.homework_feedback_dialog_hint').toString());
+      ErrorHandlerUtil.showErrorToast('请输入本次辅导反馈内容');
       return;
     }
 
@@ -139,15 +134,15 @@ export struct TeacherHomeworkPageContent {
 
       const resp = await HomeworkService.submitFeedback(request);
       if (resp.code === 0) {
-        ErrorHandlerUtil.showSuccessToast($r('app.string.homework_feedback_submit_success').toString());
+        ErrorHandlerUtil.showSuccessToast('反馈提交成功');
         this.closeFeedbackDialog();
         await this.loadHomeworkByTab();
       } else {
-        this.errorMessage = resp.message ? resp.message : $r('app.string.homework_feedback_submit_failed').toString();
+        this.errorMessage = resp.message ? resp.message : '提交反馈失败';
         ErrorHandlerUtil.showErrorToast(this.errorMessage);
       }
     } catch (error) {
-      this.errorMessage = $r('app.string.homework_feedback_submit_failed').toString();
+      this.errorMessage = '提交反馈失败';
       ErrorHandlerUtil.showErrorToast(this.errorMessage);
     } finally {
       this.isSubmittingFeedback = false;
@@ -221,7 +216,7 @@ export struct TeacherHomeworkPageContent {
   buildTabSection() {
     Card({
       title: '任务状态',
-      subtitle: '在待完成、已完成和已确认之间切换查看。',
+      subtitle: '在待辅导、已完成和待确认之间切换查看。',
       customPadding: 12,
       content: () => { this.buildTabSectionContent() }
     })
@@ -298,36 +293,17 @@ export struct TeacherHomeworkPageContent {
   buildFeedbackDialog() {
     Column() {
       Column() {
-        Text($r('app.string.homework_feedback_dialog_title'))
+        Text('作业反馈')
           .fontSize($r('app.float.card_title_size'))
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
           .margin({ bottom: $r('app.float.card_margin') })
 
         if (this.selectedTask) {
-          Column() {
-            Text(`${$r('app.string.homework_feedback_student').toString()}：${this.selectedTask.studentName ? this.selectedTask.studentName : ''}`)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-              .width('100%')
-              .margin({ bottom: $r('app.float.card_content_margin') })
-
-            Text(`${$r('app.string.homework_feedback_task_content').toString()}：${this.selectedTask.content ? this.selectedTask.content : ''}`)
-              .fontSize($r('app.float.text_secondary_size'))
-              .fontColor($r('app.color.text_secondary'))
-              .width('100%')
-              .maxLines(3)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .margin({ bottom: $r('app.float.card_margin') })
-          }
-          .width('100%')
-          .padding($r('app.float.card_padding'))
-          .backgroundColor($r('app.color.page_background'))
-          .borderRadius($r('app.float.card_border_radius'))
-          .margin({ bottom: $r('app.float.card_margin') })
+          this.buildSelectedTaskSummary()
         }
 
-        TextArea({ text: this.feedbackContent, placeholder: $r('app.string.homework_feedback_dialog_hint').toString() })
+        TextArea({ text: this.feedbackContent, placeholder: '请输入本次辅导反馈内容' })
           .width('100%')
           .height($r('app.float.feedback_input_height'))
           .fontSize($r('app.float.text_secondary_size'))
@@ -339,7 +315,7 @@ export struct TeacherHomeworkPageContent {
           })
 
         Row() {
-          Button($r('app.string.common_cancel'))
+          Button('取消')
             .layoutWeight(1)
             .height($r('app.float.button_height'))
             .fontSize($r('app.float.button_text_size'))
@@ -351,7 +327,7 @@ export struct TeacherHomeworkPageContent {
               this.closeFeedbackDialog();
             })
 
-          Button(this.isSubmittingFeedback ? $r('app.string.homework_feedback_submitting') : $r('app.string.common_confirm'))
+          Button(this.isSubmittingFeedback ? '提交中...' : '确认')
             .layoutWeight(1)
             .height($r('app.float.button_height'))
             .fontSize($r('app.float.button_text_size'))
@@ -381,79 +357,39 @@ export struct TeacherHomeworkPageContent {
   }
 
   @Builder
-  buildStatusBadge(status: HomeworkTaskStatus) {
-    Text(this.getStatusText(status))
-      .fontSize($r('app.float.badge_text_size'))
-      .fontColor(this.getStatusColor(status))
-      .padding({
-        left: $r('app.float.badge_padding'),
-        right: $r('app.float.badge_padding'),
-        top: $r('app.float.badge_padding'),
-        bottom: $r('app.float.badge_padding')
-      })
-      .backgroundColor(this.getStatusBgColor(status))
-      .borderRadius($r('app.float.badge_radius'))
-  }
+  private buildSelectedTaskSummary() {
+    Column() {
+      Text(`学生：${this.selectedTask?.studentName ? this.selectedTask.studentName : ''}`)
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.text_secondary'))
+        .width('100%')
+        .margin({ bottom: $r('app.float.card_content_margin') })
 
-  getStatusText(status: HomeworkTaskStatus): string {
-    if (status === HomeworkTaskStatus.PENDING) {
-      return $r('app.string.homework_status_pending').toString();
+      Text(`作业内容：${this.selectedTask?.content ? this.selectedTask.content : ''}`)
+        .fontSize($r('app.float.text_secondary_size'))
+        .fontColor($r('app.color.text_secondary'))
+        .width('100%')
+        .maxLines(3)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .margin({ bottom: $r('app.float.card_margin') })
     }
-    if (status === HomeworkTaskStatus.IN_PROGRESS) {
-      return $r('app.string.homework_status_in_progress').toString();
-    }
-    if (status === HomeworkTaskStatus.COMPLETED) {
-      return $r('app.string.homework_status_completed').toString();
-    }
-    if (status === HomeworkTaskStatus.CONFIRMED) {
-      return $r('app.string.homework_status_confirmed').toString();
-    }
-    return '';
-  }
-
-  getStatusColor(status: HomeworkTaskStatus): ResourceColor {
-    if (status === HomeworkTaskStatus.PENDING) {
-      return $r('app.color.status_pending');
-    }
-    if (status === HomeworkTaskStatus.IN_PROGRESS) {
-      return $r('app.color.status_in_progress');
-    }
-    if (status === HomeworkTaskStatus.COMPLETED) {
-      return $r('app.color.status_completed');
-    }
-    if (status === HomeworkTaskStatus.CONFIRMED) {
-      return $r('app.color.status_confirmed');
-    }
-    return $r('app.color.text_secondary');
-  }
-
-  getStatusBgColor(status: HomeworkTaskStatus): ResourceColor {
-    if (status === HomeworkTaskStatus.PENDING) {
-      return $r('app.color.status_pending_bg');
-    }
-    if (status === HomeworkTaskStatus.IN_PROGRESS) {
-      return $r('app.color.status_in_progress_bg');
-    }
-    if (status === HomeworkTaskStatus.COMPLETED) {
-      return $r('app.color.status_completed_bg');
-    }
-    if (status === HomeworkTaskStatus.CONFIRMED) {
-      return $r('app.color.status_confirmed_bg');
-    }
-    return $r('app.color.page_background');
+    .width('100%')
+    .padding($r('app.float.card_padding'))
+    .backgroundColor($r('app.color.page_background'))
+    .borderRadius($r('app.float.card_border_radius'))
+    .margin({ bottom: $r('app.float.card_margin') })
   }
 
   private getCurrentTabLabel(): string {
     if (this.currentTab === 0) {
-      return '待完成';
+      return '待辅导';
     }
     if (this.currentTab === 1) {
       return '已完成';
     }
     if (this.currentTab === 2) {
-      return '已确认';
+      return '待确认';
     }
     return '全部';
   }
 }
-

@@ -1,10 +1,10 @@
 import { UserRole } from '../../models/common';
-import { HarmonyColor, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
 import { getRolePalette } from '../../common/RoleTheme';
 
 @Component
 export struct AdminSummaryHeroCard {
-  @Prop netIncome: string = '￥0';
+  @Prop netIncome: string = '¥0';
   @Prop attendanceRate: string = '0%';
   @Prop pendingOrders: string = '0';
 
@@ -17,7 +17,7 @@ export struct AdminSummaryHeroCard {
           .fontColor(getRolePalette(UserRole.ORG_ADMIN).primary)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .backgroundColor(getRolePalette(UserRole.ORG_ADMIN).light)
-          .borderRadius(999)
+          .borderRadius(HarmonyRadius.pill)
 
         Text(this.netIncome)
           .fontSize(30)
@@ -47,16 +47,17 @@ export struct AdminSummaryHeroCard {
           .fontColor(getRolePalette(UserRole.ORG_ADMIN).primary)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .backgroundColor(getRolePalette(UserRole.ORG_ADMIN).light)
-          .borderRadius(999)
+          .borderRadius(HarmonyRadius.pill)
 
-        Image($r('app.media.sg_illustration_education'))
-          .width(108)
-          .height(92)
-          .objectFit(ImageFit.Contain)
-          .opacity(0.88)
+        Image($r('app.media.sg_scene_admin_operations_v2'))
+          .width(116)
+          .height(94)
+          .objectFit(ImageFit.Cover)
+          .borderRadius(22)
           .margin({ top: 16 })
       }
       .alignItems(HorizontalAlign.End)
+      .margin({ left: 14 })
     }
     .width('100%')
     .padding({ left: 18, right: 18, top: 18, bottom: 18 })
@@ -72,10 +73,10 @@ export struct AdminSummaryHeroCard {
     })
     .borderRadius(28)
     .shadow({
-      radius: 18,
+      radius: 14,
       color: harmonyShadowColor(),
       offsetX: 0,
-      offsetY: 10
+      offsetY: 8
     })
   }
 

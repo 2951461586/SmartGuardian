@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Admin Home Page
- * Admin dashboard with the new light campus style
+ * Admin dashboard with the new light campus style.
  */
 
 import { HarmonyReport } from '../../common/HarmonyDesign';
@@ -158,6 +158,7 @@ export struct AdminHomePageContent {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
@@ -187,7 +188,7 @@ export struct AdminHomePageContent {
   @Builder
   private buildHeroCard() {
     AdminSummaryHeroCard({
-      netIncome: `￥${this.stats.netIncome.toFixed(0)}`,
+      netIncome: `¥${this.stats.netIncome.toFixed(0)}`,
       attendanceRate: `${this.stats.attendanceRate}%`,
       pendingOrders: `${this.stats.pendingOrders}`
     })
@@ -241,7 +242,7 @@ export struct AdminHomePageContent {
     if (code === 'messages') return '通知处理';
     if (code === 'orders') return '审批流转';
     if (code === 'reports') return '经营视图';
-    if (code === 'services') return '模板配置';
+    if (code === 'services') return '产品配置';
     if (code === 'sessions') return '自动排班';
     if (code === 'alerts') return '风险处理';
     if (code === 'refunds') return '售后跟进';
@@ -341,7 +342,7 @@ export struct AdminHomePageContent {
       totalStudents: this.stats.totalStudents,
       presentStudents: this.stats.presentStudents,
       attendanceRateText: `${this.stats.attendanceRate}%`,
-      netIncomeText: `￥${this.stats.netIncome.toFixed(0)}`,
+      netIncomeText: `¥${this.stats.netIncome.toFixed(0)}`,
       activityItems: this.getActivityFeedItems(),
       activityActionText: '打开报表',
       onActivityAction: (): void => {
@@ -350,4 +351,3 @@ export struct AdminHomePageContent {
     })
   }
 }
-

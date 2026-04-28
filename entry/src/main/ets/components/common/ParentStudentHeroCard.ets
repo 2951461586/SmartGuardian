@@ -1,5 +1,5 @@
 import { UserRole } from '../../models/common';
-import { HarmonyColor, harmonyShadowColor } from '../../common/HarmonyDesign';
+import { HarmonyColor, HarmonyRadius, harmonyShadowColor } from '../../common/HarmonyDesign';
 import { getRolePalette } from '../../common/RoleTheme';
 
 @Component
@@ -12,67 +12,66 @@ export struct ParentStudentHeroCard {
 
   build() {
     Row() {
-      Row() {
-        Image($r('app.media.ic_default_avatar'))
-          .width(70)
-          .height(70)
-          .objectFit(ImageFit.Cover)
-      }
-      .width(86)
-      .height(86)
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(HarmonyColor.surface)
-      .borderRadius(43)
-
       Column() {
         Row() {
-          Text(this.studentName)
-            .fontSize(24)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(HarmonyColor.textInverse)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          Image($r('app.media.ic_default_avatar'))
+            .width(50)
+            .height(50)
+            .objectFit(ImageFit.Cover)
+            .margin({ right: 12 })
 
-          Text(this.studentMeta)
-            .fontSize(11)
-            .fontColor(getRolePalette(UserRole.PARENT).primary)
-            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor(getRolePalette(UserRole.PARENT).light)
-            .borderRadius(999)
-            .margin({ left: 10 })
+          Column() {
+            Text(this.studentName)
+              .fontSize(22)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(HarmonyColor.textPrimary)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+            Text(this.studentMeta)
+              .fontSize(12)
+              .fontColor(getRolePalette(UserRole.PARENT).primary)
+              .margin({ top: 5 })
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
         }
         .width('100%')
+        .alignItems(VerticalAlign.Center)
 
         Text(`学号：${this.studentNo}`)
-          .fontSize(14)
-          .fontColor(HarmonyColor.textInverseStrong)
-          .margin({ top: 10 })
+          .fontSize(13)
+          .fontColor(HarmonyColor.textSecondary)
+          .margin({ top: 14 })
 
         Text(`学校：${this.schoolName}`)
-          .fontSize(14)
-          .fontColor(HarmonyColor.textInverseStrong)
+          .fontSize(13)
+          .fontColor(HarmonyColor.textSecondary)
           .margin({ top: 6 })
 
         Text(this.sessionTitle)
           .fontSize(13)
-          .fontColor(HarmonyColor.textInverseMuted)
-          .margin({ top: 10 })
+          .fontColor(getRolePalette(UserRole.PARENT).primaryDark)
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .backgroundColor(getRolePalette(UserRole.PARENT).light)
+          .borderRadius(HarmonyRadius.pill)
+          .margin({ top: 12 })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
-      .margin({ left: 14 })
 
-      Image($r('app.media.sg_illustration_children'))
-        .width(104)
-        .height(92)
-        .objectFit(ImageFit.Contain)
-        .opacity(0.88)
+      Image($r('app.media.sg_scene_parent_care_v2'))
+        .width(120)
+        .height(104)
+        .objectFit(ImageFit.Cover)
+        .borderRadius(22)
+        .margin({ left: 14 })
     }
     .width('100%')
     .padding({ left: 18, right: 18, top: 18, bottom: 18 })
     .linearGradient({
-      angle: 130,
-      colors: [[getRolePalette(UserRole.PARENT).primary, 0], [getRolePalette(UserRole.PARENT).primaryDark, 0.62], [getRolePalette(UserRole.PARENT).light, 1]]
+      angle: 145,
+      colors: [[HarmonyColor.surface, 0], [getRolePalette(UserRole.PARENT).soft, 1]]
     })
     .border({
       width: 1,
@@ -82,10 +81,10 @@ export struct ParentStudentHeroCard {
     })
     .borderRadius(28)
     .shadow({
-      radius: 18,
+      radius: 14,
       color: harmonyShadowColor(),
       offsetX: 0,
-      offsetY: 10
+      offsetY: 8
     })
     .alignItems(VerticalAlign.Center)
   }

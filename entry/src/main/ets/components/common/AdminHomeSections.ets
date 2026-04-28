@@ -105,7 +105,7 @@ export struct AdminHomeOperationsSection {
   @Prop totalStudents: number = 0;
   @Prop presentStudents: number = 0;
   @Prop attendanceRateText: string = '0%';
-  @Prop netIncomeText: string = '￥0';
+  @Prop netIncomeText: string = '¥0';
   @Prop activityItems: ActivityFeedItem[] = [];
   @Prop activityActionText: string = '查看详情';
   onActivityAction?: () => void;

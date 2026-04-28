@@ -1,106 +1,69 @@
-﻿/**
- * SmartGuardian - 閫氱敤鍥炬爣缁勪欢
- * 浣跨敤绯荤粺Symbol瀛椾綋鏇夸唬鍥剧墖鍥炬爣锛岃В鍐冲浘鏍囪祫婧愮己澶遍棶棰? */
+/**
+ * SmartGuardian - Resource Icon Adapter
+ * Keeps legacy string icon names while rendering project SVG resources.
+ */
+
+import { HarmonyColor } from '../common/HarmonyDesign';
 
 @Component
 export struct SymbolIcon {
-  @Prop icon: string = 'home';      // 鍥炬爣鍚嶇О
-  @Prop iconSize: number = 24;      // 鍥炬爣澶у皬
-  @Prop color: ResourceColor = '#172A2A';  // 鍥炬爣棰滆壊
-  @Prop fontWeight: number = 400;   // 瀛楅噸
+  @Prop icon: string = 'home';
+  @Prop iconSize: number = 24;
+  @Prop color: ResourceColor = HarmonyColor.inkStrong;
+  @Prop fontWeight: number = 400;
 
   build() {
-    Text(this.getIconChar())
-      .fontSize(this.iconSize)
-      .fontColor(this.color)
-      .fontWeight(this.fontWeight)
-      .fontFamily('HarmonyOS Sans')
+    Image(this.getIconResource())
+      .width(this.iconSize)
+      .height(this.iconSize)
+      .objectFit(ImageFit.Contain)
+      .fillColor(this.color)
   }
 
-  private getIconChar(): string {
-    const iconMap: Record<string, string> = {
-      // 瀵艰埅鍥炬爣
-      'home': '\u{1F3E0}',
-      'order': '\u{1F4CB}',
-      'message': '\u{1F4AC}',
-      'profile': '\u{1F464}',
-      'attendance': '\u{1F4C5}',
-      'homework': '\u{1F4DA}',
-      'report': '\u{1F4CA}',
-
-      // 功能图标
-      'notification': '\u{1F514}',
-      'settings': '\u{2699}',
-      'warning': '\u{26A0}',
-      'money': '\u{1F4B0}',
-      'empty': '\u{1F4DD}',
-      'logo': '\u{1F393}',
-
-      // 琛ㄥ崟鍥炬爣
-      'user': '\u{1F464}',
-      'lock': '\u{1F512}',
-      'eye_open': '\u{1F441}',
-      'eye_close': '\u{1F648}',
-
-      // 鎿嶄綔鍥炬爣
-      'leave': '\u{1F4C4}',
-      'qrcode': '\u{1F4F7}',
-      'calendar': '\u{1F4C5}',
-      'child': '\u{1F476}',
-      'help': '\u{2753}',
-      'about': '\u{2139}',
-      'arrow_right': '\u{203A}',
-      'arrow_left': '\u{2039}',
-      'arrow_up': '\u{25B2}',
-      'arrow_down': '\u{25BC}',
-      'add': '\u{2795}',
-      'close': '\u{2715}',
-      'check': '\u{2713}',
-      'search': '\u{1F50D}',
-      'filter': '\u{1F50D}',
-      'edit': '\u{270F}',
-      'delete': '\u{1F5D1}',
-      'refresh': '\u{1F504}',
-      'more': '\u{2026}',
-      'phone': '\u{1F4DE}',
-      'email': '\u{1F4E7}',
-      'location': '\u{1F4CD}',
-      'time': '\u{23F0}',
-      'star': '\u{2B50}',
-      'heart': '\u{2764}',
-      'bell': '\u{1F514}',
-
-      // 鏀粯鐩稿叧
-      'alipay': '\u{1F4B3}',
-      'wechat': '\u{1F4F1}',
-
-      // 鐘舵€佸浘鏍?      'success': '\u{2705}',
-      'error': '\u{274C}',
-      'info': '\u{2139}\u{FE0F}',
-      'pending': '\u{23F3}',
-      'done': '\u{2705}',
-
-      // 鎬у埆
-      'male': '\u{2640}',
-      'female': '\u{2642}',
-
-      // 榛樿澶村儚
-      'default_avatar': '\u{1F464}'
-    };
-
-    return iconMap[this.icon] || '\u{25CF}';
+  private getIconResource(): Resource {
+    if (this.icon === 'order') return $r('app.media.ic_order');
+    if (this.icon === 'message') return $r('app.media.ic_message');
+    if (this.icon === 'profile') return $r('app.media.ic_profile');
+    if (this.icon === 'attendance') return $r('app.media.ic_attendance');
+    if (this.icon === 'homework') return $r('app.media.ic_homework');
+    if (this.icon === 'report') return $r('app.media.ic_report');
+    if (this.icon === 'notification' || this.icon === 'bell') return $r('app.media.ic_notification');
+    if (this.icon === 'settings') return $r('app.media.ic_settings');
+    if (this.icon === 'warning' || this.icon === 'pending') return $r('app.media.ic_warning');
+    if (this.icon === 'money' || this.icon === 'alipay' || this.icon === 'wechat') return $r('app.media.ic_money');
+    if (this.icon === 'empty') return $r('app.media.ic_empty');
+    if (this.icon === 'logo') return $r('app.media.ic_logo');
+    if (this.icon === 'user' || this.icon === 'default_avatar') return $r('app.media.ic_user');
+    if (this.icon === 'lock') return $r('app.media.ic_lock');
+    if (this.icon === 'eye_open') return $r('app.media.ic_eye_open');
+    if (this.icon === 'eye_close') return $r('app.media.ic_eye_close');
+    if (this.icon === 'leave') return $r('app.media.ic_leave');
+    if (this.icon === 'qrcode') return $r('app.media.ic_qrcode');
+    if (this.icon === 'calendar' || this.icon === 'time') return $r('app.media.ic_calendar');
+    if (this.icon === 'child') return $r('app.media.ic_child');
+    if (this.icon === 'help') return $r('app.media.ic_help');
+    if (this.icon === 'about' || this.icon === 'info') return $r('app.media.ic_info');
+    if (this.icon === 'arrow_right') return $r('app.media.ic_arrow_right');
+    if (this.icon === 'arrow_left') return $r('app.media.ic_arrow_left');
+    if (this.icon === 'add') return $r('app.media.ic_add');
+    if (this.icon === 'close') return $r('app.media.ic_close');
+    if (this.icon === 'search' || this.icon === 'filter') return $r('app.media.ic_search');
+    if (this.icon === 'edit') return $r('app.media.ic_edit');
+    if (this.icon === 'delete') return $r('app.media.ic_delete');
+    if (this.icon === 'refresh') return $r('app.media.ic_refresh');
+    if (this.icon === 'location') return $r('app.media.ic_location');
+    if (this.icon === 'success' || this.icon === 'done' || this.icon === 'check') return $r('app.media.ic_success');
+    if (this.icon === 'error') return $r('app.media.ic_error');
+    return $r('app.media.ic_home');
   }
 }
 
-/**
- * 甯﹁儗鏅殑鍦嗗舰鍥炬爣缁勪欢
- */
 @Component
 export struct SymbolIconBg {
   @Prop icon: string = 'home';
   @Prop containerSize: number = 40;
-  @Prop bgColor: ResourceColor = '#EEF4FA';
-  @Prop iconColor: ResourceColor = '#526F95';
+  @Prop bgColor: ResourceColor = HarmonyColor.surfaceSubtle;
+  @Prop iconColor: ResourceColor = HarmonyColor.textSecondary;
   @Prop iconSize: number = 20;
 
   build() {
@@ -120,16 +83,14 @@ export struct SymbolIconBg {
   }
 }
 
-/**
- * 鍥炬爣+鏂囧瓧鐨勭粍鍚堢粍浠? */
 @Component
 export struct IconText {
   @Prop icon: string = 'home';
   @Prop text: string = '';
   @Prop iconSize: number = 16;
   @Prop textSize: number = 14;
-  @Prop iconColor: ResourceColor = '#526F95';
-  @Prop textColor: ResourceColor = '#172A2A';
+  @Prop iconColor: ResourceColor = HarmonyColor.textSecondary;
+  @Prop textColor: ResourceColor = HarmonyColor.textPrimary;
   @Prop gap: number = 4;
 
   build() {

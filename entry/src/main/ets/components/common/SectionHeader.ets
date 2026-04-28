@@ -37,13 +37,13 @@ export struct SectionHeader {
             Text(this.actionText)
               .fontSize($r('app.float.text_secondary_size'))
               .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.primary'))
+              .fontColor($r('app.color.text_tertiary'))
 
             Image($r('app.media.ic_arrow_right'))
               .width(14)
               .height(14)
               .objectFit(ImageFit.Contain)
-              .fillColor($r('app.color.primary'))
+              .fillColor($r('app.color.text_tertiary'))
               .margin({ left: 4 })
           }
           .padding({ left: 2, right: 2, top: 4, bottom: 4 })

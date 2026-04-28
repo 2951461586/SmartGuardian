@@ -1,3 +1,4 @@
+import { common } from '@kit.AbilityKit';
 import {
   FormActionBar,
   FormSecureField,
@@ -64,16 +65,29 @@ struct LoginPage {
     this.errorMessage = '';
   }
 
-  private isServiceReady(): boolean {
-    if (!AgcRuntimeService.isClientConfigReady()) {
-      this.errorMessage = '服务暂不可用，请稍后再试或联系托管机构。';
+  private async ensureServiceReady(): Promise<boolean> {
+    const gatewayBaseUrl = ApiConfig.getConfiguredBaseUrl();
+    if (gatewayBaseUrl.length === 0) {
+      this.errorMessage = 'AGC 网关地址未配置，请完成发布配置后再登录。';
       return false;
     }
-    if (ApiConfig.getConfiguredBaseUrl().length === 0) {
-      this.errorMessage = '服务暂不可用，请稍后再试或联系托管机构。';
-      return false;
+
+    if (!AgcRuntimeService.isClientConfigReady()) {
+      await this.refreshAgcRuntimeStatus();
+      if (!AgcRuntimeService.isClientConfigReady()) {
+        LogUtil.warn('LoginPage', `AGC client config is not ready, continue with gateway login. ${AgcRuntimeService.getRuntimeError()}`);
+      }
     }
     return true;
+  }
+
+  private async refreshAgcRuntimeStatus(): Promise<void> {
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      await AgcRuntimeService.initialize(context);
+    } catch (error) {
+      LogUtil.warn('LoginPage', `Refresh AGC runtime status failed: ${String(error)}`);
+    }
   }
 
   async handleLogin(): Promise<void> {
@@ -88,7 +102,7 @@ struct LoginPage {
     }
 
     ApiConfig.applyRuntimeConfig(ApiEnvironment.AGC_SERVERLESS, ApiConfig.getConfiguredBaseUrl());
-    if (!this.isServiceReady()) {
+    if (!(await this.ensureServiceReady())) {
       return;
     }
 
@@ -119,7 +133,7 @@ struct LoginPage {
         return;
       }
 
-      this.errorMessage = resp.message || '登录失败，请检查账号或服务状态。';
+      this.errorMessage = resp.message || '登录失败，请检查账号或云服务状态。';
     } catch (error) {
       this.errorMessage = '登录失败，请稍后再试。';
       LogUtil.error('LoginPage', `Login error: ${String(error)}`);
@@ -146,11 +160,11 @@ struct LoginPage {
     Column() {
       Scroll() {
         Column() {
-          Image($r('app.media.sg_illustration_auth_hall'))
+          Image($r('app.media.sg_illustration_auth_hall_v2'))
             .width('100%')
-            .height(150)
+            .height(166)
             .objectFit(ImageFit.Cover)
-            .borderRadius(20)
+            .borderRadius(24)
 
           Text('智慧托管')
             .width('100%')
@@ -172,11 +186,11 @@ struct LoginPage {
         .constraintSize({ maxWidth: 620 })
         .padding(24)
         .backgroundColor($r('app.color.card_background'))
-        .borderRadius(24)
+        .borderRadius(28)
         .border({
           width: 1,
           color: $r('app.color.divider'),
-          radius: 24,
+          radius: 28,
           style: BorderStyle.Solid
         })
         .alignSelf(ItemAlign.Center)

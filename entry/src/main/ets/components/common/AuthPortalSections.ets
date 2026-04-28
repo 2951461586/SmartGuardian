@@ -37,11 +37,11 @@ export struct PortalSelectorCard {
             .fontWeight(this.selectedValue === option.value ? FontWeight.Medium : FontWeight.Normal)
             .fontColor(this.selectedValue === option.value ? HarmonyColor.textInverse : $r('app.color.text_secondary'))
             .backgroundColor(this.selectedValue === option.value ? $r('app.color.primary') : $r('app.color.card_background'))
-            .borderRadius(14)
+            .borderRadius(16)
             .border({
               width: 1,
               color: this.selectedValue === option.value ? $r('app.color.primary') : HarmonyColor.line,
-              radius: 14,
+              radius: 16,
               style: BorderStyle.Solid
             })
             .margin({ left: index === 0 ? 0 : 8 })
@@ -64,13 +64,13 @@ export struct PortalSelectorCard {
       }
     }
     .width('100%')
-    .padding(18)
+    .padding(20)
     .backgroundColor($r('app.color.card_background'))
-    .borderRadius(20)
+    .borderRadius(28)
     .border({
       width: 1,
       color: $r('app.color.divider'),
-      radius: 20,
+      radius: 28,
       style: BorderStyle.Solid
     })
     .margin({ bottom: 12 })
