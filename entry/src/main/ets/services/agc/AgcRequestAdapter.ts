@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - AGC Request Adapter
- * Route ArkTS requests to AGC API Gateway / Cloud Functions contracts.
+ * Route ArkTS requests to AGC Cloud Functions contracts.
  */
 
 import { hilog } from '@kit.PerformanceAnalysisKit';
@@ -62,6 +62,16 @@ interface AgcFunctionResult {
   getValue(): Object | string | null;
 }
 
+interface AgcErrorLike {
+  code?: number;
+  responseCode?: number;
+  message?: string;
+  name?: string;
+  stack?: string;
+  result?: string;
+  errMsg?: string;
+}
+
 export class AgcRouteRegistry {
   static resolve(url: string): AgcRouteDescriptor {
     const routePath = AgcRouteRegistry.extractPath(url);
@@ -109,6 +119,49 @@ export class AgcRouteRegistry {
 }
 
 export class AgcRequestAdapter {
+  private static addTextPart(parts: string[], label: string, value?: string): void {
+    if (value !== undefined && value !== null && value.length > 0) {
+      parts.push(`${label}=${value}`);
+    }
+  }
+
+  private static addNumberPart(parts: string[], label: string, value?: number): void {
+    if (value !== undefined && value !== null) {
+      parts.push(`${label}=${value}`);
+    }
+  }
+
+  private static formatAgcError(error: Object): string {
+    const detail = error as AgcErrorLike;
+    const parts: string[] = [];
+
+    AgcRequestAdapter.addTextPart(parts, 'name', detail.name);
+    AgcRequestAdapter.addNumberPart(parts, 'code', detail.code);
+    AgcRequestAdapter.addNumberPart(parts, 'responseCode', detail.responseCode);
+    AgcRequestAdapter.addTextPart(parts, 'message', detail.message);
+    AgcRequestAdapter.addTextPart(parts, 'result', detail.result);
+    AgcRequestAdapter.addTextPart(parts, 'errMsg', detail.errMsg);
+
+    const text = String(error);
+    if (text.length > 0 && text !== '[object Object]' && text !== detail.message) {
+      AgcRequestAdapter.addTextPart(parts, 'text', text);
+    }
+
+    try {
+      const serialized = JSON.stringify(error);
+      if (serialized.length > 0 && serialized !== '{}') {
+        AgcRequestAdapter.addTextPart(parts, 'raw', serialized);
+      }
+    } catch (serializeError) {
+      AgcRequestAdapter.addTextPart(parts, 'serializeError', String(serializeError));
+    }
+
+    if (parts.length === 0) {
+      return text.length > 0 ? text : 'empty AGC SDK error';
+    }
+    return parts.join(', ');
+  }
+
   private static parseApiResponse<T>(payload: string): ApiResponse<T> {
     const parsed = JSON.parse(payload) as ApiResponse<T>;
     return parsed;
@@ -194,7 +247,7 @@ export class AgcRequestAdapter {
       try {
         result = AgcRequestAdapter.unwrapAgcHttpResponse<T>(payload);
       } catch (error) {
-        hilog.error(DOMAIN, TAG, `[${source}] AGC response parse failed: ${String(error)}`);
+        hilog.error(DOMAIN, TAG, `[${source}] AGC response parse failed: ${AgcRequestAdapter.formatAgcError(error as Object)}, payload=${payload.substring(0, 500)}`);
         throw new Error('AGC response parse failed');
       }
 
@@ -203,8 +256,13 @@ export class AgcRequestAdapter {
       }
       return result;
     } catch (error) {
-      hilog.error(DOMAIN, TAG, `[${source}] AGC function request failed: ${String(error)}`);
-      throw error;
+      const detail = AgcRequestAdapter.formatAgcError(error as Object);
+      hilog.error(
+        DOMAIN,
+        TAG,
+        `[${source}] AGC function request failed: function=${route.functionName}, trigger=${triggerIdentifier}, route=${route.routePath}, detail=${detail}`
+      );
+      throw new Error(`AGC function request failed: ${detail}`);
     }
   }
 }

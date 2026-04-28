@@ -1,6 +1,7 @@
 import { common } from '@kit.AbilityKit';
 import agconnect from '@hw-agconnect/api-ohos';
 import '@hw-agconnect/core-ohos';
+import { AGCRoutePolicy } from '@hw-agconnect/core-ohos';
 import '@hw-agconnect/auth-ohos';
 import '@hw-agconnect/credential-ohos';
 import { StorageKeys } from '../../constants/app.constants';
@@ -15,6 +16,15 @@ export interface AgcRuntimeStatus {
   aaid: string;
   userUid: string;
   errorMessage: string;
+}
+
+interface AgcRuntimeErrorLike {
+  code?: number;
+  responseCode?: number;
+  message?: string;
+  name?: string;
+  result?: string;
+  errMsg?: string;
 }
 
 export class AgcRuntimeService {
@@ -37,6 +47,7 @@ export class AgcRuntimeService {
         agconnect.instance().init(context.getApplicationContext());
         AgcRuntimeService.hasInitializedSdk = true;
       }
+      agconnect.instance().setRoutePolicy(AGCRoutePolicy.CHINA);
       status.initialized = true;
 
       const config = await agconnect.instance().getConfig();
@@ -150,16 +161,46 @@ export class AgcRuntimeService {
     }
   }
 
+  private static addTextPart(parts: string[], label: string, value?: string): void {
+    if (value !== undefined && value !== null && value.length > 0) {
+      parts.push(`${label}=${value}`);
+    }
+  }
+
+  private static addNumberPart(parts: string[], label: string, value?: number): void {
+    if (value !== undefined && value !== null) {
+      parts.push(`${label}=${value}`);
+    }
+  }
+
   private static formatError(error: Object): string {
-    let detail = String(error);
+    const errorDetail = error as AgcRuntimeErrorLike;
+    const parts: string[] = [];
+
+    AgcRuntimeService.addTextPart(parts, 'name', errorDetail.name);
+    AgcRuntimeService.addNumberPart(parts, 'code', errorDetail.code);
+    AgcRuntimeService.addNumberPart(parts, 'responseCode', errorDetail.responseCode);
+    AgcRuntimeService.addTextPart(parts, 'message', errorDetail.message);
+    AgcRuntimeService.addTextPart(parts, 'result', errorDetail.result);
+    AgcRuntimeService.addTextPart(parts, 'errMsg', errorDetail.errMsg);
+
+    const text = String(error);
+    if (text.length > 0 && text !== '[object Object]' && text !== errorDetail.message) {
+      AgcRuntimeService.addTextPart(parts, 'text', text);
+    }
+
     try {
       const serialized = JSON.stringify(error);
       if (serialized.length > 0 && serialized !== '{}') {
-        detail = serialized;
+        AgcRuntimeService.addTextPart(parts, 'raw', serialized);
       }
     } catch (serializeError) {
-      detail = String(error);
+      AgcRuntimeService.addTextPart(parts, 'serializeError', String(serializeError));
     }
-    return detail;
+
+    if (parts.length === 0) {
+      return text.length > 0 ? text : 'empty AGC SDK error';
+    }
+    return parts.join(', ');
   }
 }

@@ -2,8 +2,9 @@
  * SmartGuardian - API Configuration Example
  *
  * Production runtime is AGC Serverless only. The client keeps a single
- * AGC environment flag, while the gateway URL is provided by build or
- * release configuration.
+ * AGC environment flag. Function trigger identifiers are provided by build
+ * or release configuration; API Gateway URL is optional for gateway-based
+ * deployments.
  */
 
 export class ApiEnvironment {
@@ -13,5 +14,5 @@ export class ApiEnvironment {
 export class ApiConfigExample {
   static readonly CURRENT_ENV: string = ApiEnvironment.AGC_SERVERLESS;
   static readonly AGC_GATEWAY_BASE_URL: string = 'https://your-agc-api-gateway.example.com';
-  static readonly AGC_AUTH_FUNCTION_TRIGGER_URL: string = 'https://your-smartguardian-auth-http-trigger.example.com';
+  static readonly AGC_AUTH_FUNCTION_TRIGGER_URL: string = 'smartguardian-auth-$latest';
 }

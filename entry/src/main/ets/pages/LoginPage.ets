@@ -66,16 +66,10 @@ struct LoginPage {
   }
 
   private async ensureServiceReady(): Promise<boolean> {
-    const gatewayBaseUrl = ApiConfig.getConfiguredBaseUrl();
-    if (gatewayBaseUrl.length === 0) {
-      this.errorMessage = 'AGC 网关地址未配置，请完成发布配置后再登录。';
-      return false;
-    }
-
     if (!AgcRuntimeService.isClientConfigReady()) {
       await this.refreshAgcRuntimeStatus();
       if (!AgcRuntimeService.isClientConfigReady()) {
-        LogUtil.warn('LoginPage', `AGC client config is not ready, continue with gateway login. ${AgcRuntimeService.getRuntimeError()}`);
+        LogUtil.warn('LoginPage', `AGC client config is not ready, continue with AGC function login. ${AgcRuntimeService.getRuntimeError()}`);
       }
     }
     return true;

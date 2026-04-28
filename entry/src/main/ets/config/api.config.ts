@@ -21,7 +21,7 @@ export class ApiConfig {
   static readonly API_CONFIG_VERSION_STORAGE_KEY: string = StorageKeys.API_CONFIG_VERSION;
   private static readonly API_CONFIG_VERSION: number = 9;
   private static readonly AGC_GATEWAY_BASE_URL: string = '';
-  private static readonly AGC_AUTH_FUNCTION_TRIGGER_URL: string = 'smartguardian-auth-$latestc';
+  private static readonly AGC_AUTH_FUNCTION_TRIGGER_URL: string = 'smartguardian-auth-$latest';
 
   /**
    * Default environment for fresh installs.
@@ -66,7 +66,7 @@ export class ApiConfig {
       return ApiConfig.normalizeBaseUrl(ApiConfig.AGC_AUTH_FUNCTION_TRIGGER_URL);
     }
     if (functionName.indexOf('smartguardian-') === 0) {
-      return ApiConfig.normalizeBaseUrl(`${functionName}-$latestc`);
+      return ApiConfig.normalizeBaseUrl(`${functionName}-$latest`);
     }
     return '';
   }
