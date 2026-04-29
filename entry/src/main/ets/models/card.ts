@@ -73,3 +73,18 @@ export interface CardDataResponse {
   updateTime: string;
   data: TodayStatusCard | AbnormalAlertCard;
 }
+
+export interface FormCardConsistencyItem {
+  consistent: boolean;
+  cacheUpdatedAt: string;
+  cachedPayload?: TodayStatusCard | AbnormalAlertCard | null;
+  freshPayload?: TodayStatusCard | AbnormalAlertCard | null;
+}
+
+export interface FormCardConsistencyReport {
+  studentId: number;
+  checkedAt: string;
+  consistent: boolean;
+  todayStatus: FormCardConsistencyItem;
+  abnormalAlert: FormCardConsistencyItem;
+}

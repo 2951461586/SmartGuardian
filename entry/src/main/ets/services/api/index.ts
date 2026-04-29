@@ -53,3 +53,12 @@ export * from './refund';
 
 // Workbench services
 export * from './workbench';
+
+// Agent services
+export * from './agent';
+
+// Security services
+export * from './security';
+
+// Cloud orchestration services
+export * from './cloud';

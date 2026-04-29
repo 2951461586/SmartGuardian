@@ -1,6 +1,11 @@
 {
   "domain": "timeline",
   "functionName": "smartguardian-timeline",
-  "routePrefixes": ["/api/v1/timeline"],
-  "collections": ["student_timelines"]
+  "routePrefixes": [
+    "/api/v1/timeline"
+  ],
+  "collections": [
+    "student_timelines",
+    "security_audit_events"
+  ]
 }

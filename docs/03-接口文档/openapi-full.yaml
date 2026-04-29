@@ -29,6 +29,11 @@ tags:
   - name: Timeline
   - name: Cards
   - name: Workbench
+  - name: Agent
+  - name: Security
+  - name: Events
+  - name: Notifications
+  - name: Storage
 paths:
   /api/v1/auth/login:
     post:
@@ -749,6 +754,24 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Standard'
+  /api/v1/cards/consistency:
+    get:
+      tags: [Cards]
+      summary: Verify form_cards cache consistency
+      x-agc-function-domain: card
+      x-agc-function-name: smartguardian-card
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/cards/refresh:
+    post:
+      tags: [Cards]
+      summary: Refresh form_cards cache and return consistency report
+      x-agc-function-domain: card
+      x-agc-function-name: smartguardian-card
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
   /api/v1/workbench/manifest:
     get:
       tags: [Workbench]
@@ -762,6 +785,264 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkbenchEnvelope'
+  /api/v1/agent/chat:
+    post:
+      tags: [Agent]
+      summary: Ask SmartGuardian Agent
+      x-agc-function-domain: agent
+      x-agc-function-name: smartguardian-agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentChatRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Agent'
+  /api/v1/agent/summary:
+    post:
+      tags: [Agent]
+      summary: Generate scoped custody summary
+      x-agc-function-domain: agent
+      x-agc-function-name: smartguardian-agent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentSummaryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Agent'
+  /api/v1/agent/report:
+    post:
+      tags: [Agent]
+      summary: Generate scoped custody report
+      x-agc-function-domain: agent
+      x-agc-function-name: smartguardian-agent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentReportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Agent'
+  /api/v1/agent/navigation:
+    post:
+      tags: [Agent]
+      summary: Resolve natural language navigation target
+      x-agc-function-domain: agent
+      x-agc-function-name: smartguardian-agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentNavigationRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Agent'
+  /api/v1/security/audit-events:
+    get:
+      tags: [Security]
+      summary: Query security audit events
+      x-agc-function-domain: security
+      x-agc-function-name: smartguardian-security
+      parameters:
+        - in: query
+          name: domain
+          schema:
+            type: string
+        - in: query
+          name: eventType
+          schema:
+            type: string
+        - in: query
+          name: roleType
+          schema:
+            type: string
+        - in: query
+          name: userId
+          schema:
+            type: integer
+        - in: query
+          name: success
+          schema:
+            type: boolean
+        - in: query
+          name: startTime
+          schema:
+            type: string
+        - in: query
+          name: endTime
+          schema:
+            type: string
+        - in: query
+          name: pageNum
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+  /api/v1/security/audit-events/statistics:
+    get:
+      tags: [Security]
+      summary: Query security audit statistics
+      x-agc-function-domain: security
+      x-agc-function-name: smartguardian-security
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/events/outbox:
+    get:
+      tags: [Events]
+      summary: Query domain event outbox
+      x-agc-function-domain: event
+      x-agc-function-name: smartguardian-event
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+  /api/v1/events/process:
+    post:
+      tags: [Events]
+      summary: Process pending domain events
+      x-agc-function-domain: event
+      x-agc-function-name: smartguardian-event
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/events/trigger-config:
+    get:
+      tags: [Events]
+      summary: Query event trigger production config
+      x-agc-function-domain: event
+      x-agc-function-name: smartguardian-event
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/events/trigger:
+    post:
+      tags: [Events]
+      summary: Trigger domain event consumer for AGC scheduled jobs
+      x-agc-function-domain: event
+      x-agc-function-name: smartguardian-event
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/notifications/jobs:
+    get:
+      tags: [Notifications]
+      summary: Query notification jobs
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+  /api/v1/notifications/delivery-config:
+    get:
+      tags: [Notifications]
+      summary: Query notification delivery production config
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/notifications/receipts:
+    get:
+      tags: [Notifications]
+      summary: Query notification delivery receipts
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+  /api/v1/notifications/jobs/process:
+    post:
+      tags: [Notifications]
+      summary: Process pending notification jobs
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Query current user notification preferences
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+    put:
+      tags: [Notifications]
+      summary: Update current user notification preferences
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/notifications/jobs/{jobId}/retry:
+    post:
+      tags: [Notifications]
+      summary: Retry notification job
+      x-agc-function-domain: notification
+      x-agc-function-name: smartguardian-notification
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/storage/attachments:
+    get:
+      tags: [Storage]
+      summary: Query cloud attachment metadata
+      x-agc-function-domain: storage
+      x-agc-function-name: smartguardian-storage
+      responses:
+        '200':
+          $ref: '#/components/responses/Page'
+    post:
+      tags: [Storage]
+      summary: Register cloud attachment metadata
+      x-agc-function-domain: storage
+      x-agc-function-name: smartguardian-storage
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/storage/config:
+    get:
+      tags: [Storage]
+      summary: Query cloud storage production config
+      x-agc-function-domain: storage
+      x-agc-function-name: smartguardian-storage
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
+  /api/v1/storage/attachments/{attachmentId}/complete:
+    post:
+      tags: [Storage]
+      summary: Mark cloud attachment upload completed
+      x-agc-function-domain: storage
+      x-agc-function-name: smartguardian-storage
+      parameters:
+        - in: path
+          name: attachmentId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Standard'
 components:
   securitySchemes:
     bearerAuth:
@@ -848,6 +1129,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CountEnvelope'
+    Agent:
+      description: SmartGuardian Agent envelope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AgentEnvelope'
   schemas:
     SuccessEnvelope:
       type: object
@@ -903,6 +1190,100 @@ components:
           properties:
             count:
               type: number
+    AgentChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: 今天孩子托管情况怎么样？
+        taskType:
+          type: string
+          example: SUMMARY
+        studentId:
+          type: integer
+        date:
+          type: string
+          example: '2026-04-29'
+        contextScope:
+          type: string
+    AgentSummaryRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        studentId:
+          type: integer
+        date:
+          type: string
+    AgentReportRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        reportType:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        studentId:
+          type: integer
+    AgentNavigationRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: 打开考勤管理
+    AgentEnvelope:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: ok
+        data:
+          $ref: '#/components/schemas/AgentResponse'
+    AgentResponse:
+      type: object
+      properties:
+        agentId:
+          type: string
+        taskType:
+          type: string
+        answer:
+          type: string
+        source:
+          type: string
+          enum: [LLM, LOCAL_RULES]
+        model:
+          type: string
+        provider:
+          type: string
+        generatedAt:
+          type: string
+        contextDate:
+          type: string
+        summary:
+          type: object
+          additionalProperties: true
+        actions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        suggestions:
+          type: array
+          items:
+            type: string
+        citations:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
     LoginRequest:
       type: object
       required: [username, password]

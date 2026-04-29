@@ -69,7 +69,10 @@ struct LoginPage {
     if (!AgcRuntimeService.isClientConfigReady()) {
       await this.refreshAgcRuntimeStatus();
       if (!AgcRuntimeService.isClientConfigReady()) {
-        LogUtil.warn('LoginPage', `AGC client config is not ready, continue with AGC function login. ${AgcRuntimeService.getRuntimeError()}`);
+        const runtimeError = AgcRuntimeService.getRuntimeError();
+        LogUtil.warn('LoginPage', `AGC client config is not ready, stop AGC function login. ${runtimeError}`);
+        this.errorMessage = 'AGC 初始化失败，请在真机/模拟器运行并检查 agconnect-services.json 与 AGC 云函数配置。';
+        return false;
       }
     }
     return true;

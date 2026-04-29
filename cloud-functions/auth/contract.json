@@ -1,6 +1,13 @@
 {
   "domain": "auth",
   "functionName": "smartguardian-auth",
-  "routePrefixes": ["/api/v1/auth"],
-  "collections": ["users", "user_sessions", "user_roles"]
+  "routePrefixes": [
+    "/api/v1/auth"
+  ],
+  "collections": [
+    "users",
+    "user_sessions",
+    "user_roles",
+    "security_audit_events"
+  ]
 }

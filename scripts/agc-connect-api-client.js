@@ -94,6 +94,52 @@ function requestAccessToken(credential, assertion) {
   });
 }
 
+function requestClientCredentialsAccessToken(clientId, clientSecret) {
+  const body = JSON.stringify({
+    grant_type: 'client_credentials',
+    client_id: clientId,
+    client_secret: clientSecret
+  });
+  const tokenUrl = new URL('https://connect-api.cloud.huawei.com/api/oauth2/v1/token');
+  const requestOptions = {
+    method: 'POST',
+    hostname: tokenUrl.hostname,
+    path: tokenUrl.pathname,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body)
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(requestOptions, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        const responseBody = Buffer.concat(chunks).toString('utf8');
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(responseBody));
+          } catch (error) {
+            reject(new Error('AGC client credentials token response is not valid JSON'));
+          }
+          return;
+        }
+        reject(new Error(`AGC client credentials token request failed: HTTP ${res.statusCode} ${responseBody}`));
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+async function getAccessToken(credential, options) {
+  const assertion = createAssertion(credential, options || {});
+  const tokenResponse = await requestAccessToken(credential, assertion);
+  return tokenResponse.access_token || '';
+}
+
 function mask(value) {
   if (!value || value.length <= 8) {
     return '***';
@@ -159,5 +205,8 @@ if (require.main === module) {
 
 module.exports = {
   createAssertion,
-  requestAccessToken
+  requestAccessToken,
+  requestClientCredentialsAccessToken,
+  getAccessToken,
+  loadCredentialFromArgs
 };

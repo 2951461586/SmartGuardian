@@ -1,6 +1,11 @@
 {
   "domain": "service",
   "functionName": "smartguardian-service",
-  "routePrefixes": ["/api/v1/service-products"],
-  "collections": ["service_products"]
+  "routePrefixes": [
+    "/api/v1/service-products"
+  ],
+  "collections": [
+    "service_products",
+    "security_audit_events"
+  ]
 }

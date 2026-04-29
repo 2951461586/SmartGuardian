@@ -30,6 +30,7 @@ This directory is the AGC Serverless backend workspace for SmartGuardian.
 - `card`
 - `payment`
 - `workbench`
+- `agent`
 
 ## Runtime Notes
 
@@ -71,6 +72,21 @@ These artifacts must stay aligned:
 - `cloud-functions/function-manifest.json`
 - `<domain>/contract.json`
 - `docs/03-接口文档/openapi-full.yaml`
+
+## Packaging for AGC Upload
+
+```text
+npm run package:agc:layered
+```
+
+The layered package task regenerates:
+
+- `dist/agc-cloud-function-layers/smartguardian-nodejs-deps-layer.zip`
+- `dist/agc-cloud-functions-layered/smartguardian-*.zip`
+- `dist/agc-cloud-functions-layered/deployment-manifest.layered.json`
+- `dist/smartguardian-agc-cloud-functions-layered-<yyyyMMdd>.zip`
+
+Upload or refresh the dependency layer first, then upload each `smartguardian-*.zip` package to the matching AGC Cloud Function with entry `index.handler`.
 
 ## References
 

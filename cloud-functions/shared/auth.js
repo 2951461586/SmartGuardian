@@ -173,6 +173,22 @@ async function filterAttendanceForUser(user, records) {
   return records.filter((record) => scopedIds.indexOf(Number(record.studentId)) >= 0);
 }
 
+async function filterAlertsForUser(user, alerts) {
+  if (isAdmin(user) || isTeacher(user)) {
+    return alerts;
+  }
+  const scopedIds = await getScopedStudentIds(user);
+  return alerts.filter((alert) => scopedIds.indexOf(Number(alert.studentId)) >= 0);
+}
+
+async function filterLeavesForUser(user, records) {
+  if (isAdmin(user) || isTeacher(user)) {
+    return records;
+  }
+  const scopedIds = await getScopedStudentIds(user);
+  return records.filter((record) => scopedIds.indexOf(Number(record.studentId)) >= 0);
+}
+
 async function filterHomeworkForUser(user, tasks) {
   if (isAdmin(user)) {
     return tasks;
@@ -208,6 +224,8 @@ module.exports = {
   filterOrdersForUser,
   filterSessionsForUser,
   filterAttendanceForUser,
+  filterAlertsForUser,
+  filterLeavesForUser,
   filterHomeworkForUser,
   filterRefundsForUser
 };

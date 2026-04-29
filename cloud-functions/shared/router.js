@@ -1,5 +1,6 @@
 const { normalizeEvent } = require('./context');
 const { requireUser, assertRole } = require('./auth');
+const { recordAuditEventAsync } = require('./audit');
 const { badRequest } = require('./errors');
 
 function ok(data, message) {
@@ -212,13 +213,13 @@ function createDomainHandler(contract, routes) {
         continue;
       }
 
+      let authContext = null;
       try {
         validateRequiredFields(request.queryStringParameters, route.requiredQueryFields, 'query');
         validateRequiredFields(request.body || {}, route.requiredBodyFields, 'body');
         validateFieldRules(request.queryStringParameters, route.queryRules, 'query');
         validateFieldRules(request.body || {}, route.bodyRules, 'body');
 
-        let authContext = null;
         if (route.auth !== false) {
           authContext = await requireUser(request);
           if (route.roles && route.roles.length > 0) {
@@ -237,14 +238,29 @@ function createDomainHandler(contract, routes) {
 
         if (result && typeof result.code === 'number' && Object.prototype.hasOwnProperty.call(result, 'message')) {
           response = result;
-          emitAgcResult(context, callback, response);
-          return response;
+        } else {
+          response = ok(result);
         }
-        response = ok(result);
+        await recordAuditEventAsync({
+          contract,
+          route,
+          request,
+          params,
+          auth: authContext,
+          result: response
+        });
         emitAgcResult(context, callback, response);
         return response;
       } catch (error) {
         response = fail(error.code || 500, error.message || 'Internal error');
+        await recordAuditEventAsync({
+          contract,
+          route,
+          request,
+          params,
+          auth: authContext,
+          result: response
+        });
         emitAgcResult(context, callback, response);
         return response;
       }

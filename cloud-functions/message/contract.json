@@ -1,6 +1,12 @@
 {
   "domain": "message",
   "functionName": "smartguardian-message",
-  "routePrefixes": ["/api/v1/messages"],
-  "collections": ["messages", "message_receipts"]
+  "routePrefixes": [
+    "/api/v1/messages"
+  ],
+  "collections": [
+    "messages",
+    "message_receipts",
+    "security_audit_events"
+  ]
 }

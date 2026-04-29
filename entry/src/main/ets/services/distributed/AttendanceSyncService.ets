@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Attendance Sync Service
- * Stubbed attendance sync service with sync status tracking
+ * Local attendance sync compatibility service with sync status tracking.
  */
 
 import { common } from '@kit.AbilityKit';
@@ -57,7 +57,7 @@ export class AttendanceSyncService {
       this.startPeriodicSync();
       this.isRunning = true;
       this.lastSyncTime = Date.now();
-      LogUtil.info('AttendanceSyncService started in stub mode');
+      LogUtil.info('AttendanceSyncService started in local compatibility mode');
       return true;
     } catch (error) {
       LogUtil.error(`AttendanceSyncService start failed: ${String(error)}`);

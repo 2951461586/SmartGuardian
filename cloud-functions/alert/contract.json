@@ -1,6 +1,12 @@
 {
   "domain": "alert",
   "functionName": "smartguardian-alert",
-  "routePrefixes": ["/api/v1/alerts"],
-  "collections": ["alerts", "alert_actions"]
+  "routePrefixes": [
+    "/api/v1/alerts"
+  ],
+  "collections": [
+    "alerts",
+    "alert_actions",
+    "security_audit_events"
+  ]
 }

@@ -18,6 +18,11 @@ import { ServiceProduct, ServiceProductCreateRequest, Order, OrderCreateRequest,
 export { SessionSchedule, SessionWithStudents, ServiceProduct, Order };
 import { ApiEndpoints, API_BASE } from '../../constants/ApiEndpoints';
 
+interface TodaySessionQueryParams {
+  teacherUserId?: number;
+  serviceProductId?: number;
+}
+
 /**
  * Service Product API Service
  * 
@@ -225,12 +230,15 @@ export class SessionService {
    * @param params 查询参数
    * @returns 今日班次数组响应
    */
-  static async getTodaySessions(params?: {
-    teacherUserId?: number;
-    serviceProductId?: number;
-  }): Promise<ApiResponse<SessionSchedule[]>> {
-    const today = new Date().toISOString().split('T')[0];
-    return get<SessionSchedule[]>(ApiEndpoints.SESSIONS, { sessionDate: today, ...params });
+  static async getTodaySessions(params?: TodaySessionQueryParams): Promise<ApiResponse<SessionSchedule[]>> {
+    const requestParams: TodaySessionQueryParams = {};
+    if (params !== undefined && params.teacherUserId !== undefined) {
+      requestParams.teacherUserId = params.teacherUserId;
+    }
+    if (params !== undefined && params.serviceProductId !== undefined) {
+      requestParams.serviceProductId = params.serviceProductId;
+    }
+    return get<SessionSchedule[]>(ApiEndpoints.SESSIONS_TODAY, requestParams);
   }
 
   /**

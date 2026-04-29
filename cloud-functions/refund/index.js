@@ -5,6 +5,7 @@ const { buildRefundStatisticsAsync, getRefundViewAsync, getOrderViewAsync } = re
 const { nowIso } = require('../shared/time');
 const { badRequest, notFound } = require('../shared/errors');
 const { filterRefundsForUser, filterOrdersForUser } = require('../shared/auth');
+const { emitDomainEventAsync } = require('../shared/events');
 
 const routes = [
   {
@@ -75,6 +76,18 @@ const routes = [
       await store.updateAsync('orders', order.id, {
         payStatus: 'REFUNDING',
         updatedAt: createdAt
+      });
+      await emitDomainEventAsync({
+        eventType: 'REFUND_CREATED',
+        bizType: 'REFUND',
+        bizId: refund.id,
+        studentId: refund.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          orderId: refund.orderId,
+          refundAmount: refund.refundAmount,
+          status: refund.status
+        }
       });
       return ok(await getRefundViewAsync(refund), 'refund created');
     }
@@ -153,6 +166,16 @@ const routes = [
         status: 'CANCELLED',
         reviewRemark: body.reason || '',
         updatedAt: nowIso()
+      });
+      await emitDomainEventAsync({
+        eventType: 'REFUND_CANCELLED',
+        bizType: 'REFUND',
+        bizId: updated.id,
+        studentId: updated.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          status: updated.status
+        }
       });
       return ok(updated, 'refund cancelled');
     }

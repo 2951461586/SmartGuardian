@@ -1,0 +1,10 @@
+{
+  "domain": "security",
+  "functionName": "smartguardian-security",
+  "routePrefixes": [
+    "/api/v1/security"
+  ],
+  "collections": [
+    "security_audit_events"
+  ]
+}

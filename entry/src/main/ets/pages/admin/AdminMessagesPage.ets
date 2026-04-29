@@ -104,7 +104,7 @@ export struct AdminMessagesPageContent {
         pushNow: this.pushNow
       });
       if (this.pushNow) {
-        await HarmonyCapabilityService.previewMessageDispatch(
+        await HarmonyCapabilityService.dispatchLocalMessageNotification(
           this.sendType,
           this.sendTitle.trim(),
           this.sendContent.trim(),

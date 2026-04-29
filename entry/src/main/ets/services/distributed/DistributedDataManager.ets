@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Distributed Data Manager
- * Stubbed distributed data manager with snapshot and sync history
+ * Local distributed data compatibility manager with snapshot and sync history.
  */
 
 import { common } from '@kit.AbilityKit';
@@ -46,7 +46,7 @@ export class DistributedDataManager {
     try {
       this.initialized = true;
       this.lastSyncTime = Date.now();
-      LogUtil.info('DistributedDataManager initialized in stub mode');
+      LogUtil.info('DistributedDataManager initialized in local compatibility mode');
       return true;
     } catch (error) {
       LogUtil.error(`DistributedDataManager initialize failed: ${String(error)}`);

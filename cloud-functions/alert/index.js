@@ -4,7 +4,7 @@ const { createDomainHandler, ok, page } = require('../shared/router');
 const { buildAlertStatisticsAsync } = require('../shared/read-models');
 const { nowIso } = require('../shared/time');
 const { notFound } = require('../shared/errors');
-const { filterAttendanceForUser } = require('../shared/auth');
+const { filterAlertsForUser } = require('../shared/auth');
 
 async function addAlertAction(alertId, actionType, operatorId, note) {
   await store.insertAsync('alert_actions', {
@@ -37,7 +37,7 @@ const routes = [
         }
         return true;
       });
-      const scopedAlerts = await filterAttendanceForUser(auth.user, items);
+      const scopedAlerts = await filterAlertsForUser(auth.user, items);
       scopedAlerts.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
       const pageResult = store.paginate(scopedAlerts, query.pageNum, query.pageSize);
       return page(pageResult.list, pageResult.total, pageResult.pageNum, pageResult.pageSize);
@@ -48,7 +48,7 @@ const routes = [
     path: '/api/v1/alerts/active-count',
     handler: async ({ auth }) => {
       const alerts = await store.filterAsync('alerts', (item) => item.status === 'ACTIVE');
-      const scopedAlerts = await filterAttendanceForUser(auth.user, alerts);
+      const scopedAlerts = await filterAlertsForUser(auth.user, alerts);
       return ok({ count: scopedAlerts.length });
     }
   },
@@ -68,7 +68,7 @@ const routes = [
       if (!alert) {
         throw notFound('Alert not found');
       }
-      const scopedAlerts = await filterAttendanceForUser(auth.user, [alert]);
+      const scopedAlerts = await filterAlertsForUser(auth.user, [alert]);
       if (scopedAlerts.length === 0) {
         throw notFound('Alert not found');
       }

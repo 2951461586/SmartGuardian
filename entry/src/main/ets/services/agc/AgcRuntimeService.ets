@@ -154,7 +154,11 @@ export class AgcRuntimeService {
 
   private static verifyClientConfigFile(context: common.UIAbilityContext): void {
     try {
-      context.resourceManager.getRawFileContentSync('agconnect-services.json');
+      const resourceManager = context.resourceManager;
+      if (!resourceManager) {
+        throw new Error('resourceManager is unavailable. AGC runtime must be verified on a real device or emulator, not Previewer-only context.');
+      }
+      resourceManager.getRawFileContentSync('agconnect-services.json');
     } catch (error) {
       const detail = AgcRuntimeService.formatError(error as Object);
       throw new Error(`Missing AGC client config rawfile: entry/src/main/resources/rawfile/agconnect-services.json. ${detail}`);

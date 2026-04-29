@@ -1,0 +1,25 @@
+{
+  "domain": "event",
+  "functionName": "smartguardian-event",
+  "routePrefixes": [
+    "/api/v1/events"
+  ],
+  "collections": [
+    "domain_events",
+    "messages",
+    "student_timelines",
+    "form_cards",
+    "alerts",
+    "notification_jobs",
+    "notification_delivery_receipts",
+    "user_notification_preferences",
+    "user_sessions",
+    "students",
+    "student_guardians",
+    "sessions",
+    "session_students",
+    "homework_tasks",
+    "homework_feedback",
+    "security_audit_events"
+  ]
+}

@@ -187,3 +187,31 @@ export interface LeaveRecord extends LeaveRequest {
   /** 更新时间 */
   updatedAt?: string;
 }
+
+/**
+ * Attendance statistics (考勤统计)
+ *
+ * @description 考勤与请假汇总，用于首页、报表和管理端筛选概览。
+ */
+export interface AttendanceStatistics {
+  /** 考勤记录总数 */
+  total: number;
+
+  /** 已签到数量 */
+  signedIn: number;
+
+  /** 已签退数量 */
+  signedOut: number;
+
+  /** 未签到/缺勤数量 */
+  absent: number;
+
+  /** 迟到数量 */
+  late: number;
+
+  /** 异常考勤数量 */
+  abnormal: number;
+
+  /** 待审核请假数量 */
+  leavePending: number;
+}

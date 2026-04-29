@@ -1,6 +1,12 @@
 {
   "domain": "refund",
   "functionName": "smartguardian-refund",
-  "routePrefixes": ["/api/v1/refunds"],
-  "collections": ["refunds", "refund_audits"]
+  "routePrefixes": [
+    "/api/v1/refunds"
+  ],
+  "collections": [
+    "refunds",
+    "refund_audits",
+    "security_audit_events"
+  ]
 }

@@ -6,6 +6,7 @@ import { FormExtensionAbility, formBindingData, formProvider } from '@kit.FormKi
 import { Want } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 import { LogUtil } from '../utils/LogUtil';
+import { FormCardSyncService } from '../services/FormCardSyncService';
 
 const TAG = 'TodayGuardianFormAbility';
 const STUDENT_INFO_KEY = 'student_info';
@@ -19,15 +20,20 @@ export default class TodayGuardianFormAbility extends FormExtensionAbility {
     const dimension = want.parameters?.['ohos.extra.param.key.form_dimension'] as number;
     LogUtil.info(`Form created - ID: ${formId}, Name: ${formName}, Dimension: ${dimension}`);
 
-    const studentData = this.getStoredStudentData();
-    const formData = this.buildFormDataByDimension(dimension, studentData);
+    FormCardSyncService.registerForm(this.context, formId, dimension, formName);
+    const formData = formName === 'AbnormalAlertCard'
+      ? FormCardSyncService.buildAlertFormDataByDimension(dimension, FormCardSyncService.getStoredAlertData(this.context))
+      : FormCardSyncService.buildFormDataByDimension(dimension, FormCardSyncService.getStoredStudentData(this.context));
     return formBindingData.createFormBindingData(formData);
   }
 
   onUpdateForm(formId: string): void {
     LogUtil.info(`onUpdateForm called - FormId: ${formId}`);
-    const studentData = this.getStoredStudentData();
-    const formData = this.buildFormDataByDimension(2, studentData);
+    const dimension = FormCardSyncService.getFormDimension(this.context, formId, 2);
+    const formName = FormCardSyncService.getFormName(this.context, formId);
+    const formData = formName === 'AbnormalAlertCard'
+      ? FormCardSyncService.buildAlertFormDataByDimension(dimension, FormCardSyncService.getStoredAlertData(this.context))
+      : FormCardSyncService.buildFormDataByDimension(dimension, FormCardSyncService.getStoredStudentData(this.context));
 
     try {
       const bindingData = formBindingData.createFormBindingData(formData);
@@ -68,6 +74,7 @@ export default class TodayGuardianFormAbility extends FormExtensionAbility {
 
   onRemoveForm(formId: string): void {
     LogUtil.info(`onRemoveForm - FormId: ${formId}`);
+    FormCardSyncService.unregisterForm(this.context, formId);
     this.clearFormData(formId);
   }
 

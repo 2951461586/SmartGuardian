@@ -8,113 +8,350 @@
       "domain": "auth",
       "functionName": "smartguardian-auth",
       "entry": "auth/index.js",
-      "routePrefixes": ["/api/v1/auth"],
-      "collections": ["users", "user_sessions", "user_roles"]
+      "routePrefixes": [
+        "/api/v1/auth"
+      ],
+      "collections": [
+        "users",
+        "user_sessions",
+        "user_roles",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "user",
       "functionName": "smartguardian-user",
       "entry": "user/index.js",
-      "routePrefixes": ["/api/v1/users", "/api/v1/auth/me"],
-      "collections": ["users", "user_profiles", "user_roles"]
+      "routePrefixes": [
+        "/api/v1/users",
+        "/api/v1/auth/me"
+      ],
+      "collections": [
+        "users",
+        "user_profiles",
+        "user_roles",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "student",
       "functionName": "smartguardian-student",
       "entry": "student/index.js",
-      "routePrefixes": ["/api/v1/students"],
-      "collections": ["students", "guardians", "student_guardians"]
+      "routePrefixes": [
+        "/api/v1/students"
+      ],
+      "collections": [
+        "students",
+        "guardians",
+        "student_guardians",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "service",
       "functionName": "smartguardian-service",
       "entry": "service/index.js",
-      "routePrefixes": ["/api/v1/service-products"],
-      "collections": ["service_products"]
+      "routePrefixes": [
+        "/api/v1/service-products"
+      ],
+      "collections": [
+        "service_products",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "order",
       "functionName": "smartguardian-order",
       "entry": "order/index.js",
-      "routePrefixes": ["/api/v1/orders"],
-      "collections": ["orders", "order_items", "order_audits"]
+      "routePrefixes": [
+        "/api/v1/orders"
+      ],
+      "collections": [
+        "orders",
+        "order_items",
+        "order_audits",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "session",
       "functionName": "smartguardian-session",
       "entry": "session/index.js",
-      "routePrefixes": ["/api/v1/sessions"],
-      "collections": ["sessions", "session_students", "session_teachers"]
+      "routePrefixes": [
+        "/api/v1/sessions"
+      ],
+      "collections": [
+        "sessions",
+        "session_students",
+        "session_teachers",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "attendance",
       "functionName": "smartguardian-attendance",
       "entry": "attendance/index.js",
-      "routePrefixes": ["/api/v1/attendance"],
-      "collections": ["attendance_records", "leave_requests"]
+      "routePrefixes": [
+        "/api/v1/attendance"
+      ],
+      "collections": [
+        "attendance_records",
+        "leave_requests",
+        "security_audit_events",
+        "domain_events",
+        "messages",
+        "student_timelines",
+        "form_cards",
+        "alerts",
+        "notification_jobs",
+        "notification_delivery_receipts",
+        "user_notification_preferences",
+        "user_sessions",
+        "students",
+        "student_guardians",
+        "sessions",
+        "session_students",
+        "homework_tasks",
+        "homework_feedback"
+      ]
     },
     {
       "domain": "homework",
       "functionName": "smartguardian-homework",
       "entry": "homework/index.js",
-      "routePrefixes": ["/api/v1/homework/tasks", "/api/v1/homework/feedback"],
-      "collections": ["homework_tasks", "homework_feedback"]
+      "routePrefixes": [
+        "/api/v1/homework/tasks",
+        "/api/v1/homework/feedback"
+      ],
+      "collections": [
+        "homework_tasks",
+        "homework_feedback",
+        "security_audit_events",
+        "domain_events",
+        "messages",
+        "student_timelines",
+        "form_cards",
+        "alerts",
+        "notification_jobs",
+        "notification_delivery_receipts",
+        "user_notification_preferences",
+        "user_sessions",
+        "students",
+        "student_guardians",
+        "sessions",
+        "session_students"
+      ]
     },
     {
       "domain": "message",
       "functionName": "smartguardian-message",
       "entry": "message/index.js",
-      "routePrefixes": ["/api/v1/messages"],
-      "collections": ["messages", "message_receipts"]
+      "routePrefixes": [
+        "/api/v1/messages"
+      ],
+      "collections": [
+        "messages",
+        "message_receipts",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "alert",
       "functionName": "smartguardian-alert",
       "entry": "alert/index.js",
-      "routePrefixes": ["/api/v1/alerts"],
-      "collections": ["alerts", "alert_actions"]
+      "routePrefixes": [
+        "/api/v1/alerts"
+      ],
+      "collections": [
+        "alerts",
+        "alert_actions",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "report",
       "functionName": "smartguardian-report",
       "entry": "report/index.js",
-      "routePrefixes": ["/api/v1/reports"],
-      "collections": ["daily_reports", "report_snapshots"]
+      "routePrefixes": [
+        "/api/v1/reports"
+      ],
+      "collections": [
+        "daily_reports",
+        "report_snapshots",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "refund",
       "functionName": "smartguardian-refund",
       "entry": "refund/index.js",
-      "routePrefixes": ["/api/v1/refunds"],
-      "collections": ["refunds", "refund_audits"]
+      "routePrefixes": [
+        "/api/v1/refunds"
+      ],
+      "collections": [
+        "refunds",
+        "refund_audits",
+        "security_audit_events",
+        "domain_events",
+        "messages",
+        "student_timelines",
+        "form_cards",
+        "alerts",
+        "notification_jobs",
+        "notification_delivery_receipts",
+        "user_notification_preferences",
+        "user_sessions",
+        "students",
+        "student_guardians",
+        "sessions",
+        "session_students",
+        "homework_tasks",
+        "homework_feedback"
+      ]
     },
     {
       "domain": "timeline",
       "functionName": "smartguardian-timeline",
       "entry": "timeline/index.js",
-      "routePrefixes": ["/api/v1/timeline"],
-      "collections": ["student_timelines"]
+      "routePrefixes": [
+        "/api/v1/timeline"
+      ],
+      "collections": [
+        "student_timelines",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "card",
       "functionName": "smartguardian-card",
       "entry": "card/index.js",
-      "routePrefixes": ["/api/v1/cards"],
-      "collections": ["form_cards", "student_timelines", "alerts"]
+      "routePrefixes": [
+        "/api/v1/cards"
+      ],
+      "collections": [
+        "form_cards",
+        "student_timelines",
+        "alerts",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "payment",
       "functionName": "smartguardian-payment",
       "entry": "payment/index.js",
-      "routePrefixes": ["/api/v1/payments"],
-      "collections": ["payments", "payment_callbacks", "orders"]
+      "routePrefixes": [
+        "/api/v1/payments"
+      ],
+      "collections": [
+        "payments",
+        "payment_callbacks",
+        "orders",
+        "security_audit_events"
+      ]
     },
     {
       "domain": "workbench",
       "functionName": "smartguardian-workbench",
       "entry": "workbench/index.js",
-      "routePrefixes": ["/api/v1/workbench"],
-      "collections": ["workbench_manifests", "user_roles"]
+      "routePrefixes": [
+        "/api/v1/workbench"
+      ],
+      "collections": [
+        "workbench_manifests",
+        "user_roles",
+        "security_audit_events"
+      ]
+    },
+    {
+      "domain": "agent",
+      "functionName": "smartguardian-agent",
+      "entry": "agent/index.js",
+      "routePrefixes": [
+        "/api/v1/agent"
+      ],
+      "collections": [
+        "users",
+        "students",
+        "student_guardians",
+        "sessions",
+        "session_students",
+        "attendance_records",
+        "leave_requests",
+        "homework_tasks",
+        "homework_feedback",
+        "messages",
+        "alerts",
+        "orders",
+        "daily_reports",
+        "workbench_manifests",
+        "security_audit_events"
+      ]
+    },
+    {
+      "domain": "security",
+      "functionName": "smartguardian-security",
+      "entry": "security/index.js",
+      "routePrefixes": [
+        "/api/v1/security"
+      ],
+      "collections": [
+        "security_audit_events"
+      ]
+    },
+    {
+      "domain": "event",
+      "functionName": "smartguardian-event",
+      "entry": "event/index.js",
+      "routePrefixes": [
+        "/api/v1/events"
+      ],
+      "collections": [
+        "domain_events",
+        "messages",
+        "student_timelines",
+        "form_cards",
+        "alerts",
+        "notification_jobs",
+        "notification_delivery_receipts",
+        "user_notification_preferences",
+        "user_sessions",
+        "students",
+        "student_guardians",
+        "sessions",
+        "session_students",
+        "homework_tasks",
+        "homework_feedback",
+        "security_audit_events"
+      ]
+    },
+    {
+      "domain": "notification",
+      "functionName": "smartguardian-notification",
+      "entry": "notification/index.js",
+      "routePrefixes": [
+        "/api/v1/notifications"
+      ],
+      "collections": [
+        "notification_jobs",
+        "notification_delivery_receipts",
+        "user_notification_preferences",
+        "user_sessions",
+        "security_audit_events"
+      ]
+    },
+    {
+      "domain": "storage",
+      "functionName": "smartguardian-storage",
+      "entry": "storage/index.js",
+      "routePrefixes": [
+        "/api/v1/storage"
+      ],
+      "collections": [
+        "cloud_attachments",
+        "users",
+        "students",
+        "security_audit_events"
+      ]
     }
   ]
 }

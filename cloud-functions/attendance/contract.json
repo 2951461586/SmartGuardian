@@ -1,6 +1,12 @@
 {
   "domain": "attendance",
   "functionName": "smartguardian-attendance",
-  "routePrefixes": ["/api/v1/attendance"],
-  "collections": ["attendance_records", "leave_requests"]
+  "routePrefixes": [
+    "/api/v1/attendance"
+  ],
+  "collections": [
+    "attendance_records",
+    "leave_requests",
+    "security_audit_events"
+  ]
 }

@@ -152,6 +152,14 @@ export class ApiEndpoints {
   /** 兼容 V2 的请假路径别名 */
   static readonly LEAVE = `${API_BASE}/attendance/leave`;
 
+  /**
+   * 取消请假路径
+   * @param leaveId 请假记录ID
+   */
+  static attendanceLeaveCancel(leaveId: number): string {
+    return `${API_BASE}/attendance/leave/${leaveId}/cancel`;
+  }
+
   // ============================================
   // Homework (作业)
   // ============================================
@@ -369,6 +377,10 @@ export class ApiEndpoints {
   static readonly CARDS_TODAY_STATUS = `${API_BASE}/cards/today-status`;
   /** 异常告警卡片 */
   static readonly CARDS_ABNORMAL_ALERT = `${API_BASE}/cards/abnormal-alert`;
+  /** 卡片缓存一致性验收 */
+  static readonly CARDS_CONSISTENCY = `${API_BASE}/cards/consistency`;
+  /** 主动刷新卡片缓存 */
+  static readonly CARDS_REFRESH = `${API_BASE}/cards/refresh`;
 
   // ============================================
   // Workbench (三端工作台)
@@ -378,4 +390,70 @@ export class ApiEndpoints {
   static readonly WORKBENCH = `${API_BASE}/workbench`;
   /** 当前角色工作台能力清单 */
   static readonly WORKBENCH_MANIFEST = `${API_BASE}/workbench/manifest`;
+
+  // ============================================
+  // Agent (智慧托管 Agent)
+  // ============================================
+
+  /** 智慧托管 Agent 基础路径 */
+  static readonly AGENT = `${API_BASE}/agent`;
+  /** Agent 对话问答 */
+  static readonly AGENT_CHAT = `${API_BASE}/agent/chat`;
+  /** Agent 托管总结 */
+  static readonly AGENT_SUMMARY = `${API_BASE}/agent/summary`;
+  /** Agent 汇报生成 */
+  static readonly AGENT_REPORT = `${API_BASE}/agent/report`;
+  /** Agent 导航解析 */
+  static readonly AGENT_NAVIGATION = `${API_BASE}/agent/navigation`;
+
+  // ============================================
+  // Security (安全审计)
+  // ============================================
+
+  /** 安全治理基础路径 */
+  static readonly SECURITY = `${API_BASE}/security`;
+  /** 安全审计事件 */
+  static readonly SECURITY_AUDIT_EVENTS = `${API_BASE}/security/audit-events`;
+  /** 安全审计统计 */
+  static readonly SECURITY_AUDIT_STATISTICS = `${API_BASE}/security/audit-events/statistics`;
+
+  // ============================================
+  // Event / Notification / Storage (云端编排)
+  // ============================================
+
+  /** 事件中心基础路径 */
+  static readonly EVENTS = `${API_BASE}/events`;
+  /** 事件 outbox */
+  static readonly EVENTS_OUTBOX = `${API_BASE}/events/outbox`;
+  /** 处理待消费事件 */
+  static readonly EVENTS_PROCESS = `${API_BASE}/events/process`;
+  static readonly EVENTS_TRIGGER_CONFIG = `${API_BASE}/events/trigger-config`;
+  static readonly EVENTS_TRIGGER = `${API_BASE}/events/trigger`;
+
+  /** 通知编排基础路径 */
+  static readonly NOTIFICATIONS = `${API_BASE}/notifications`;
+  /** 通知真实送达配置 */
+  static readonly NOTIFICATION_DELIVERY_CONFIG = `${API_BASE}/notifications/delivery-config`;
+  /** 通知任务 */
+  static readonly NOTIFICATION_JOBS = `${API_BASE}/notifications/jobs`;
+  static readonly NOTIFICATION_JOBS_PROCESS = `${API_BASE}/notifications/jobs/process`;
+  /** 通知送达回执 */
+  static readonly NOTIFICATION_RECEIPTS = `${API_BASE}/notifications/receipts`;
+  /** 当前用户通知偏好 */
+  static readonly NOTIFICATION_PREFERENCES = `${API_BASE}/notifications/preferences`;
+
+  /** 云存储附件基础路径 */
+  static readonly STORAGE = `${API_BASE}/storage`;
+  /** 云存储配置 */
+  static readonly STORAGE_CONFIG = `${API_BASE}/storage/config`;
+  /** 附件元数据 */
+  static readonly STORAGE_ATTACHMENTS = `${API_BASE}/storage/attachments`;
+
+  static notificationJobRetry(jobId: number): string {
+    return `${API_BASE}/notifications/jobs/${jobId}/retry`;
+  }
+
+  static storageAttachmentComplete(attachmentId: number): string {
+    return `${API_BASE}/storage/attachments/${attachmentId}/complete`;
+  }
 }

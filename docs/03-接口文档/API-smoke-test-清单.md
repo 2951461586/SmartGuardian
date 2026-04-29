@@ -4,27 +4,18 @@
 
 本清单用于两类场景：
 
-1. **当前阶段：DEV_MOCK**
-   - 目标：验证前端实际调用接口都能命中 Mock，不再出现 `Mock route not found`
-   - 重点：响应结构可被页面消费，关键字段齐全
-2. **AGC 阶段：AGC_SERVERLESS**
-   - 目标：切换 `entry/src/main/ets/config/api.config.ts` 后，对 AGC API Gateway + Cloud Functions 做最小可用连通性验证
+1. **当前主线：AGC_SERVERLESS**
+   - 目标：对 AGC API Gateway + Cloud Functions + Cloud DB 做最小可用连通性验证
    - 重点：接口可达、鉴权可用、业务返回结构与前端约定一致
+2. **历史基线：DEV_MOCK**
+   - 说明：该口径仅作为 2026-04 历史联调记录保留，当前运行时已经收口为 AGC-only
+   - 目标：用于回看早期页面联调时如何验证前端接口消费结构
 
 ---
 
 ## 2. 基础环境检查
 
-### 2.1 DEV_MOCK
-
-- `ApiConfig.CURRENT_ENV === DEV_MOCK`
-- `ApiConfig.TEST_BASE_URL` 可为空
-- 关键断言：
-  - 页面请求均返回 `code = 0`
-  - 不出现 `Mock route not found`
-  - 列表接口返回 `data.list` / `data.total` 或前端当前消费的约定结构
-
-### 2.2 AGC_SERVERLESS
+### 2.1 AGC_SERVERLESS
 
 - `ApiConfig.CURRENT_ENV === AGC_SERVERLESS`
 - AGC API Gateway 地址、函数 manifest 与 `AgcFunctionContracts.ts` 必须一致
@@ -33,6 +24,13 @@
   - 非公开接口返回 200/业务成功码
   - 401 时前端跳转逻辑正常
   - 真实响应字段至少覆盖页面实际使用字段
+
+### 2.2 DEV_MOCK（历史归档口径）
+
+- 当前代码主线不再提供运行时 DEV_MOCK 切换入口。
+- 历史记录中的 `DEV_MOCK` 用于解释早期 Mock 页面联调方法，不作为当前交付验收目标。
+- 关键断言：
+  - 相关历史结论迁入 `docs/99-历史版本` 后不再阻塞当前 AGC 验收。
 
 ---
 
@@ -193,6 +191,17 @@
 | 每日营收统计 | GET | `/api/v1/reports/finance/daily` | 无 | `code=0`，返回数组 | 是 | 是 |
 | 服务产品营收 | GET | `/api/v1/reports/finance/products` | 无 | `code=0`，返回数组 | 是 | 是 |
 
+### 3.15 Agent / Security
+
+| 接口 | 方法 | 路径 | 前置条件 | 关键断言 | Mock 覆盖 | 鉴权 |
+|---|---|---|---|---|---|---|
+| Agent 问答 | POST | `/api/v1/agent/chat` | 已登录 | `code=0`，返回 `agentId/answer/summary` | AGC 本地烟测 | 是 |
+| Agent 总结 | POST | `/api/v1/agent/summary` | 已登录 | `code=0`，返回当前角色作用域摘要 | AGC 本地烟测 | 是 |
+| Agent 汇报 | POST | `/api/v1/agent/report` | 已登录 | `code=0`，返回汇报文本 | AGC 本地烟测 | 是 |
+| Agent 导航 | POST | `/api/v1/agent/navigation` | 已登录 | `code=0`，返回 `actions` | AGC 本地烟测 | 是 |
+| 审计事件列表 | GET | `/api/v1/security/audit-events` | 管理员已登录 | `code=0`，`data.list` 有效 | AGC 本地烟测 | 是 |
+| 审计统计 | GET | `/api/v1/security/audit-events/statistics` | 管理员已登录 | `code=0`，返回 `total/successCount/failureCount/byDomain` | AGC 本地烟测 | 是 |
+
 ---
 
 ## 4. 文档与代码差异备注
@@ -227,9 +236,9 @@
 
 ## 5. 当前结论（2026-04-27）
 
-### 5.1 本轮 Mock 验证结果
+### 5.1 历史 Mock 验证结果
 
-- 当前 `entry/src/main/ets/config/api.config.ts` 保留 `DEV_MOCK` 与 `AGC_SERVERLESS` 两条主线，旧 `TEST_REAL` 直连后端口径不再作为当前联调目标。
+- 以下内容为 2026-04 历史联调记录，当前 `entry/src/main/ets/config/api.config.ts` 已收口为 `AGC_SERVERLESS` 单主线，旧 `DEV_MOCK` 与 `TEST_REAL` 直连后端口径不再作为当前联调目标。
 - `entry/src/main/ets/services/mock/mockService.ts` 已覆盖 Auth、Students、Service Products、Orders、Sessions、Attendance/Leave、Homework、Messages、Timeline、Cards、Alerts、Payments、Refunds、Reports 等主模块，主干接口已具备 `code=0` 响应能力。
 - 家长端主链路依赖的首页卡片、服务详情、下单、订单详情、支付、消息、作业、时间线等接口，均可在 Mock 层命中。
 - 教师端主链路依赖的今日班次、考勤列表、扫码签到、作业反馈、消息入口等接口，均已有 Mock 支撑。
@@ -253,9 +262,8 @@
 
 ## 6. 建议执行顺序
 
-1. 先在 `DEV_MOCK` 下逐模块过一遍页面主流程
-2. 若出现接口错误，优先看是否仍落入 `Mock route not found`
-3. 补齐接口清单文档与当前代码实际调用之间的差异
-4. Mock 验证通过后，切换 `AGC_SERVERLESS` 并确认 AGC API Gateway、函数 manifest、OpenAPI 与 Cloud DB schema 一致
-5. 按本清单最少覆盖：Auth、Students、Attendance、Messages、Refunds、Reports
-6. 最后执行 `scripts/run-refactor-gates.ps1` 与 `hvigorw assembleHap --analyze=advanced`
+1. 先执行 `npm run smoke`（`cloud-functions`）验证 AGC 分域函数、Agent 与 Security 审计出口。
+2. 执行 `scripts/check-agc-consistency.ps1` 验证 OpenAPI、manifest、前端合约、Cloud DB 集合一致。
+3. 执行 `scripts/check-production-readiness.ps1` 验证 AGC 客户端配置、Server SDK 凭据、Cloud DB seed 与生产前置项。
+4. 在模拟器/真机上验证 AGC 登录、当前用户、工作台 manifest、核心业务列表。
+5. 最后执行 `scripts/run-refactor-gates.ps1` 与 `hvigorw assembleHap --analyze=advanced`。

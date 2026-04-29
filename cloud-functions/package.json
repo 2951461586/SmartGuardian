@@ -7,6 +7,10 @@
   "type": "commonjs",
   "scripts": {
     "smoke": "node ../scripts/cloud-functions-smoke.js",
+    "agc:discover": "node ../scripts/discover-agc-connect-resources.js",
+    "package:agc:layered": "powershell -ExecutionPolicy Bypass -File ../scripts/package-agc-cloud-functions.ps1 -Mode layered",
+    "package:agc:full": "powershell -ExecutionPolicy Bypass -File ../scripts/package-agc-cloud-functions.ps1 -Mode full",
+    "package:agc:all": "powershell -ExecutionPolicy Bypass -File ../scripts/package-agc-cloud-functions.ps1 -Mode all",
     "migration:plan": "node ../scripts/generate-cloud-db-migration.js",
     "migration:seed": "node ../scripts/apply-cloud-db-seed.js",
     "migration:seed:reset": "node ../scripts/apply-cloud-db-seed.js --reset",

@@ -1,6 +1,13 @@
 {
   "domain": "order",
   "functionName": "smartguardian-order",
-  "routePrefixes": ["/api/v1/orders"],
-  "collections": ["orders", "order_items", "order_audits"]
+  "routePrefixes": [
+    "/api/v1/orders"
+  ],
+  "collections": [
+    "orders",
+    "order_items",
+    "order_audits",
+    "security_audit_events"
+  ]
 }

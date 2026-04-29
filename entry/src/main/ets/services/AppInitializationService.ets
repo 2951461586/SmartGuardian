@@ -8,6 +8,7 @@ import { ApiConfig } from '../config/api.config';
 import { LogUtil } from '../utils/LogUtil';
 import { OptimizationConfig, OptimizationManager } from '../utils/performance/OptimizationManager';
 import { AgcRuntimeService } from './agc/AgcRuntimeService';
+import { SmartGuardianAgentFrameworkService } from './agent/SmartGuardianAgentFrameworkService';
 import { NotificationEndpointRegistrationService } from './NotificationEndpointRegistrationService';
 import { AttendanceSyncService } from './distributed/AttendanceSyncService';
 import { DistributedAbilityManager } from './distributed/DistributedAbilityManager';
@@ -19,6 +20,7 @@ export interface InitializationStatus {
   distributedData: boolean;
   distributedAbility: boolean;
   attendanceSync: boolean;
+  agentFramework: boolean;
   performanceOptimization: boolean;
   notification: boolean;
   overall: boolean;
@@ -41,6 +43,7 @@ export class AppInitializationService {
     distributedData: false,
     distributedAbility: false,
     attendanceSync: false,
+    agentFramework: false,
     performanceOptimization: false,
     notification: false,
     overall: false
@@ -62,6 +65,7 @@ export class AppInitializationService {
     const startTime = Date.now();
     try {
       await this.initializeAgcRuntime();
+      await this.initializeAgentFramework();
       await this.initializePerformanceOptimization();
       await this.initializeNotification();
       await this.initializeDistributedData();
@@ -140,6 +144,8 @@ export class AppInitializationService {
         return this.status.distributedAbility;
       case 'attendanceSync':
         return this.status.attendanceSync;
+      case 'agentFramework':
+        return this.status.agentFramework;
       case 'performanceOptimization':
         return this.status.performanceOptimization;
       case 'notification':
@@ -153,7 +159,8 @@ export class AppInitializationService {
 
   private async initializeAgcRuntime(): Promise<void> {
     try {
-      const result = await AgcRuntimeService.initialize(this.context!);
+      const context = this.requireContext();
+      const result = await AgcRuntimeService.initialize(context);
       this.status.agc = result.initialized && result.configReady;
       await NotificationEndpointRegistrationService.syncCurrentSession();
       LogUtil.info(`AGC runtime initialized: ${this.status.agc}`);
@@ -165,6 +172,7 @@ export class AppInitializationService {
 
   private async initializePerformanceOptimization(): Promise<void> {
     try {
+      const context = this.requireContext();
       const optimizationManager = OptimizationManager.getInstance();
       const config = new OptimizationConfig();
       config.enableMemoryOptimization = true;
@@ -173,7 +181,7 @@ export class AppInitializationService {
       config.memoryWarningThreshold = 100;
       config.gcInterval = 60000;
 
-      await optimizationManager.initialize(this.context!, config);
+      await optimizationManager.initialize(context, config);
       this.status.performanceOptimization = true;
       LogUtil.info('Performance optimization initialized');
     } catch (error) {
@@ -184,7 +192,8 @@ export class AppInitializationService {
 
   private async initializeDistributedData(): Promise<void> {
     try {
-      this.distributedDataManager = new DistributedDataManager(this.context!);
+      const context = this.requireContext();
+      this.distributedDataManager = new DistributedDataManager(context);
       const success = await this.distributedDataManager.initialize();
       this.status.distributedData = success;
       LogUtil.info(`Distributed data manager initialized: ${success}`);
@@ -196,7 +205,8 @@ export class AppInitializationService {
 
   private async initializeDistributedAbility(): Promise<void> {
     try {
-      this.distributedAbilityManager = new DistributedAbilityManager(this.context!);
+      const context = this.requireContext();
+      this.distributedAbilityManager = new DistributedAbilityManager(context);
       const success = await this.distributedAbilityManager.initialize();
       this.status.distributedAbility = success;
       LogUtil.info(`Distributed ability manager initialized: ${success}`);
@@ -208,7 +218,8 @@ export class AppInitializationService {
 
   private async initializeAttendanceSync(): Promise<void> {
     try {
-      this.attendanceSyncService = new AttendanceSyncService(this.context!);
+      const context = this.requireContext();
+      this.attendanceSyncService = new AttendanceSyncService(context);
       const success = await this.attendanceSyncService.start();
       this.status.attendanceSync = success;
       LogUtil.info(`Attendance sync service initialized: ${success}`);
@@ -229,12 +240,31 @@ export class AppInitializationService {
     }
   }
 
+  private async initializeAgentFramework(): Promise<void> {
+    try {
+      const context = this.requireContext();
+      this.status.agentFramework = await SmartGuardianAgentFrameworkService.checkSupport(context);
+      LogUtil.info(`Agent Framework Kit support initialized: ${this.status.agentFramework}`);
+    } catch (error) {
+      LogUtil.warn('Agent Framework Kit support check skipped:', String(error));
+      this.status.agentFramework = false;
+    }
+  }
+
+  private requireContext(): common.UIAbilityContext {
+    if (!this.context) {
+      throw new Error('UIAbilityContext is not ready');
+    }
+    return this.context;
+  }
+
   getInitializationStatus(): InitializationStatus {
     return {
       agc: this.status.agc,
       distributedData: this.status.distributedData,
       distributedAbility: this.status.distributedAbility,
       attendanceSync: this.status.attendanceSync,
+      agentFramework: this.status.agentFramework,
       performanceOptimization: this.status.performanceOptimization,
       notification: this.status.notification,
       overall: this.status.overall
@@ -262,6 +292,7 @@ export class AppInitializationService {
       distributedData: false,
       distributedAbility: false,
       attendanceSync: false,
+      agentFramework: false,
       performanceOptimization: false,
       notification: false,
       overall: false

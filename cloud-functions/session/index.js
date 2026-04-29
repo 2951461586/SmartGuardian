@@ -74,6 +74,32 @@ const routes = [
   },
   {
     method: 'GET',
+    path: '/api/v1/sessions/today',
+    handler: async ({ query, auth }) => {
+      const today = nowIso().substring(0, 10);
+      const sessions = await store.filterAsync('sessions', (item) => {
+        if (item.sessionDate !== today) {
+          return false;
+        }
+        if (query.teacherUserId && Number(item.teacherUserId || 0) !== Number(query.teacherUserId)) {
+          return false;
+        }
+        if (query.serviceProductId && Number(item.serviceProductId) !== Number(query.serviceProductId)) {
+          return false;
+        }
+        return true;
+      });
+      const scopedSessions = await filterSessionsForUser(auth.user, sessions);
+      const views = [];
+      for (let i = 0; i < scopedSessions.length; i++) {
+        views.push(await getSessionViewAsync(scopedSessions[i]));
+      }
+      views.sort((left, right) => `${left.startTime}`.localeCompare(`${right.startTime}`));
+      return ok(views);
+    }
+  },
+  {
+    method: 'GET',
     path: '/api/v1/sessions/:sessionId',
     handler: async ({ params, auth }) => {
       const session = await store.findByIdAsync('sessions', Number(params.sessionId));

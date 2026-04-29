@@ -1,0 +1,13 @@
+{
+  "domain": "storage",
+  "functionName": "smartguardian-storage",
+  "routePrefixes": [
+    "/api/v1/storage"
+  ],
+  "collections": [
+    "cloud_attachments",
+    "users",
+    "students",
+    "security_audit_events"
+  ]
+}

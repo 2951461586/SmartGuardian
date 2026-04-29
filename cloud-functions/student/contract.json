@@ -1,6 +1,13 @@
 {
   "domain": "student",
   "functionName": "smartguardian-student",
-  "routePrefixes": ["/api/v1/students"],
-  "collections": ["students", "guardians", "student_guardians"]
+  "routePrefixes": [
+    "/api/v1/students"
+  ],
+  "collections": [
+    "students",
+    "guardians",
+    "student_guardians",
+    "security_audit_events"
+  ]
 }

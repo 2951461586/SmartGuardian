@@ -17,7 +17,6 @@
       "updateDuration": 1,
       "defaultDimension": "2*4",
       "supportDimensions": ["2*2", "2*4", "4*4"],
-      "formConfigAbility": "ability://com.smartguardian.app.TodayGuardianFormAbility",
       "metadata": [
         {
           "name": "ohos.extability.form",
@@ -41,8 +40,7 @@
       "scheduledUpdateTime": "10:00",
       "updateDuration": 0,
       "defaultDimension": "2*4",
-      "supportDimensions": ["2*2", "2*4"],
-      "formConfigAbility": "ability://com.smartguardian.app.AbnormalAlertFormAbility"
+      "supportDimensions": ["2*2", "2*4"]
     }
   ]
 }

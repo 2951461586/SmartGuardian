@@ -9,9 +9,9 @@
  * - 卡片数据刷新
  */
 
-import { get } from '../../utils/request';
+import { get, post } from '../../utils/request';
 import { ApiResponse } from '../../models/common';
-import { TodayStatusCard, AbnormalAlertCard } from '../../models/card';
+import { TodayStatusCard, AbnormalAlertCard, FormCardConsistencyReport } from '../../models/card';
 import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
@@ -47,5 +47,20 @@ export class CardService {
   static async getAbnormalAlert(studentId?: number): Promise<ApiResponse<AbnormalAlertCard | null>> {
     const params = studentId ? { studentId } : undefined;
     return get<AbnormalAlertCard | null>(ApiEndpoints.CARDS_ABNORMAL_ALERT, params);
+  }
+
+  static async getConsistency(studentId?: number, refresh?: boolean): Promise<ApiResponse<FormCardConsistencyReport>> {
+    const params = {
+      studentId: studentId ? studentId : undefined,
+      refresh: refresh === true ? 'true' : undefined
+    };
+    return get<FormCardConsistencyReport>(ApiEndpoints.CARDS_CONSISTENCY, params);
+  }
+
+  static async refreshConsistency(studentId?: number): Promise<ApiResponse<FormCardConsistencyReport>> {
+    const body = {
+      studentId: studentId ? studentId : undefined
+    };
+    return post<FormCardConsistencyReport>(ApiEndpoints.CARDS_REFRESH, body);
   }
 }

@@ -17,13 +17,14 @@ export class NotificationEndpointRegistrationService {
       return;
     }
 
-    if (!HarmonyPushEndpointService.canRegisterRemoteEndpoint()) {
-      const status = HarmonyPushEndpointService.getStatus();
+    const canRegister = await HarmonyPushEndpointService.canRegisterRemoteEndpoint();
+    if (!canRegister) {
+      const status = await HarmonyPushEndpointService.getStatus();
       LogUtil.warn(TAG, `Skip session endpoint registration: ${status.message}`);
       return;
     }
 
-    const request = HarmonyPushEndpointService.buildSessionDeviceRegistrationRequest();
+    const request = await HarmonyPushEndpointService.buildSessionDeviceRegistrationRequest();
 
     try {
       const response = await AuthService.registerSessionDevice(request);

@@ -1,0 +1,24 @@
+{
+  "domain": "agent",
+  "functionName": "smartguardian-agent",
+  "routePrefixes": [
+    "/api/v1/agent"
+  ],
+  "collections": [
+    "users",
+    "students",
+    "student_guardians",
+    "sessions",
+    "session_students",
+    "attendance_records",
+    "leave_requests",
+    "homework_tasks",
+    "homework_feedback",
+    "messages",
+    "alerts",
+    "orders",
+    "daily_reports",
+    "workbench_manifests",
+    "security_audit_events"
+  ]
+}

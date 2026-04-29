@@ -1,6 +1,14 @@
 {
   "domain": "user",
   "functionName": "smartguardian-user",
-  "routePrefixes": ["/api/v1/users", "/api/v1/auth/me"],
-  "collections": ["users", "user_profiles", "user_roles"]
+  "routePrefixes": [
+    "/api/v1/users",
+    "/api/v1/auth/me"
+  ],
+  "collections": [
+    "users",
+    "user_profiles",
+    "user_roles",
+    "security_audit_events"
+  ]
 }

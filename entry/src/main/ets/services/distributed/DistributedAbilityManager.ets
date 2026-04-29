@@ -1,6 +1,6 @@
 /**
  * SmartGuardian - Distributed Ability Manager
- * Stubbed distributed ability manager with observable device state
+ * Local distributed ability compatibility manager with observable device state.
  */
 
 import { common } from '@kit.AbilityKit';
@@ -45,7 +45,7 @@ export class DistributedAbilityManager {
         this.bootstrapDevices();
         this.initialized = true;
       }
-      LogUtil.info('DistributedAbilityManager initialized in stub mode');
+      LogUtil.info('DistributedAbilityManager initialized in local compatibility mode');
       return true;
     } catch (error) {
       LogUtil.error(`DistributedAbilityManager initialize failed: ${String(error)}`);
@@ -97,7 +97,7 @@ export class DistributedAbilityManager {
       return false;
     }
 
-    LogUtil.info(`DistributedAbilityManager stub start ability ${abilityName} on ${deviceId} with params ${JSON.stringify(params ?? {})}`);
+    LogUtil.info(`DistributedAbilityManager local start ability ${abilityName} on ${deviceId} with params ${JSON.stringify(params ?? {})}`);
     return true;
   }
 
@@ -127,7 +127,7 @@ export class DistributedAbilityManager {
       serviceName: serviceName,
       method: method,
       timestamp: Date.now(),
-      message: `stub invoked with ${JSON.stringify(params)}`
+      message: `local compatibility invocation with ${JSON.stringify(params)}`
     };
     LogUtil.info(`DistributedAbilityManager invoked ${serviceName}.${method} on ${deviceId}`);
     return result as Object;

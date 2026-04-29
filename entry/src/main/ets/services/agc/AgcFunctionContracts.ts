@@ -79,6 +79,31 @@ export const AGC_FUNCTION_CONTRACTS: AgcFunctionContract[] = [
     routePrefixes: [ApiEndpoints.WORKBENCH]
   },
   {
+    domain: 'agent',
+    functionName: 'smartguardian-agent',
+    routePrefixes: [ApiEndpoints.AGENT]
+  },
+  {
+    domain: 'security',
+    functionName: 'smartguardian-security',
+    routePrefixes: [ApiEndpoints.SECURITY]
+  },
+  {
+    domain: 'event',
+    functionName: 'smartguardian-event',
+    routePrefixes: [ApiEndpoints.EVENTS]
+  },
+  {
+    domain: 'notification',
+    functionName: 'smartguardian-notification',
+    routePrefixes: [ApiEndpoints.NOTIFICATIONS]
+  },
+  {
+    domain: 'storage',
+    functionName: 'smartguardian-storage',
+    routePrefixes: [ApiEndpoints.STORAGE]
+  },
+  {
     domain: 'alert',
     functionName: 'smartguardian-alert',
     routePrefixes: [ApiEndpoints.ALERTS]

@@ -4,12 +4,11 @@
  */
 
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
-import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { ApiConfig } from '../config/api.config';
 import { RouteUrls } from '../constants/app.constants';
-import { AppLaunchCoordinatorService, AppLaunchTarget } from '../services/AppLaunchCoordinatorService';
 import { AppInitializationService } from '../services/AppInitializationService';
+import { FormCardSyncService } from '../services/FormCardSyncService';
 import { NotificationLaunchService } from '../services/NotificationLaunchService';
 import { LogUtil } from '../utils/LogUtil';
 import { ErrorHandlerUtil } from '../utils/ErrorHandlerUtil';
@@ -26,15 +25,6 @@ export default class EntryAbility extends UIAbility {
     ApiConfig.ensureRuntimeConfigReady();
     NotificationLaunchService.captureWant(want);
     LogUtil.info(`Runtime config: ${ApiConfig.describeRuntimeConfig()}`);
-
-    // TODO: 初始化 AppGallery Connect SDK
-    // 依赖安装完成后取消注释以下代码
-    // try {
-    //   agconnect.instance().init(this.context);
-    //   LogUtil.info('AGC SDK initialized successfully');
-    // } catch (err) {
-    //   LogUtil.error('Failed to initialize AGC SDK:', String(err));
-    // }
 
     // 设置颜色模式
     try {
@@ -59,6 +49,7 @@ export default class EntryAbility extends UIAbility {
       } else {
         LogUtil.warn('Some services failed to initialize: ' + JSON.stringify(status));
       }
+      await this.syncFormCards();
     } catch (error) {
       LogUtil.error('Service initialization error:', String(error));
     }
@@ -100,6 +91,7 @@ export default class EntryAbility extends UIAbility {
 
   onForeground(): void {
     LogUtil.info('EntryAbility onForeground');
+    this.syncFormCards();
   }
 
   onBackground(): void {
@@ -136,14 +128,6 @@ export default class EntryAbility extends UIAbility {
     }
   }
 
-  private resolveInitialContentRoute(): string {
-    const target: AppLaunchTarget = AppLaunchCoordinatorService.resolveEntryTarget();
-    if (target.paramsJson.length > 0) {
-      return RouteUrls.MAIN;
-    }
-    return target.route.length > 0 ? target.route : RouteUrls.LOGIN;
-  }
-
   private loadFallbackLogin(windowStage: window.WindowStage): void {
     windowStage.loadContent(RouteUrls.LOGIN, (err) => {
       if (err.code) {
@@ -152,5 +136,16 @@ export default class EntryAbility extends UIAbility {
       }
       this.initializeUIContext(windowStage);
     });
+  }
+
+  private async syncFormCards(): Promise<void> {
+    try {
+      const result = await FormCardSyncService.syncTodayStatus(this.context);
+      if (result.success) {
+        LogUtil.info(`Form cards synced: consistent=${result.consistent}, updatedForms=${result.updatedForms}`);
+      }
+    } catch (error) {
+      LogUtil.warn('Form card sync skipped: ' + String(error));
+    }
   }
 }

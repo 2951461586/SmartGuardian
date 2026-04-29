@@ -1,7 +1,7 @@
 /**
  * SmartGuardian - API Wrapper
  * Unified API call wrapper with error handling and retry
- * 
+ *
  * @description 统一的 API 调用封装，提供错误处理、重试和缓存功能
  * @features
  * - 统一的 API 调用方式
@@ -24,80 +24,16 @@ import {
   ErrorFactory
 } from '../errors';
 import { ApiResult } from './ApiResult';
+import { HttpMethod, RequestOptions, ApiResponse, CacheEntry } from './ApiTypes';
 
 const TAG = 'ApiWrapper';
 const DOMAIN = 0x0001;
 
-/**
- * HTTP Method
- */
-export enum HttpMethod {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-  PATCH = 'PATCH'
-}
-
-/**
- * Request options
- */
-export interface RequestOptions {
-  /** 请求URL */
-  url: string;
-  
-  /** 请求方法 */
-  method: HttpMethod;
-  
-  /** 请求数据 */
-  data?: object;
-  
-  /** 请求头 */
-  headers?: Record<string, string>;
-  
-  /** 是否需要认证 */
-  needAuth?: boolean;
-  
-  /** 超时时间（毫秒） */
-  timeout?: number;
-  
-  /** 重试次数 */
-  retryCount?: number;
-  
-  /** 重试延迟（毫秒） */
-  retryDelay?: number;
-  
-  /** 是否启用缓存（仅GET） */
-  enableCache?: boolean;
-  
-  /** 缓存时间（毫秒） */
-  cacheTime?: number;
-  
-  /** 请求来源（用于错误追踪） */
-  source?: string;
-}
-
-/**
- * API Response
- */
-export interface ApiResponse<T = object> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-/**
- * Cache entry
- */
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  cacheTime: number;
-}
+export { HttpMethod, RequestOptions, ApiResponse } from './ApiTypes';
 
 /**
  * API Wrapper
- * 
+ *
  * @description 统一的 API 调用封装
  * @class
  */
@@ -106,10 +42,10 @@ export class ApiWrapper {
   private static cache: Map<string, CacheEntry<Object>> = new Map();
   private static pendingRequests: Map<string, Promise<ApiResult<Object>>> = new Map();
   private static isRedirectingToLogin: boolean = false;
-  
+
   /**
    * GET request
-   * 
+   *
    * @description 发送 GET 请求
    * @template T - 响应数据类型
    * @param {string} url - 请求URL
@@ -145,10 +81,10 @@ export class ApiWrapper {
     };
     return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
-  
+
   /**
    * POST request
-   * 
+   *
    * @description 发送 POST 请求
    * @template T - 响应数据类型
    * @param {string} url - 请求URL
@@ -168,10 +104,10 @@ export class ApiWrapper {
     };
     return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
-  
+
   /**
    * PUT request
-   * 
+   *
    * @description 发送 PUT 请求
    * @template T - 响应数据类型
    * @param {string} url - 请求URL
@@ -191,10 +127,10 @@ export class ApiWrapper {
     };
     return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
-  
+
   /**
    * DELETE request
-   * 
+   *
    * @description 发送 DELETE 请求
    * @template T - 响应数据类型
    * @param {string} url - 请求URL
@@ -211,10 +147,10 @@ export class ApiWrapper {
     };
     return this.request<T>(this.applyPartialOptions(requestOptions, options));
   }
-  
+
   /**
    * Generic request
-   * 
+   *
    * @description 通用请求方法
    * @template T - 响应数据类型
    * @param {RequestOptions} options - 请求选项
@@ -232,7 +168,7 @@ export class ApiWrapper {
     const enableCache = options.enableCache ?? false;
     const cacheTime = options.cacheTime ?? 5 * 60 * 1000;
     const source = options.source ?? 'ApiWrapper';
-    
+
     // 检查缓存（仅GET请求）
     if (method === HttpMethod.GET && enableCache) {
       const cached = this.getFromCache<T>(url, cacheTime);
@@ -240,7 +176,7 @@ export class ApiWrapper {
         return ApiResult.success(cached);
       }
     }
-    
+
     // 检查重复请求（防止重复提交）
     const requestKey = `${method}:${url}:${JSON.stringify(data)}`;
     if (method !== HttpMethod.GET && this.pendingRequests.has(requestKey)) {
@@ -253,7 +189,7 @@ export class ApiWrapper {
         return ApiResult.failure(error as AppError);
       }
     }
-    
+
     // 执行请求
     const executeRequest = async (): Promise<ApiResult<T>> => {
       try {
@@ -266,42 +202,42 @@ export class ApiWrapper {
           timeout,
           source
         });
-        
+
         // 缓存结果（仅GET请求）
         if (method === HttpMethod.GET && enableCache) {
           this.setCache(url, response.data, cacheTime);
         }
-        
+
         return ApiResult.success(response.data);
       } catch (error) {
         const appError = error instanceof AppError
           ? error
           : ErrorFactory.fromError(error as Error, { source, operation: `${method} ${url}` });
-        
+
         // 判断是否需要重试
         if (retryCount > 0 && appError.retryable) {
           hilog.warn(DOMAIN, TAG, `Retrying request: ${url}, remaining: ${retryCount}`);
           await this.delay(retryDelay);
           return this.request<T>(this.copyRequestOptionsWithRetry(options, retryCount - 1));
         }
-        
+
         return ApiResult.failure(appError);
       }
     };
-    
+
     // 设置pending请求
     const requestPromise = executeRequest();
     if (method !== HttpMethod.GET) {
       this.pendingRequests.set(requestKey, requestPromise as Promise<ApiResult<Object>>);
     }
-    
+
     try {
       return await requestPromise;
     } finally {
       this.pendingRequests.delete(requestKey);
     }
   }
-  
+
   /**
    * Execute HTTP request
    */
@@ -321,7 +257,7 @@ export class ApiWrapper {
     const needAuth = options.needAuth;
     const timeout = options.timeout;
     const source = options.source;
-    
+
     try {
       const result = await AgcRequestAdapter.request<T>({
         url,
@@ -356,7 +292,7 @@ export class ApiWrapper {
     }
   }
 
-  
+
 
   private static applyPartialOptions(
     requestOptions: RequestOptions,
@@ -424,7 +360,7 @@ export class ApiWrapper {
     }
     return retryOptions;
   }
-  
+
   /**
    * Handle unauthorized
    */
@@ -432,7 +368,7 @@ export class ApiWrapper {
     if (this.isRedirectingToLogin) {
       return;
     }
-    
+
     this.isRedirectingToLogin = true;
     AppStorage.delete(this.TOKEN_KEY);
     AppStorage.delete(StorageKeys.USER_INFO);
@@ -440,18 +376,18 @@ export class ApiWrapper {
     AppStorage.delete(StorageKeys.WORKBENCH_MANIFEST);
     AppStorage.delete(StorageKeys.MAIN_NAVIGATION_SCOPE);
     AppStorage.setOrCreate(StorageKeys.MAIN_CURRENT_INDEX, 0);
-    
+
     try {
       router.replaceUrl({ url: RouteUrls.LOGIN });
     } catch (error) {
       hilog.error(DOMAIN, TAG, `Redirect to login failed: ${error}`);
     }
-    
+
     setTimeout(() => {
       this.isRedirectingToLogin = false;
     }, 300);
   }
-  
+
   /**
    * Get from cache
    */
@@ -460,16 +396,16 @@ export class ApiWrapper {
     if (!entry) {
       return null;
     }
-    
+
     const now = Date.now();
     if (now - entry.timestamp > entry.cacheTime) {
       this.cache.delete(url);
       return null;
     }
-    
+
     return entry.data;
   }
-  
+
   /**
    * Set cache
    */
@@ -480,7 +416,7 @@ export class ApiWrapper {
       cacheTime
     });
   }
-  
+
   /**
    * Clear cache
    */
@@ -491,7 +427,7 @@ export class ApiWrapper {
       this.cache.clear();
     }
   }
-  
+
   /**
    * Delay
    */

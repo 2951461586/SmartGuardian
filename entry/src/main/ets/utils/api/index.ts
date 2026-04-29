@@ -4,4 +4,5 @@
  */
 
 export { ApiResult, PaginatedResult, createPaginatedResult } from './ApiResult';
-export { ApiWrapper, HttpMethod, RequestOptions, ApiResponse, api } from './ApiWrapper';
+export { HttpMethod, RequestOptions, ApiResponse, CacheEntry } from './ApiTypes';
+export { ApiWrapper, api } from './ApiWrapper';

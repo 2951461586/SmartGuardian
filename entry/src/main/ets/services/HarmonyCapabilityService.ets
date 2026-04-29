@@ -19,10 +19,10 @@ export class HarmonyCapabilityStatus {
 }
 
 export class HarmonyCapabilityService {
-  static getCapabilityStatus(): HarmonyCapabilityStatus {
+  static async getCapabilityStatus(): Promise<HarmonyCapabilityStatus> {
     const status = new HarmonyCapabilityStatus();
     status.account = HarmonyAccountService.getStatus();
-    status.push = HarmonyPushEndpointService.getStatus();
+    status.push = await HarmonyPushEndpointService.getStatus();
     status.notificationEnabled = HarmonyCapabilityService.isNotificationEnabled();
     status.attendanceReminderEnabled = HarmonyCapabilityService.isAttendanceReminderEnabled();
     status.locationReady = true;
@@ -52,7 +52,7 @@ export class HarmonyCapabilityService {
     await NotificationUtil.setBadgeNumber(0);
   }
 
-  static async previewMessageDispatch(
+  static async dispatchLocalMessageNotification(
     messageType: string,
     title: string,
     content: string,

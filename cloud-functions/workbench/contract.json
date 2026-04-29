@@ -1,6 +1,12 @@
 {
   "domain": "workbench",
   "functionName": "smartguardian-workbench",
-  "routePrefixes": ["/api/v1/workbench"],
-  "collections": ["workbench_manifests", "user_roles"]
+  "routePrefixes": [
+    "/api/v1/workbench"
+  ],
+  "collections": [
+    "workbench_manifests",
+    "user_roles",
+    "security_audit_events"
+  ]
 }

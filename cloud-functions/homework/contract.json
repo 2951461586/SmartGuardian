@@ -1,6 +1,13 @@
 {
   "domain": "homework",
   "functionName": "smartguardian-homework",
-  "routePrefixes": ["/api/v1/homework/tasks", "/api/v1/homework/feedback"],
-  "collections": ["homework_tasks", "homework_feedback"]
+  "routePrefixes": [
+    "/api/v1/homework/tasks",
+    "/api/v1/homework/feedback"
+  ],
+  "collections": [
+    "homework_tasks",
+    "homework_feedback",
+    "security_audit_events"
+  ]
 }

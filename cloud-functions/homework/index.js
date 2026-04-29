@@ -5,6 +5,7 @@ const { getHomeworkTaskViewAsync, getHomeworkFeedbackViewAsync } = require('../s
 const { nowIso } = require('../shared/time');
 const { badRequest, notFound } = require('../shared/errors');
 const { filterHomeworkForUser, assertStudentAccess } = require('../shared/auth');
+const { emitDomainEventAsync } = require('../shared/events');
 
 const routes = [
   {
@@ -61,6 +62,18 @@ const routes = [
         createdAt,
         updatedAt: createdAt
       });
+      await emitDomainEventAsync({
+        eventType: 'HOMEWORK_TASK_CREATED',
+        bizType: 'HOMEWORK',
+        bizId: task.id,
+        studentId: task.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          subject: task.subject,
+          title: task.title,
+          status: task.status
+        }
+      });
       return ok(await getHomeworkTaskViewAsync(task), 'task created');
     }
   },
@@ -96,6 +109,17 @@ const routes = [
         status: body.status,
         completedTime: body.status === 'COMPLETED' || body.status === 'CONFIRMED' ? nowIso() : task.completedTime,
         updatedAt: nowIso()
+      });
+      await emitDomainEventAsync({
+        eventType: 'HOMEWORK_STATUS_UPDATED',
+        bizType: 'HOMEWORK',
+        bizId: updated.id,
+        studentId: updated.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          status: updated.status,
+          title: updated.title || ''
+        }
       });
       return ok(await getHomeworkTaskViewAsync(updated), 'task status updated');
     }
@@ -148,6 +172,17 @@ const routes = [
         createdAt,
         updatedAt: createdAt
       });
+      await emitDomainEventAsync({
+        eventType: 'HOMEWORK_FEEDBACK_SUBMITTED',
+        bizType: 'HOMEWORK',
+        bizId: feedback.id,
+        studentId: feedback.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          taskId: feedback.taskId,
+          status: feedback.status
+        }
+      });
       return ok(await getHomeworkFeedbackViewAsync(feedback), 'feedback submitted');
     }
   },
@@ -173,6 +208,17 @@ const routes = [
           updatedAt: nowIso()
         });
       }
+      await emitDomainEventAsync({
+        eventType: 'HOMEWORK_FEEDBACK_CONFIRMED',
+        bizType: 'HOMEWORK',
+        bizId: updated.id,
+        studentId: updated.studentId,
+        actorUserId: auth.user.id,
+        payload: {
+          taskId: updated.taskId,
+          status: updated.status
+        }
+      });
       return ok(await getHomeworkFeedbackViewAsync(updated), 'feedback confirmed');
     }
   }

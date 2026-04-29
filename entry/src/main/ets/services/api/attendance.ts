@@ -11,7 +11,14 @@
 
 import { get, post } from '../../utils/request';
 import { ApiResponse, PageResponse } from '../../models/common';
-import { AttendanceRecord, SignInRequest, SignOutRequest, LeaveRequest, LeaveRecord } from '../../models/attendance';
+import {
+  AttendanceRecord,
+  AttendanceStatistics,
+  SignInRequest,
+  SignOutRequest,
+  LeaveRequest,
+  LeaveRecord
+} from '../../models/attendance';
 import { ApiEndpoints } from '../../constants/ApiEndpoints';
 
 /**
@@ -106,5 +113,50 @@ export class AttendanceService {
    */
   static async submitLeave(data: LeaveRequest): Promise<ApiResponse<LeaveRecord>> {
     return post<LeaveRecord>(ApiEndpoints.ATTENDANCE_LEAVE, data);
+  }
+
+  /**
+   * Get leave requests
+   *
+   * @description 分页获取请假申请，支持按学生、日期和状态筛选
+   * @param params 查询参数
+   * @returns 分页请假记录响应
+   */
+  static async getLeaveRequests(params?: {
+    pageNum?: number;
+    pageSize?: number;
+    studentId?: number;
+    leaveDate?: string;
+    status?: string;
+  }): Promise<ApiResponse<PageResponse<LeaveRecord>>> {
+    return get<PageResponse<LeaveRecord>>(ApiEndpoints.ATTENDANCE_LEAVE, params);
+  }
+
+  /**
+   * Cancel leave request
+   *
+   * @description 取消待审核请假申请
+   * @param leaveId 请假记录ID
+   * @returns 取消后的请假记录响应
+   */
+  static async cancelLeave(leaveId: number): Promise<ApiResponse<LeaveRecord>> {
+    return post<LeaveRecord>(ApiEndpoints.attendanceLeaveCancel(leaveId));
+  }
+
+  /**
+   * Get attendance statistics
+   *
+   * @description 获取考勤与请假汇总统计
+   * @param params 查询参数
+   * @returns 考勤统计响应
+   */
+  static async getStatistics(params?: {
+    studentId?: number;
+    sessionId?: number;
+    attendanceDate?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<ApiResponse<AttendanceStatistics>> {
+    return get<AttendanceStatistics>(ApiEndpoints.ATTENDANCE_STATS, params);
   }
 }

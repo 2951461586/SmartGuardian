@@ -1,11 +1,17 @@
 ﻿{
-    "generatedAt":  "2026-04-28T14:01:47",
+    "generatedAt":  "2026-04-29T10:56:14",
     "source":  "cloud-functions/function-manifest.json",
-    "packageCount":  16,
+    "packageMode":  "full",
+    "packageCount":  17,
     "commonEnvironment":  {
                               "SMARTGUARDIAN_CLOUD_DB_PROVIDER":  "agc",
                               "AGC_CLOUD_DB_ZONE":  "ClouddbDev",
-                              "AGC_REGION":  "CN"
+                              "AGC_REGION":  "CN",
+                              "SMARTGUARDIAN_LLM_PROVIDER":  "openai-compatible",
+                              "SMARTGUARDIAN_LLM_BASE_URL":  "\u003cllm-chat-completions-base-url\u003e",
+                              "SMARTGUARDIAN_LLM_MODEL":  "\u003cllm-model\u003e",
+                              "SMARTGUARDIAN_LLM_API_KEY":  "\u003cconfigure-in-agc-environment\u003e",
+                              "SMARTGUARDIAN_LLM_TIMEOUT_MS":  "12000"
                           },
     "functions":  [
                       {
@@ -285,6 +291,35 @@
                           "collections":  [
                                               "workbench_manifests",
                                               "user_roles"
+                                          ]
+                      },
+                      {
+                          "domain":  "agent",
+                          "functionName":  "smartguardian-agent",
+                          "zip":  "smartguardian-agent.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-agent-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/agent"
+                                            ],
+                          "collections":  [
+                                              "users",
+                                              "students",
+                                              "student_guardians",
+                                              "sessions",
+                                              "session_students",
+                                              "attendance_records",
+                                              "leave_requests",
+                                              "homework_tasks",
+                                              "homework_feedback",
+                                              "messages",
+                                              "alerts",
+                                              "orders",
+                                              "daily_reports",
+                                              "workbench_manifests"
                                           ]
                       }
                   ]

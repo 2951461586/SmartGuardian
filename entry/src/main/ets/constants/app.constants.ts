@@ -55,6 +55,10 @@ export class StorageKeys {
   static readonly AGC_AUTH_USER_UID = 'smart_guardian_agc_auth_user_uid';
   static readonly AGC_AUTH_USER_PHONE = 'smart_guardian_agc_auth_user_phone';
   static readonly AGC_RUNTIME_ERROR = 'smart_guardian_agc_runtime_error';
+  static readonly PUSH_KIT_TOKEN = 'smart_guardian_push_kit_token';
+  static readonly PUSH_KIT_DEVICE_ID = 'smart_guardian_push_kit_device_id';
+  static readonly PUSH_KIT_TOKEN_UPDATED_AT = 'smart_guardian_push_kit_token_updated_at';
+  static readonly PUSH_KIT_PROVIDER_MESSAGE = 'smart_guardian_push_kit_provider_message';
   static readonly NOTIFICATION_TARGET_ROUTE = 'smart_guardian_notification_target_route';
   static readonly NOTIFICATION_TARGET_PARAMS = 'smart_guardian_notification_target_params';
 

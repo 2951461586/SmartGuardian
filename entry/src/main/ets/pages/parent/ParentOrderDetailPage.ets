@@ -102,7 +102,7 @@ struct ParentOrderDetailPage {
   }
 
   private handleCancel() {
-    console.log('Cancel order');
+    // TODO: 接入订单取消 API（需云函数 order 域补充 cancel 路由）
   }
 
   private getStatusText(status: string): string {

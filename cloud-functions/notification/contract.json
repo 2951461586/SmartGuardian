@@ -1,0 +1,14 @@
+{
+  "domain": "notification",
+  "functionName": "smartguardian-notification",
+  "routePrefixes": [
+    "/api/v1/notifications"
+  ],
+  "collections": [
+    "notification_jobs",
+    "notification_delivery_receipts",
+    "user_notification_preferences",
+    "user_sessions",
+    "security_audit_events"
+  ]
+}

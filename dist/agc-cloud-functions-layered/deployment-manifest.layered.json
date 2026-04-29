@@ -1,120 +1,330 @@
-{
-  "project": "SmartGuardian",
-  "version": "2026.04.25",
-  "runtime": "nodejs",
-  "gatewayPrefix": "/api/v1",
-  "functions": [
-    {
-      "domain": "auth",
-      "functionName": "smartguardian-auth",
-      "entry": "auth/index.js",
-      "routePrefixes": ["/api/v1/auth"],
-      "collections": ["users", "user_sessions", "user_roles"]
-    },
-    {
-      "domain": "user",
-      "functionName": "smartguardian-user",
-      "entry": "user/index.js",
-      "routePrefixes": ["/api/v1/users", "/api/v1/auth/me"],
-      "collections": ["users", "user_profiles", "user_roles"]
-    },
-    {
-      "domain": "student",
-      "functionName": "smartguardian-student",
-      "entry": "student/index.js",
-      "routePrefixes": ["/api/v1/students"],
-      "collections": ["students", "guardians", "student_guardians"]
-    },
-    {
-      "domain": "service",
-      "functionName": "smartguardian-service",
-      "entry": "service/index.js",
-      "routePrefixes": ["/api/v1/service-products"],
-      "collections": ["service_products"]
-    },
-    {
-      "domain": "order",
-      "functionName": "smartguardian-order",
-      "entry": "order/index.js",
-      "routePrefixes": ["/api/v1/orders"],
-      "collections": ["orders", "order_items", "order_audits"]
-    },
-    {
-      "domain": "session",
-      "functionName": "smartguardian-session",
-      "entry": "session/index.js",
-      "routePrefixes": ["/api/v1/sessions"],
-      "collections": ["sessions", "session_students", "session_teachers"]
-    },
-    {
-      "domain": "attendance",
-      "functionName": "smartguardian-attendance",
-      "entry": "attendance/index.js",
-      "routePrefixes": ["/api/v1/attendance"],
-      "collections": ["attendance_records", "leave_requests"]
-    },
-    {
-      "domain": "homework",
-      "functionName": "smartguardian-homework",
-      "entry": "homework/index.js",
-      "routePrefixes": ["/api/v1/homework/tasks", "/api/v1/homework/feedback"],
-      "collections": ["homework_tasks", "homework_feedback"]
-    },
-    {
-      "domain": "message",
-      "functionName": "smartguardian-message",
-      "entry": "message/index.js",
-      "routePrefixes": ["/api/v1/messages"],
-      "collections": ["messages", "message_receipts"]
-    },
-    {
-      "domain": "alert",
-      "functionName": "smartguardian-alert",
-      "entry": "alert/index.js",
-      "routePrefixes": ["/api/v1/alerts"],
-      "collections": ["alerts", "alert_actions"]
-    },
-    {
-      "domain": "report",
-      "functionName": "smartguardian-report",
-      "entry": "report/index.js",
-      "routePrefixes": ["/api/v1/reports"],
-      "collections": ["daily_reports", "report_snapshots"]
-    },
-    {
-      "domain": "refund",
-      "functionName": "smartguardian-refund",
-      "entry": "refund/index.js",
-      "routePrefixes": ["/api/v1/refunds"],
-      "collections": ["refunds", "refund_audits"]
-    },
-    {
-      "domain": "timeline",
-      "functionName": "smartguardian-timeline",
-      "entry": "timeline/index.js",
-      "routePrefixes": ["/api/v1/timeline"],
-      "collections": ["student_timelines"]
-    },
-    {
-      "domain": "card",
-      "functionName": "smartguardian-card",
-      "entry": "card/index.js",
-      "routePrefixes": ["/api/v1/cards"],
-      "collections": ["form_cards", "student_timelines", "alerts"]
-    },
-    {
-      "domain": "payment",
-      "functionName": "smartguardian-payment",
-      "entry": "payment/index.js",
-      "routePrefixes": ["/api/v1/payments"],
-      "collections": ["payments", "payment_callbacks", "orders"]
-    },
-    {
-      "domain": "workbench",
-      "functionName": "smartguardian-workbench",
-      "entry": "workbench/index.js",
-      "routePrefixes": ["/api/v1/workbench"],
-      "collections": ["workbench_manifests", "user_roles"]
-    }
-  ]
+﻿{
+    "generatedAt":  "2026-04-29T11:43:50",
+    "source":  "cloud-functions/function-manifest.json",
+    "packageMode":  "layered",
+    "packageCount":  17,
+    "commonEnvironment":  {
+                              "SMARTGUARDIAN_CLOUD_DB_PROVIDER":  "agc",
+                              "SMARTGUARDIAN_CLOUD_DB_ZONE":  "ClouddbDev",
+                              "SMARTGUARDIAN_REGION":  "CN",
+                              "SMARTGUARDIAN_PROJECT_CREDENTIAL_JSON_BASE64":  "\u003cagc-apiclient-json-base64\u003e",
+                              "AGC_CLOUD_DB_ZONE":  "ClouddbDev",
+                              "AGC_REGION":  "CN",
+                              "SMARTGUARDIAN_LLM_PROVIDER":  "baiduqianfancodingplan",
+                              "SMARTGUARDIAN_LLM_BASE_URL":  "https://qianfan.baidubce.com/v2/coding",
+                              "SMARTGUARDIAN_LLM_MODEL":  "qianfan-code-latest",
+                              "SMARTGUARDIAN_LLM_API_KEY":  "\u003cconfigure-in-agc-environment\u003e",
+                              "SMARTGUARDIAN_LLM_TIMEOUT_MS":  "30000",
+                              "SMARTGUARDIAN_LLM_DISABLED":  "false"
+                          },
+    "functions":  [
+                      {
+                          "domain":  "auth",
+                          "functionName":  "smartguardian-auth",
+                          "zip":  "smartguardian-auth.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-auth-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/auth"
+                                            ],
+                          "collections":  [
+                                              "users",
+                                              "user_sessions",
+                                              "user_roles"
+                                          ]
+                      },
+                      {
+                          "domain":  "user",
+                          "functionName":  "smartguardian-user",
+                          "zip":  "smartguardian-user.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-user-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/users",
+                                                "/api/v1/auth/me"
+                                            ],
+                          "collections":  [
+                                              "users",
+                                              "user_profiles",
+                                              "user_roles"
+                                          ]
+                      },
+                      {
+                          "domain":  "student",
+                          "functionName":  "smartguardian-student",
+                          "zip":  "smartguardian-student.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-student-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/students"
+                                            ],
+                          "collections":  [
+                                              "students",
+                                              "guardians",
+                                              "student_guardians"
+                                          ]
+                      },
+                      {
+                          "domain":  "service",
+                          "functionName":  "smartguardian-service",
+                          "zip":  "smartguardian-service.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-service-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/service-products"
+                                            ],
+                          "collections":  [
+                                              "service_products"
+                                          ]
+                      },
+                      {
+                          "domain":  "order",
+                          "functionName":  "smartguardian-order",
+                          "zip":  "smartguardian-order.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-order-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/orders"
+                                            ],
+                          "collections":  [
+                                              "orders",
+                                              "order_items",
+                                              "order_audits"
+                                          ]
+                      },
+                      {
+                          "domain":  "session",
+                          "functionName":  "smartguardian-session",
+                          "zip":  "smartguardian-session.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-session-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/sessions"
+                                            ],
+                          "collections":  [
+                                              "sessions",
+                                              "session_students",
+                                              "session_teachers"
+                                          ]
+                      },
+                      {
+                          "domain":  "attendance",
+                          "functionName":  "smartguardian-attendance",
+                          "zip":  "smartguardian-attendance.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-attendance-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/attendance"
+                                            ],
+                          "collections":  [
+                                              "attendance_records",
+                                              "leave_requests"
+                                          ]
+                      },
+                      {
+                          "domain":  "homework",
+                          "functionName":  "smartguardian-homework",
+                          "zip":  "smartguardian-homework.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-homework-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/homework/tasks",
+                                                "/api/v1/homework/feedback"
+                                            ],
+                          "collections":  [
+                                              "homework_tasks",
+                                              "homework_feedback"
+                                          ]
+                      },
+                      {
+                          "domain":  "message",
+                          "functionName":  "smartguardian-message",
+                          "zip":  "smartguardian-message.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-message-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/messages"
+                                            ],
+                          "collections":  [
+                                              "messages",
+                                              "message_receipts"
+                                          ]
+                      },
+                      {
+                          "domain":  "alert",
+                          "functionName":  "smartguardian-alert",
+                          "zip":  "smartguardian-alert.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-alert-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/alerts"
+                                            ],
+                          "collections":  [
+                                              "alerts",
+                                              "alert_actions"
+                                          ]
+                      },
+                      {
+                          "domain":  "report",
+                          "functionName":  "smartguardian-report",
+                          "zip":  "smartguardian-report.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-report-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/reports"
+                                            ],
+                          "collections":  [
+                                              "daily_reports",
+                                              "report_snapshots"
+                                          ]
+                      },
+                      {
+                          "domain":  "refund",
+                          "functionName":  "smartguardian-refund",
+                          "zip":  "smartguardian-refund.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-refund-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/refunds"
+                                            ],
+                          "collections":  [
+                                              "refunds",
+                                              "refund_audits"
+                                          ]
+                      },
+                      {
+                          "domain":  "timeline",
+                          "functionName":  "smartguardian-timeline",
+                          "zip":  "smartguardian-timeline.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-timeline-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/timeline"
+                                            ],
+                          "collections":  [
+                                              "student_timelines"
+                                          ]
+                      },
+                      {
+                          "domain":  "card",
+                          "functionName":  "smartguardian-card",
+                          "zip":  "smartguardian-card.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-card-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/cards"
+                                            ],
+                          "collections":  [
+                                              "form_cards",
+                                              "student_timelines",
+                                              "alerts"
+                                          ]
+                      },
+                      {
+                          "domain":  "payment",
+                          "functionName":  "smartguardian-payment",
+                          "zip":  "smartguardian-payment.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-payment-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/payments"
+                                            ],
+                          "collections":  [
+                                              "payments",
+                                              "payment_callbacks",
+                                              "orders"
+                                          ]
+                      },
+                      {
+                          "domain":  "workbench",
+                          "functionName":  "smartguardian-workbench",
+                          "zip":  "smartguardian-workbench.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-workbench-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/workbench"
+                                            ],
+                          "collections":  [
+                                              "workbench_manifests",
+                                              "user_roles"
+                                          ]
+                      },
+                      {
+                          "domain":  "agent",
+                          "functionName":  "smartguardian-agent",
+                          "zip":  "smartguardian-agent.zip",
+                          "entry":  "index.handler",
+                          "runtime":  "Node.js",
+                          "triggerType":  "HTTP",
+                          "method":  "POST",
+                          "suggestedTriggerIdentifier":  "smartguardian-agent-$latest",
+                          "routePrefixes":  [
+                                                "/api/v1/agent"
+                                            ],
+                          "collections":  [
+                                              "users",
+                                              "students",
+                                              "student_guardians",
+                                              "sessions",
+                                              "session_students",
+                                              "attendance_records",
+                                              "leave_requests",
+                                              "homework_tasks",
+                                              "homework_feedback",
+                                              "messages",
+                                              "alerts",
+                                              "orders",
+                                              "daily_reports",
+                                              "workbench_manifests"
+                                          ]
+                      }
+                  ]
 }

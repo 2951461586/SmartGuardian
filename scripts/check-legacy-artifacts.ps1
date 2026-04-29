@@ -28,6 +28,16 @@ $blockedPatterns = @(
     Name = 'retired mock dependency'
     Pattern = '@ohos/hamock|MockKit'
     Paths = @('oh-package.json5', 'oh-package-lock.json5', 'entry\oh-package.json5', 'entry\src')
+  },
+  @{
+    Name = 'retired runtime mock switch'
+    Pattern = 'MockServiceSwitch|MockControl|services\\mock'
+    Paths = @('entry\src\main\ets')
+  },
+  @{
+    Name = 'preview-only or stub runtime wording'
+    Pattern = 'previewMessageDispatch|stub mode|stub invoked'
+    Paths = @('entry\src\main\ets')
   }
 )
 

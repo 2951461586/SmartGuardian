@@ -47,3 +47,12 @@ export * from './card';
 
 // Workbench manifest models
 export * from './workbench';
+
+// Agent models
+export * from './agent';
+
+// Security audit models
+export * from './security';
+
+// Cloud orchestration models
+export * from './cloud';

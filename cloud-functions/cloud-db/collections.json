@@ -4,162 +4,367 @@
     {
       "name": "users",
       "description": "Unified account identity for parent, teacher and admin users",
-      "indexes": ["mobile", "roleType", "orgId", "status"]
+      "indexes": [
+        "mobile",
+        "roleType",
+        "orgId",
+        "status"
+      ]
     },
     {
       "name": "user_profiles",
       "description": "Display profile, avatar and role extension fields",
-      "indexes": ["userId"]
+      "indexes": [
+        "userId"
+      ]
     },
     {
       "name": "user_roles",
       "description": "Role binding and permission scope",
-      "indexes": ["userId", "roleType"]
+      "indexes": [
+        "userId",
+        "roleType"
+      ]
     },
     {
       "name": "user_sessions",
       "description": "Login session and token state",
-      "indexes": ["userId", "sessionStatus", "expireAt", "deviceId", "notificationProvider"]
+      "indexes": [
+        "userId",
+        "sessionStatus",
+        "expireAt",
+        "deviceId",
+        "notificationProvider"
+      ]
     },
     {
       "name": "organizations",
       "description": "Trusteeship institutions, campuses and classes",
-      "indexes": ["orgCode", "status"]
+      "indexes": [
+        "orgCode",
+        "status"
+      ]
     },
     {
       "name": "students",
       "description": "Student core profile",
-      "indexes": ["studentNo", "schoolId", "guardianUserId", "orgId", "classId", "status"]
+      "indexes": [
+        "studentNo",
+        "schoolId",
+        "guardianUserId",
+        "orgId",
+        "classId",
+        "status"
+      ]
     },
     {
       "name": "guardians",
       "description": "Guardian profiles",
-      "indexes": ["mobile", "orgId"]
+      "indexes": [
+        "mobile",
+        "orgId"
+      ]
     },
     {
       "name": "student_guardians",
       "description": "Student and guardian relation mapping",
-      "indexes": ["studentId", "userId", "relation"]
+      "indexes": [
+        "studentId",
+        "userId",
+        "relation"
+      ]
     },
     {
       "name": "service_products",
       "description": "Trusteeship service products and pricing plans",
-      "indexes": ["orgId", "serviceType", "status"]
+      "indexes": [
+        "orgId",
+        "serviceType",
+        "status"
+      ]
     },
     {
       "name": "orders",
       "description": "Order header data",
-      "indexes": ["orderNo", "studentId", "serviceProductId", "orderStatus", "payStatus", "createdAt"]
+      "indexes": [
+        "orderNo",
+        "studentId",
+        "serviceProductId",
+        "orderStatus",
+        "payStatus",
+        "createdAt"
+      ]
     },
     {
       "name": "order_items",
       "description": "Order product lines",
-      "indexes": ["orderId", "serviceProductId"]
+      "indexes": [
+        "orderId",
+        "serviceProductId"
+      ]
     },
     {
       "name": "order_audits",
       "description": "Order audit trail",
-      "indexes": ["orderId", "auditStatus", "auditorId"]
+      "indexes": [
+        "orderId",
+        "auditStatus",
+        "auditorId"
+      ]
     },
     {
       "name": "sessions",
       "description": "Session schedule and roster metadata",
-      "indexes": ["sessionDate", "serviceProductId", "teacherUserId", "status"]
+      "indexes": [
+        "sessionDate",
+        "serviceProductId",
+        "teacherUserId",
+        "status"
+      ]
     },
     {
       "name": "session_students",
       "description": "Session to student roster relation",
-      "indexes": ["sessionId", "studentId"]
+      "indexes": [
+        "sessionId",
+        "studentId"
+      ]
     },
     {
       "name": "session_teachers",
       "description": "Session to teacher assignment relation",
-      "indexes": ["sessionId", "teacherUserId"]
+      "indexes": [
+        "sessionId",
+        "teacherUserId"
+      ]
     },
     {
       "name": "attendance_records",
       "description": "Student sign-in and sign-out records",
-      "indexes": ["studentId", "sessionId", "attendanceDate", "status", "abnormalFlag"]
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "attendanceDate",
+        "status",
+        "abnormalFlag"
+      ]
     },
     {
       "name": "leave_requests",
       "description": "Leave applications and approvals",
-      "indexes": ["studentId", "leaveDate", "status"]
+      "indexes": [
+        "studentId",
+        "leaveDate",
+        "status"
+      ]
     },
     {
       "name": "homework_tasks",
       "description": "Homework tasks created by teachers or institution staff",
-      "indexes": ["studentId", "sessionId", "taskDate", "status"]
+      "indexes": [
+        "studentId",
+        "sessionId",
+        "taskDate",
+        "status"
+      ]
     },
     {
       "name": "homework_feedback",
       "description": "Homework feedback, comments and confirmations",
-      "indexes": ["taskId", "studentId", "status"]
+      "indexes": [
+        "taskId",
+        "studentId",
+        "status"
+      ]
     },
     {
       "name": "messages",
       "description": "Notification and in-app message content",
-      "indexes": ["userId", "msgType", "readStatus", "createdAt"]
+      "indexes": [
+        "userId",
+        "msgType",
+        "readStatus",
+        "createdAt"
+      ]
     },
     {
       "name": "message_receipts",
       "description": "Read receipts for messages",
-      "indexes": ["messageId", "receiverUserId", "readStatus"]
+      "indexes": [
+        "messageId",
+        "receiverUserId",
+        "readStatus"
+      ]
     },
     {
       "name": "alerts",
       "description": "Abnormal alert records",
-      "indexes": ["studentId", "alertType", "severity", "status", "createdAt"]
+      "indexes": [
+        "studentId",
+        "alertType",
+        "severity",
+        "status",
+        "createdAt"
+      ]
     },
     {
       "name": "alert_actions",
       "description": "Acknowledge, resolve and dismiss audit trail",
-      "indexes": ["alertId", "actionType", "operatorId"]
+      "indexes": [
+        "alertId",
+        "actionType",
+        "operatorId"
+      ]
     },
     {
       "name": "refunds",
       "description": "Refund applications and decisions",
-      "indexes": ["orderId", "studentId", "status", "createdAt"]
+      "indexes": [
+        "orderId",
+        "studentId",
+        "status",
+        "createdAt"
+      ]
     },
     {
       "name": "refund_audits",
       "description": "Refund audit trail",
-      "indexes": ["refundId", "auditorId", "auditStatus"]
+      "indexes": [
+        "refundId",
+        "auditorId",
+        "auditStatus"
+      ]
     },
     {
       "name": "payments",
       "description": "Payment orders and settlement state",
-      "indexes": ["orderId", "payStatus", "payChannel", "createdAt"]
+      "indexes": [
+        "orderId",
+        "payStatus",
+        "payChannel",
+        "createdAt"
+      ]
     },
     {
       "name": "payment_callbacks",
       "description": "Third-party or gateway payment callback records",
-      "indexes": ["paymentId", "tradeStatus", "createdAt"]
+      "indexes": [
+        "paymentId",
+        "tradeStatus",
+        "createdAt"
+      ]
     },
     {
       "name": "student_timelines",
       "description": "Student activity timeline feed",
-      "indexes": ["studentId", "timelineType", "timestamp"]
+      "indexes": [
+        "studentId",
+        "timelineType",
+        "timestamp"
+      ]
     },
     {
       "name": "daily_reports",
       "description": "Pre-aggregated attendance, finance and operations report data",
-      "indexes": ["reportDate", "reportType", "orgId"]
+      "indexes": [
+        "reportDate",
+        "reportType",
+        "orgId"
+      ]
     },
     {
       "name": "report_snapshots",
       "description": "Saved report query snapshots",
-      "indexes": ["reportType", "orgId", "generatedAt"]
+      "indexes": [
+        "reportType",
+        "orgId",
+        "generatedAt"
+      ]
     },
     {
       "name": "form_cards",
       "description": "Workbench cards and widget payload cache",
-      "indexes": ["cardType", "targetRole", "studentId"]
+      "indexes": [
+        "cardType",
+        "targetRole",
+        "studentId"
+      ]
     },
     {
       "name": "workbench_manifests",
       "description": "Role-based workbench capability manifests",
-      "indexes": ["roleType", "version", "status"]
+      "indexes": [
+        "roleType",
+        "version",
+        "status"
+      ]
+    },
+    {
+      "name": "security_audit_events",
+      "description": "Route-level security audit events for AGC cloud functions",
+      "indexes": [
+        "domain",
+        "userId",
+        "roleType",
+        "eventType",
+        "createdAt",
+        "success"
+      ]
+    },
+    {
+      "name": "domain_events",
+      "description": "Domain event outbox for cloud orchestration",
+      "indexes": [
+        "eventType",
+        "bizType",
+        "bizId",
+        "studentId",
+        "status",
+        "createdAt"
+      ]
+    },
+    {
+      "name": "notification_jobs",
+      "description": "Cloud notification orchestration jobs",
+      "indexes": [
+        "eventId",
+        "userId",
+        "status",
+        "channel",
+        "provider",
+        "createdAt"
+      ]
+    },
+    {
+      "name": "notification_delivery_receipts",
+      "description": "Notification delivery receipts by session/device",
+      "indexes": [
+        "jobId",
+        "userId",
+        "sessionId",
+        "status",
+        "provider"
+      ]
+    },
+    {
+      "name": "user_notification_preferences",
+      "description": "Per-user notification preference and quiet hours",
+      "indexes": [
+        "userId",
+        "enabled"
+      ]
+    },
+    {
+      "name": "cloud_attachments",
+      "description": "AGC Cloud Storage attachment metadata",
+      "indexes": [
+        "ownerUserId",
+        "studentId",
+        "bizType",
+        "bizId",
+        "status",
+        "createdAt"
+      ]
     }
   ]
 }
